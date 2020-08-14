@@ -1,0 +1,26 @@
+--- 
+title: "Introduction to Regression Analysis"
+author: "Joshua P. Keller"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+description: "TBD"
+---
+
+
+
+# Foreword
+
+This book emerged from the course notes I developed as instructor for a course (STAT 341) at Colorado State University. My intent is for this to serve as a resource for an introductory-level coure on regression methods. Emphasis is on application and interpretation of methods, as much as on the mathematical foundations. This book assumes an understanding of basic statistical concepts, including expectation and variance. The examples almost exclusively use the R programming language, and basic familiarity with R is assumed. 
+
+
+```{r include=FALSE, eval=FALSE}
+library(ggplot2)
+library(dplyr)
+library(readr)
+```
+
