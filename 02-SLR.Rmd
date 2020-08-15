@@ -14,16 +14,22 @@ library(broom)
 
 <!-- ## Overview -->
 
-In simple linear regression (SLR), our goal is to find the best-fitting straight line through a set of paired $(x, y)$ data. For example, we could seek the best-fitting straight line, commonly called the **regression line**, for the penguin data:
+## The Simple Linear Regression (SLR) Model
 
-```{r g_penguin_flip_mass_lm, echo=F, message=FALSE}
+### Goal 
+
+In simple linear regression (SLR), our goal is to find the best-fitting straight line, commonly called the **regression line**, through a set of paired $(x, y)$ data. 
+
+For example, we could seek the best-fitting straight line for the penguin data:
+
+```{r g-penguin-flip-mass-lm1b, echo=F, message=FALSE}
 g_penguin_flip_mass <- penguins %>%
-  rename(Species=species) %>%
+  # rename(Species=species) %>%
   filter(!is.na(body_mass_g)) %>%
   ggplot(aes(x=flipper_length_mm,
            y=body_mass_g)) +
   theme_bw() + 
-  geom_point(aes(col=Species)) +
+  geom_point(aes()) +
     xlab("Flipper Length (mm)") +
     ylab("Body Mass (g)")
 g_penguin_flip_mass_lm <- g_penguin_flip_mass +
@@ -31,14 +37,11 @@ g_penguin_flip_mass_lm <- g_penguin_flip_mass +
 g_penguin_flip_mass_lm
 ```
  
-Note that SLR specifically refers to settings where there is only one predictor variable. In Chapter \@ref(mlr) we will extend this to multiple predictor variables.
-
-
-## The Simple Linear Regression (SLR) Model
+Throughout this chapter and the next, we will look more at how to interpret what this line means and how to estimate it.
 
 ### SLR model
 
-The **Simple Linear Regression (SLR) model** is:
+The equation for the **Simple Linear Regression (SLR) model** is:
 
 \begin{equation}
 Y_i = \beta_0 + \beta_1x_i + \epsilon_i
@@ -47,11 +50,11 @@ Y_i = \beta_0 + \beta_1x_i + \epsilon_i
 
 where:
 
-* $Y_i$ is a *random variable* representing the outcome
+* $Y_i$ is a *random variable* representing the outcome (e.g. body mass)
 
-* $x_i$ is a fixed predictor variable
+* $x_i$ is a fixed predictor variable (e.g., flipper length)
 
-* $i$ is an index for each observation
+* $i$ is an index for each observation (penguins, people, units, etc.)
 
 * $\beta_0$ is a parameter representing the intercept
 
@@ -59,12 +62,13 @@ where:
 
 * $\epsilon_i$ is a *random variable* representing variation (the "error" in the model)
 
+These five elements can be categorized as three different kinds of quantities:
 
-It's important to note that there are different kinds of values in this equation:
+* **Random variables** ($Y_i$ and $\epsilon_i$): Random quantities that are not directly observed. For a given dataset, the corresponding observed values will be denoted $y_i$ and $e_i$ (See Section \@ref(sec:realtheo))
+* **Parameters** ($\beta_0$ and $\beta_1$): Numbers that are fixed but unknown. These values are the same for all observations in the model. Estimating the values of these parameters (the topic of Section \@ref(slrestimation)) is the basic task in "fitting" a regression model. 
+* **Observed data** ($x_i$): Values that are fixed and known. Each observation can have a different value of $x_i$, or there could be as few as only two distinct values for $x_i$. Even though these might vary between datasets, the SLR model considers them fixed.
+SLR refers specifically to settings where there is only one predictor variable. In Chapter \@ref(mlr) we will extend this to multiple predictor variables.
 
-* **Random variables** ($Y_i$ and $\epsilon_i$): Random quantities that are not directly observed. (See Section \@ref(sec:realtheo))
-* **Parameters** ($\beta_0$ and $\beta_1$): Numbers that are fixed but unknown. These values are the same for all observations in the model.
-* **Observed data** ($x_i$): Values that are fixed and known, and can vary for each observation.
 
 ### SLR Model Assumptions
 
@@ -85,7 +89,9 @@ For now, the key assumption is $E[\epsilon_i] = 0$. Importantly, we do not requi
 
 ## Parameter Interpretation
 
-A consequence of assumption 1 ($\E[\epsilon_i] = 0$) is that the mean of $Y_i$ is a straight line:
+### Regression Line Equation
+
+A consequence of Sssumption 1 ($\E[\epsilon_i] = 0$) is that the mean of $Y_i$ is a straight line:
 
 \begin{align}
 \E[Y_i] &= \E[\beta_0 + \beta_1x_i + \epsilon_i] \notag\\
@@ -97,33 +103,31 @@ A consequence of assumption 1 ($\E[\epsilon_i] = 0$) is that the mean of $Y_i$ i
 This allows us to interpret the parameters $\beta_0$ and $\beta_1$ in terms of the  slope and intercept of the line.
 
 
-### Interpretation of $\beta_1$
+### Interpreting $\beta_1$
  
- 
-The $\beta_1$ parameter represents the **slope** of the regression line. In other words, $\beta_1$ is the difference in $\E[Y_i]$ between observations that have a one-unit difference in $x$.
+The $\beta_1$ parameter represents the **slope** of the regression line. In other words, $\beta_1$ is the difference in $\E[Y_i]$ between observations that differ in $x_i$ by one unit.
 
+In almost any data analysis project, an important task is providing an interpetation of the model parameters. When describing the interpretation of $\beta_1$, it is important to include these key elements:
 
-When writing an interpretation sentence for $\beta_1$, it is important to include these key elements:
-
-* An interpretation as a **difference** in average Y
+* An interpretation of $\beta_1$ as an **estiumated difference** in the average value of the outcome variable
   * For linear regression, "difference in average" is the same as "average difference". You can use either phrase.
-* Specify the predictor variable (x)
+  * In this section only, we are assuming that $\beta_1$ is known. Starting in Section \@ref(slrestimation) we will introduce estimates of this parameter and start including "estimated" in interpretations.
+* Specify that this is for a 1-unit difference in the predictor variable (x).
+* Be cautious about referring to $\beta_1$ as an "increase" or a "decrease". Those words imply that an intervention was conducted, in which the value of $x$ was directly modified. This is possible in controlled experiments, but is not the case for observational datasets.
+* Include confidence intervals (see Section \@ref(slrCI))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrCI)]
+* If appropriate, include information about the conclusion from a hypothesis test (see Section \@ref(slrhypothtest))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrhypothtest)]
 * Include units for both the outcome and predictor
 * If known, include statement about population/context.
 
-**Note:** We will expand this list once we discuss parameter estimation and inference. 
 
-
-```{example}
+```{example peng-beta1}
 Consider two groups of penguins:
 ```
 
 * Penguins that have flipper lengths of 201mm. Call this "Group A"
 * Penguins that have flipper lengths of 200mm. Call this "Group B"
 
-Assuming the SLR model \@ref(eq:slr), what is the difference in average body mass between these groups of penguins?
-
-To answer this, first write out the regression equation for the mean body mass in each group:
+Assuming the SLR model \@ref(eq:slr), what is the difference in average body mass between these groups of penguins? To answer this, first write out the regression equation for the mean body mass in each group:
 
 $$\text{Group A:} \quad \E[Y_A] = \beta_0 + \beta_1*201$$
 $$\text{Group B:} \quad \E[Y_B] = \beta_0 + \beta_1*200$$
@@ -135,25 +139,32 @@ Then take the difference between them:
 &= \beta_1
 \end{align*}
 
-
-Equivalent interpretation statements for $\beta_1$ in this context:
+Possible summarizing sentences for $\beta_1$:
 
 * $\beta_1$ is the difference in average body mass (in g) for penguins that differ in flipper length by 1 mm. 
 * The average difference in body mass for penguins that have 1 mm longer flippers is $\beta_1$ grams.
 * The difference in average body mass for penguins that differ in flipper length by one millimeter is $\beta_1$ grams.
 
 
-### Interpretation of $\beta_0$
+```{example}
+In Example \@ref(exm:peng-beta1), what is the interpretation of $10\beta_1$?
+```
+
+### Interpreting $\beta_0$
 
 
-The $\beta_0$ parameter represents the **intercept** of the regression line. In other words, $\beta_0$ is the average value of $Y_i$ (i.e. $\E[Y_i]$) for observations with an $x$ value of 0.
+The $\beta_0$ parameter represents the **intercept** of the regression line. In other words, $\beta_0$ is the average value of $Y_i$ (i.e. $\E[Y_i]$) for observations with an $x$ value of 0. While mathematically useful, $\beta_0$ might make no practical or scientific sense!
 
-**Note:** $\beta_0$ is mathematically useful, but its interpretation might make no scientific sense!
+When describing the interpretation of $\beta_0$, follow all of the same guidelines as for $\beta_1$ above, with the following exception:
+
+* Interpret it as the average **value** of the outcome variable (as opposed to a difference in the average value).
+* Specify it corresponds to a value of 0 for $x$, rather than a 1-unit difference in $x$.
+
 
 \textcolor{red}{TO ADD: A 10-unit difference here}
 
 
-```{example}
+```{example peng-beta0}
 Consider a third group of penguins:
 ```
 
@@ -166,7 +177,19 @@ Equivalent interpretation statements for $\beta_0$ in this context:
 * $\beta_0$ is the average body mass (in g) for penguins that have a flipper length of 0 mm. 
 * The average body mass for penguins that have 0 mm long flippers is $\beta_0$ grams.
 
+### Interpreting $\beta_0 + \beta_1x_i$
 
+From Equation \@ref(eq:slrmean), the points on the regression line can be interpreted as the average value of the outcome variable for units with a particular value of $x$.
+
+```{example}
+Consider penguins in Group A (from Example \@ref(exm:peng-beta1)). In terms of parameters in the simple linear regression mdoel, what is their average body mass?
+```  
+
+Since penguins in Group A have flipper lengths of $x_i = 200$mm, their average body mass is given by:
+
+$$\E[Y_i | x_i = 200] = \beta_0 + 200\beta_1.$$
+
+In Section \@ref(slrCIMean), we will see more on how to interpret this value and the difference between estimating a mean and predicting a new observation.
 
 
 ### Interpretation of $\sigma^2$
@@ -316,3 +339,17 @@ coef(lm_penguin)
 
 <!-- Note: $\hat\beta_0$ and $\hat\beta_1$ are calculated as numbers, but we need to think of them as realizations of a random generating process. This is because they are functions of the data, which we think of as a realization of a random generating process. -->
 
+
+## Exercises
+
+```{exercise}
+In the context of Example \@ref(exm:peng-beta1), what is an interpretation of $50\beta_1$?
+```
+
+```{exercise}
+In the context of Example \@ref(exm:peng-beta0), does the quantity $10\beta_0$ make practical sense? If yes, provide an interpretation. If no, explain why not.
+```
+
+```{exercise}
+Consider a variation of Example \@ref(exm:peng-beta1), in which a simple linear regression mdoel is fit with body mass (in g) as the *predictor* variable and flipper length (in mm) as the outcome. Explain how this switch affects the interpretations of $\beta_0$, $\beta_1$, and $\sigma^2$.
+```

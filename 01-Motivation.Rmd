@@ -9,13 +9,9 @@ library(palmerpenguins)
 
 ## The Palmer Penguins
 
-![](img/lter_penguins.png)
-
-(Artwork by \@allison_horst) 
-
+<!-- ![](img/lter_penguins.png) -->
+<!-- (Artwork by \@allison_horst)  -->
 <!-- ^[https://github.com/allisonhorst/palmerpenguins]) -->
-
-
 
 At the Palmer research station in Antarctica^[https://pal.lternet.edu], researchers made measurements on three different penguin species: Adélie, Chinstrap, and Gentoo. The `palmerpenguin` R package (@palmerpenguins) contains these measurements, which include 342 measurements of the flipper length and body mass:
 
