@@ -1,0 +1,210 @@
+# Introduction and Example Datasets
+
+```{r include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(palmerpenguins)
+```
+
+## The Palmer Penguins
+
+![](img/lter_penguins.png)
+
+(Artwork by \@allison_horst) 
+
+<!-- ^[https://github.com/allisonhorst/palmerpenguins]) -->
+
+
+
+At the Palmer research station in Antarctica^[https://pal.lternet.edu], researchers made measurements on three different penguin species: Adélie, Chinstrap, and Gentoo. The `palmerpenguin` R package (@palmerpenguins) contains these measurements, which include 342 measurements of the flipper length and body mass:
+
+```{r g-penguin-flip-mass, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset."}
+g_penguin_flip_mass <- penguins %>%
+  rename(Species=species) %>%
+  filter(!is.na(body_mass_g)) %>%
+  ggplot(aes(x=flipper_length_mm,
+           y=body_mass_g)) +
+  theme_bw() + 
+  geom_point(aes(col=Species)) +
+    xlab("Flipper Length (mm)") +
+    ylab("Body Mass (g)")
+g_penguin_flip_mass
+```
+
+From Figure \@ref(fig:g-penguin-flip-mass), there clearly seems to be a relationship between flipper length and body mass of the penguins. Can we quantify the size and strength of this relationship?
+
+Yes! Using linear regression we can find the best fitting line through the data:
+
+```{r g-penguin-flip-mass-lm, echo=FALSE, message=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset, with best fitting line."}
+g_penguin_flip_mass_lm <- g_penguin_flip_mass +
+  geom_smooth(se=FALSE, method="lm", col="black")
+g_penguin_flip_mass_lm
+```
+The slope of this line tells us about the size and direction of the relationship between flipper length and body mass. We can also estimate the amount of uncertainty in the intercept and slope of the line.
+
+## What is regression?
+
+Finding the best fitting line in Figure \@ref(fig:g-penguin-flip-mass-lm) is an example of **simple linear regression**, which is a statistical method for explaining variability in an one quantity (e.g. penguin body mass) using variation in a different quantity (e.g. penguin flipper length).
+
+More generally, regression is a statistical method for explaining variability in an **outcome variable** (other names include: independent variable, covariate, explanatory variable, regressor) using variation in one or more **predictor variables** (other names include: dependent variable, response variable).
+
+In linear regression, the outcome variable is always a continuous variable, meaning that it takes on any numerical values. The values might be only over a specific range (e.g. body mass is necessarily greater than zero) and have a limited precision (e.g. body mass is only meausred out to a certain number of decimal places). If the outcome variable is binary (e.g. sick/healthy) or categorical (e.g. species), then a different form of regression is needed. This book and course focus primarily on linear regression, but we will briefly cover other types of regression in Chapter \@ref(sec:logistic).
+
+On the other hand, the predictor variables can be continuous or categorical. In Simple Linear Regression (Chapter \@ref(sec:slr)), there is only one continuous predictor variable. But in general, the predictors can be any combination of variable types, including interactions (Section \@ref(sec:indinter)) and non-linear transformations (Section \@ref(sec:transform)).
+
+## Regression Goals
+We can describe the goals of regression in two ways: the scientific goals and the practical (mathematical) goals.
+
+### Scientific Goals {#sec:scigoals}
+
+The **scientific goals** of regression are: description, inference, and prediction.
+
+The **descriptive** goal of regression is focused on showing the relationship between $x$ and $y$. Emphasis is on quantifying and visualizing the relationship, rather than on drawing specific conclusions. Descriptive goals are inherently exploratory, and don't always require a specific question. Sometimes, we have data on an entire population, in which case the goal of the analysis is about describing relationships rather than making inference for a larger population.
+
+One of the fundamental goals of statistics, and one that sets it apart from other data science fields, is **inference**. Inference takes a descriptive analysis one step further, and uses information about uncertainty to quantify the *strength* of a relationship. In short, inference is used to answer the question: *Is there a relationship between $x$ and $y$, beyond what we would just expect by chance?*
+Fundamental tools in statistical inference are confidence intervals and hypothesis testing.
+
+A third, and fundamentally different, goal of regression analysis is **prediction**, when we want to predict values of $y$ for new observations using their value of $x$. Prediction is perhaps the most common goal in much of machine learning, and regression is only one of many tools that can be used to make predictions for a dataset.
+
+Consider the following example questions using the penguin dataset:
+
+1. **Descriptive**: What is the shape of the relationship between flipper length and body mass?
+2. **Inferential**: Is there a relationship between flipper length and average body mass in penguins?
+3. **Prediction**: What is the predicted body mass for a penguin with 200mm flippers?
+4. **Inferential**: What is the estimated differences in body mass between penguins who differ in flipper length by 50mm?
+
+<!-- For example, a descriptive goal would be to describe the nature of the relationship between household income and housing prices in U.S. cities. Using the housing prices dataset, which contains information on all major cities in the U.S., we could show that there is a positive trend between these variables. -->
+
+<!-- An inferential goal would be to determine if the relationship is more than we would expect by chance. -->
+
+### Mathematical Goals
+
+The **mathematical goals** goals of regression are what we need to accomplish to achieve our scientific goal (regardless of whether that is description, inference, or prediction). Visually, the goal of linear regression is to find the best fitting line for the $y$'s. In later chapters, we will see how to generalize this to any nonlinear function. Mathematically, we do this by estimating **parameters** and their **uncertainty**.
+
+## Example Datasets
+
+Throughout this book, we will make repeated use of several example datasets, which we now describe.
+
+### Palmer Penguins (Part 2)
+
+Other values in the Palmer Penguins dataset include penguin sex and  measurements of bill depth. The following histograms show the distributions of bill depth by sex:
+```{r g-penguin-bill-sex, echo=F, fig.cap="Distribution of penguin bill length by sex."}
+penguins %>%
+  filter(!is.na(sex)) %>%
+ggplot(aes(x=bill_depth_mm,
+                        fill=sex)) + 
+  theme_bw() + 
+  geom_histogram(alpha=0.5, position="identity", bins=25) +
+    xlab("Bill Depth (mm)")
+```
+
+In Figure \@ref(fig:g-penguin-bill-sex), it appears that there might be a difference in the average bill length by sex. We can use linear regression to quantify this difference.
+
+```{r g-penguin-bill-species, echo=F, message=FALSE, fig.cap="Distribution of penguin bill length by species."}
+penguins %>%
+  # filter(!is.na(sex)) %>%
+ggplot(aes(x=bill_depth_mm,
+                        fill=species)) + 
+  theme_bw() + 
+  geom_histogram(alpha=0.5, position="identity", bins=25) +
+    xlab("Bill Depth (mm)")
+```
+
+**Q:** It looks like there might be a difference in the distributions of bill length by species. Can we quantify this?
+
+**A:** Yes! Using linear regression, we can estimate the difference in mean bill length between the three penguin species.
+
+```{r g-penguin-bill-species-sex, echo=F, message=FALSE, fig.cap="Distribution of penguin bill length by species."}
+penguins %>%
+  filter(!is.na(sex)) %>%
+ggplot(aes(x=bill_depth_mm)) + 
+  theme_bw() + 
+  facet_grid(species~sex) + 
+  geom_histogram(alpha=0.5, position="identity", bins=25) +
+    xlab("Bill Depth (mm)")
+```
+
+
+**Q:** Figure \@ref(fig:g-penguin-bill-species-sex) shows the distribution of bill length by species and sex. It looks like there might be a difference in the distributions of bill length by *both* species and sex. Can we quantify this?
+
+**A:** Yes! Using linear regression, we can estimate the mean bill length for all possible combinations of sex and species.
+
+### Baseball Hits
+
+More so than almost any sport, baseball is full of statistics. While traditional statistics such as batting average and earned run average have long been collected, the tracking systems in modern baseball stadiums all a plethora of information to be collected for each batted ball. 
+
+```{r echo=FALSE, include=FALSE}
+bb <- read_csv("data/rockies_hits_2019.csv")
+bb <- bb %>%
+  mutate(events=factor(events, levels=c("single", "double", "triple", "home_run"))) %>%
+  mutate(Outcome=factor(hit, levels=c(T, F), labels=c("Hit", "Out")))
+```
+
+Figure \@ref(fig:bb-scatter-lspeed-hitdist) shows all of the balls in play from the Colorado Rockies in the 2019 season. Along the horizontal axis is the launch speed, which is the speed at which the ball left the bat when hit. The vertical axis shows the distance the ball travelled. The color of each point shows whether the batted ball resulted in a hit or an out.
+
+```{r bb-scatter-lspeed-hitdist, echo=FALSE, fig.cap="Distance travelled and launch speed for balls in play from Colorado Rockies in 2019."}
+g_bb_lspeed_hitdist <- bb %>%
+  filter(!is.na(launch_speed)) %>%
+  ggplot() + theme_bw() + 
+  geom_point(aes(x=launch_speed, y=hit_distance, col=Outcome), alpha=0.3) +
+  xlab("Launch Speed (mph)") +
+  ylab("Distance Travelled (ft)")
+g_bb_lspeed_hitdist
+```
+
+There are several questions we could ask using the data from Figure \@ref(fig:bb-scatter-lspeed-hitdist):
+
+* Is there a relationship between launch speed and hit distance? If yes, can that relationship be quantified?
+* For a ball hit at 90 mph, what is the predicted distance travelled?
+* Using launch speed, can we predict whether or not a batted ball will result in a hit or an out?
+
+
+Another variable that is measured is the launch angle of balls in play, which is the angle (in degrees) that the ball leaves the bat. A launch angle of 0 means the ball was hit straight out; a positive angle means it was hit up in to the air and a negative angle means it was hit down into the ground.
+
+```{r bb-scatter-langle-hitdist, echo=FALSE, fig.cap="Distance travelled and launch angle for balls in play from Colorado Rockies in 2019."}
+g_bb_langle_hitdist <- bb %>%
+  filter(!is.na(launch_speed)) %>%
+  ggplot() + theme_bw() + 
+  geom_point(aes(x=launch_angle, y=hit_distance, col=Outcome), alpha=0.3) +
+  xlab("Launch Angle (degrees)") +
+  ylab("Distance Travelled (ft)")
+g_bb_langle_hitdist
+```
+
+There are several questions we could ask using the data from Figure \@ref(fig:bb-scatter-langle-hitdist):
+
+* Is there a relationship between launch angle and hit distance? If yes, can that relationship be quantified?
+* For a ball hit at 45 degrees, what is the predicted distance travelled?
+* Using launch angle, can we predict whether or not a batted ball will result in a hit or an out?
+
+
+### Example: Housing Prices
+
+Many factors impact housing prices, perhaps most importantly the economic demographics of the region. The following data shows the median price for a single-family residence in January 2018^[These data from Zillow, which maintains a public database of housing-related data at <https://www.zillow.com/research/data/>.] in different metropolitan areas across the U.S. On the horizontal axis is the 2018 median household income for the area, taken from the U.S. Census' American Community Survey:
+
+```{r include=FALSE}
+housing_inc <- read_csv("data/housing_income.csv")
+housing_inc <- subset(housing_inc, !is.na(median_income))
+```
+
+```{r plot-housing, echo=FALSE}
+gg_housing_inc <- ggplot(housing_inc, aes(x=median_income,
+                 y=median_sale_price)) + theme_bw() + 
+  geom_point() +
+  ylab("Median House Price ($)") +
+  xlab("Median Household Income ($)")
+gg_housing_inc
+```
+
+
+### Photosynthesis Data
+
+(to be added)
+
+### Car Mileage Data
+
+(to be added)
+
+
+

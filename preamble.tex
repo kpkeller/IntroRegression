@@ -1,0 +1,122 @@
+% \usepackage{booktabs}
+% \usepackage{amsthm}
+% \makeatletter
+% \def\thm@space@setup{%
+%   \thm@preskip=8pt plus 2pt minus 4pt
+%   \thm@postskip=\thm@preskip
+% }
+% \makeatother
+
+
+
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+\usepackage{amssymb}
+% \usepackage{amsmath}
+\usepackage{natbib}
+% \usepackage{bm}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{ctable}
+
+
+% \usepackage{newtxtext} % Times-like font
+% \usepackage{titlesec}
+% \titleformat*{\section}{\Large\bfseries\sffamily}
+% \titleformat*{\subsection}{\large\bfseries\sffamily}
+
+%%%%%%%%%%%
+% Math Macros
+\newcommand{\bmA}{\ensuremath{\mathbf A}}
+\newcommand{\bma}{\ensuremath{\mathbf a}}
+\newcommand{\bmB}{\ensuremath{\mathbf B}}
+\newcommand{\bmb}{\ensuremath{\mathbf b}}
+\newcommand{\bmC}{\ensuremath{\mathbf C}}
+\newcommand{\bmc}{\ensuremath{\mathbf c}}
+\newcommand{\bmD}{\ensuremath{\mathbf D}}
+\newcommand{\bmd}{\ensuremath{\mathbf d}}
+\newcommand{\bmE}{\ensuremath{\mathbf E}}
+\newcommand{\bme}{\ensuremath{\mathbf e}}
+\newcommand{\bmF}{\ensuremath{\mathbf F}}
+\newcommand{\bmG}{\ensuremath{\mathbf G}}
+\newcommand{\bmg}{\ensuremath{\mathbf g}}
+\newcommand{\bmH}{\ensuremath{\mathbf H}}
+\newcommand{\bmI}{\ensuremath{\mathbf I}}
+\newcommand{\bmJ}{\ensuremath{\mathbf J}}
+\newcommand{\bmK}{\ensuremath{\mathbf K}}
+\newcommand{\bmL}{\ensuremath{\mathbf L}}
+\newcommand{\bmM}{\ensuremath{\mathbf M}}
+\newcommand{\bmP}{\ensuremath{\mathbf P}}
+\newcommand{\bmQ}{\ensuremath{\mathbf Q}}
+\newcommand{\bmq}{\ensuremath{\mathbf q}}
+\newcommand{\bmR}{\ensuremath{\mathbf R}}
+\newcommand{\bmr}{\ensuremath{\mathbf r}}
+\newcommand{\bmS}{\ensuremath{\mathbf S}}
+\newcommand{\bms}{\ensuremath{\mathbf s}}
+\newcommand{\bmT}{\ensuremath{\mathbf T}}
+\newcommand{\bmt}{\ensuremath{\mathbf t}}
+\newcommand{\bmU}{\ensuremath{\mathbf U}}
+\newcommand{\bmu}{\ensuremath{\mathbf u}}
+\newcommand{\bmV}{\ensuremath{\mathbf V}}
+\newcommand{\bmv}{\ensuremath{\mathbf v}}
+\newcommand{\bmW}{\ensuremath{\mathbf W}}
+\newcommand{\bmw}{\ensuremath{\mathbf w}}
+\newcommand{\bmX}{\ensuremath{\mathbf X}}
+\newcommand{\bmx}{\ensuremath{\mathbf x}}
+\newcommand{\bmY}{\ensuremath{\mathbf Y}}
+\newcommand{\bmy}{\ensuremath{\mathbf y}}
+\newcommand{\bmZ}{\ensuremath{\mathbf Z}}
+\newcommand{\bmz}{\ensuremath{\mathbf z}}
+
+
+\newcommand{\bmalpha}{\ensuremath{\mathbf{\alpha}}}
+\newcommand{\bmbeta}{\ensuremath{\mathbf{\beta}}}
+\newcommand{\bmdelta}{\ensuremath{\mathbf{\delta}}}
+\newcommand{\bmeta}{\ensuremath{\mathbf{\eta}}}
+\newcommand{\bmepsilon}{\ensuremath{\mathbf{\epsilon}}}
+\newcommand{\bmGamma}{\ensuremath{\mathbf{\Gamma}}}
+\newcommand{\bmgamma}{\ensuremath{\mathbf{\gamma}}}
+\newcommand{\bmLambda}{\ensuremath{\mathbf{\Lambda}}}
+\newcommand{\bmmu}{\ensuremath{\mathbf{\mu}}}
+\newcommand{\bmphi}{\ensuremath{\mathbf{\phi}}}
+\newcommand{\bmSigma}{\ensuremath{\mathbf{\Sigma}}}
+\newcommand{\bmtheta}{\ensuremath{\mathbf{\theta}}}
+\newcommand{\bmzeta}{\ensuremath{\mathbf{\zeta}}}
+
+\newcommand{\rank}{\ensuremath{\mathsf{rank}}}
+\newcommand{\nullity}{\ensuremath{\mathsf{nullity}}}
+\newcommand{\trace}{\ensuremath{\mathsf{tr}}}
+\newcommand{\diag}{\ensuremath{\mathsf{diag}}}
+\newcommand{\vecspan}{\ensuremath{\mathsf{span}}}
+
+\newcommand{\mT}{\ensuremath{\mathsf{T}}}
+
+\newcommand{\bbh}{\ensuremath{\hat{\bmbeta}}}
+\newcommand{\Rn}{\ensuremath{\mathbb{R}^n}}
+\newcommand{\Rnp}{\ensuremath{\mathbb{R}^{n\times p}}}
+\newcommand{\Pa}{\ensuremath{{\bmP}_{\bmA}}}
+\newcommand{\Pb}{\ensuremath{{\bmP}_{\bmB}}}
+\newcommand{\Pv}{\ensuremath{{\bmP}_\mathcal{V}}}
+\newcommand{\Pw}{\ensuremath{{\bmP}_\mathcal{W}}}
+\newcommand{\Px}{\ensuremath{{\bmP}_{\bmX}}}
+\newcommand{\XtX}{\ensuremath{\bmX^\mT\bmX}}
+\newcommand{\XtXinv}{\ensuremath{(\bmX^\mT\bmX)^{-1}}}
+\newcommand{\gtb}{\ensuremath{\bmg^\mT\bmbeta}}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\bbmx}{\ensuremath{\begin{bmatrix}}}
+\newcommand{\ebmx}{\ensuremath{\end{bmatrix}}}
+
+\newcommand{\E}{\ensuremath{\mathrm{E}}}
+\newcommand{\Var}{\ensuremath{\mathrm{Var}}}
+\newcommand{\Cov}{\ensuremath{\mathrm{Cov}}}
+
+\newcommand{\FWER}{\ensuremath{\mathrm{FWER}}}
+\newcommand{\PCER}{\ensuremath{\mathrm{PCER}}}
+\newcommand{\FDR}{\ensuremath{\mathrm{FDR}}}
+\newcommand{\sFWER}{\ensuremath{\mathrm{sFWER}}}
+
+
+\newcommand{\bmp}[1]{\begin{minipage}{#1}}
+\newcommand{\emp}{\end{minipage}}
+
+

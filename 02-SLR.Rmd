@@ -1,0 +1,318 @@
+# Simple Linear Regression {#sec:slr}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+'`
+
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
+```
+
+<!-- ## Overview -->
+
+In simple linear regression (SLR), our goal is to find the best-fitting straight line through a set of paired $(x, y)$ data. For example, we could seek the best-fitting straight line, commonly called the **regression line**, for the penguin data:
+
+```{r g_penguin_flip_mass_lm, echo=F, message=FALSE}
+g_penguin_flip_mass <- penguins %>%
+  rename(Species=species) %>%
+  filter(!is.na(body_mass_g)) %>%
+  ggplot(aes(x=flipper_length_mm,
+           y=body_mass_g)) +
+  theme_bw() + 
+  geom_point(aes(col=Species)) +
+    xlab("Flipper Length (mm)") +
+    ylab("Body Mass (g)")
+g_penguin_flip_mass_lm <- g_penguin_flip_mass +
+  geom_smooth(se=FALSE, method="lm", col="black")
+g_penguin_flip_mass_lm
+```
+ 
+Note that SLR specifically refers to settings where there is only one predictor variable. In Chapter \@ref(mlr) we will extend this to multiple predictor variables.
+
+
+## The Simple Linear Regression (SLR) Model
+
+### SLR model
+
+The **Simple Linear Regression (SLR) model** is:
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1x_i + \epsilon_i
+(\#eq:slr)
+\end{equation}
+
+where:
+
+* $Y_i$ is a *random variable* representing the outcome
+
+* $x_i$ is a fixed predictor variable
+
+* $i$ is an index for each observation
+
+* $\beta_0$ is a parameter representing the intercept
+
+* $\beta_1$ is a parameter representing the slope
+
+* $\epsilon_i$ is a *random variable* representing variation (the "error" in the model)
+
+
+It's important to note that there are different kinds of values in this equation:
+
+* **Random variables** ($Y_i$ and $\epsilon_i$): Random quantities that are not directly observed. (See Section \@ref(sec:realtheo))
+* **Parameters** ($\beta_0$ and $\beta_1$): Numbers that are fixed but unknown. These values are the same for all observations in the model.
+* **Observed data** ($x_i$): Values that are fixed and known, and can vary for each observation.
+
+### SLR Model Assumptions
+
+The assumptions corresponding to the SLR model (equation \@ref(eq:slr)) are:
+
+1. $E[\epsilon_i] = 0$
+   * The error terms have mean zero. This allows the $\epsilon_i$ to account for variability above and below the line.
+2. $Var[\epsilon_i] = \sigma^2$ 
+   * The error terms have constant variance. (If the variance was different for each observation, then $\Var[\epsilon_i] = \sigma_i^2$.)
+3. $\epsilon_i$ are uncorrelated
+   * Each observation gives you new information. This usually means that each observation is independent.
+
+<!-- **Note:** there is no assumption about a normal distribution! -->
+
+For now, the key assumption is $E[\epsilon_i] = 0$. Importantly, we do not require an assumption about normality of the error term. 
+ We will re-visit  these  assumptions in detail, and discuss what happens when they are violated, in Chapter \@ref(sec:modadequacy). 
+
+
+## Parameter Interpretation
+
+A consequence of assumption 1 ($\E[\epsilon_i] = 0$) is that the mean of $Y_i$ is a straight line:
+
+\begin{align}
+\E[Y_i] &= \E[\beta_0 + \beta_1x_i + \epsilon_i] \notag\\
+&=  \E[\beta_0 + \beta_1x_i] + \E[\epsilon_i]\notag\\
+&=  \beta_0 + \beta_1x_i + 0 \notag\\
+&=  \beta_0 + \beta_1x_i \label{eq:slrmean}
+\end{align}
+
+This allows us to interpret the parameters $\beta_0$ and $\beta_1$ in terms of the  slope and intercept of the line.
+
+
+### Interpretation of $\beta_1$
+ 
+ 
+The $\beta_1$ parameter represents the **slope** of the regression line. In other words, $\beta_1$ is the difference in $\E[Y_i]$ between observations that have a one-unit difference in $x$.
+
+
+When writing an interpretation sentence for $\beta_1$, it is important to include these key elements:
+
+* An interpretation as a **difference** in average Y
+  * For linear regression, "difference in average" is the same as "average difference". You can use either phrase.
+* Specify the predictor variable (x)
+* Include units for both the outcome and predictor
+* If known, include statement about population/context.
+
+**Note:** We will expand this list once we discuss parameter estimation and inference. 
+
+
+```{example}
+Consider two groups of penguins:
+```
+
+* Penguins that have flipper lengths of 201mm. Call this "Group A"
+* Penguins that have flipper lengths of 200mm. Call this "Group B"
+
+Assuming the SLR model \@ref(eq:slr), what is the difference in average body mass between these groups of penguins?
+
+To answer this, first write out the regression equation for the mean body mass in each group:
+
+$$\text{Group A:} \quad \E[Y_A] = \beta_0 + \beta_1*201$$
+$$\text{Group B:} \quad \E[Y_B] = \beta_0 + \beta_1*200$$
+
+Then take the difference between them:
+\begin{align*}
+\E[Y_A] - \E[Y_B] &= \left(\beta_0 + \beta_1*201 \right) - \left(\beta_0 + \beta_1*200\right)\\
+& = 201\beta_1 - 200\beta_1\\
+&= \beta_1
+\end{align*}
+
+
+Equivalent interpretation statements for $\beta_1$ in this context:
+
+* $\beta_1$ is the difference in average body mass (in g) for penguins that differ in flipper length by 1 mm. 
+* The average difference in body mass for penguins that have 1 mm longer flippers is $\beta_1$ grams.
+* The difference in average body mass for penguins that differ in flipper length by one millimeter is $\beta_1$ grams.
+
+
+### Interpretation of $\beta_0$
+
+
+The $\beta_0$ parameter represents the **intercept** of the regression line. In other words, $\beta_0$ is the average value of $Y_i$ (i.e. $\E[Y_i]$) for observations with an $x$ value of 0.
+
+**Note:** $\beta_0$ is mathematically useful, but its interpretation might make no scientific sense!
+
+\textcolor{red}{TO ADD: A 10-unit difference here}
+
+
+```{example}
+Consider a third group of penguins:
+```
+
+* Penguins with flipper length of 0 mm. Call this "Group C"
+
+$$\text{Group C:} \quad \E[Y_C] = \beta_0 + \beta_1*0 = \beta_0$$
+
+Equivalent interpretation statements for $\beta_0$ in this context:
+
+* $\beta_0$ is the average body mass (in g) for penguins that have a flipper length of 0 mm. 
+* The average body mass for penguins that have 0 mm long flippers is $\beta_0$ grams.
+
+
+
+
+### Interpretation of $\sigma^2$
+
+The parameter $\sigma^2$ represents the variance of the data around the regression line:
+
+\begin{align*}
+\Var(Y_i) &=  \Var(\beta_0 + \beta_1x_i + \epsilon_i)\\
+&=  \Var(\beta_0 + \beta_1x_i) + \Var(\epsilon_i)\\
+&= 0 + \sigma^2\\
+&= \sigma^2
+\end{align*}
+
+* A large value of $\sigma^2$ means that data are more spread out vertically around the line.
+* A small value of $\sigma^2$ means that data are  vertically close to the line
+
+
+The following two plots show simulated data. The left panel has data generated from a model with $\sigma^2 = 10$ and the right panel data comes from a model with $\sigma^2 = 1$.
+
+```{r echo=FALSE}
+n <- 100
+beta0 <- 1
+beta1 <- 2 
+set.seed(11)
+x <- runif(n=n, 0, 2)
+y1 <- beta0 + beta1*x + rnorm(n, sd=sqrt(10))
+y2 <- beta0 + beta1*x + rnorm(n, sd=sqrt(1))
+simdata <- data.frame(x=c(x, x),
+                      y=c(y1, y2),
+                      sigma2=rep(c(10, 1), each=n))
+simdata$sigma2lab <- factor(simdata$sigma2,
+                            levels=c(10, 1),
+                            labels=c(expression(sigma^2*" = 10"), expression(sigma^2*" = 1")))
+```
+
+```{r echo=FALSE, fig.cap="Simulated data showing the impact of different values of $\\sigma^2$."}
+ggplot(simdata) + theme_bw() + 
+  geom_point(aes(x=x, y=y)) +
+  geom_abline(aes(intercept=1, slope=2)) +
+   facet_wrap(~sigma2lab, labeller=label_parsed)
+```
+
+
+## Random Variables v. Data {#sec:realtheo}
+
+The SLR model \@ref(eq:slr) is an equation for the line for theoretical random variables $Y_i$. In practice, we observed data $y_i$ and estimate a line that has an estimated slope and intercept.
+
+
+In other words, real data are not generated from the theoretical model 
+$$Y_i = \beta_0 + \beta_1x_i + \epsilon_i$$
+But for a dataset with specific values $(x_i, y_i)$, we can use the theoretical model to describe the data:
+
+\begin{equation}
+y_i = \hat\beta_0 + \hat\beta_1x_i + e_i 
+(\#eq:slrest)
+\end{equation}
+
+In equation \@ref(eq:slrest):
+
+* $y_i$ is the *observed* value of the outcome for observation $i$
+* $e_i$ is the *residual* value corresponding to observation $i$
+* $\hat\beta_0$ is the *estimated* intercept for the regression line
+* $\hat\beta_1$ is the *estimated* slope for the regression line
+* $x_i$ is observed value of the predictor variable for observation $i$
+
+The "hats" in $\hat\beta_0$ and $\hat\beta_1$ indicate that the values are estimates of the true parameter $\beta_1$ and $\beta_0$. The difference between the theoretical model and estimated model can be summarized in the following table:
+
+| Theoretical/Math World |  Real World Data |
+|:--------|:---------|
+| $Y_i =$ outcome (a random variable) | $y_i =$ outcome (a known number) |
+| $x_i =$ predictor (a known number) | $x_i =$ predictor (a known number) |
+| $\epsilon_i=$ error (a random variable) | $e_i =$ residual (a known number) |
+| $\beta_0 =$ intercept parameter (an unknown number) | $\hat\beta_0 =$ intercept *estimate* (a calculated number) |
+| $\beta_1 =$ slope parameter (an unknown number) | $\hat\beta_1 =$ slope *estimate* (a calculated number)  |
+| $\sigma^2 =$ variance parameter (an unknown number)  | $\hat\sigma^2 =$ variance *estimate* (a calculated number) |
+
+## Examples 
+
+<!-- Penguin Data -->
+
+```{example}
+In the example of penguin flipper length and body mass, the equation for the estimated regression line is:
+
+$$y_i = -5780.8 + 49.7*x_i$$
+We can interpret this line in the following sentence:
+
+*A difference of one mm in flipper length is associated with a difference of 49.7 g greater average body mass among penguins in Antarctica.*
+```
+
+Note the key elements in this sentence:
+
+* "average" -- Linear regression model tells us about the mean, not a specific observation
+* "one mm in flipper length" -- always provide units
+* "among penguins in Antarctica" -- Context and/or population
+* Observational study -- association not causation!
+
+Figure \@ref(fig:g-penguin-labelled) shows the slope and intercept graphically, while Figure \@ref(fig:g-penguin-resid) shows a graphical representation of the residuals for each observation.
+
+
+
+```{r g-penguin-labelled, echo=FALSE, message=FALSE, fig.cap="Fitted regression line for penguin data."}
+g_penguin_flip_mass_lm + 
+  geom_abline(aes(slope=49.7, intercept=-5780.8)) + 
+  geom_text(aes(x=10, y=-5780.8, label="y-intercept = -49.7"), hjust=0, vjust=0.5) +
+  geom_text(aes(x=75, y=-5780.8 + 75*50, label="Slope= -5,790.8"), hjust=0, vjust=-0.5, angle=39) +
+  coord_cartesian(ylim=c(-6500, max(penguins$body_mass_g)),
+                  xlim=c(-5, max(penguins$flipper_length_mm)))
+```
+
+```{r g-penguin-resid, echo=FALSE, message=FALSE, fig.cap="Residuals for penguin data."}
+penguin_lm <- lm(body_mass_g ~ flipper_length_mm, data=penguins)
+pen2 <- data.frame(x=penguin_lm$model$flipper_length_mm,
+                   obs=penguin_lm$model$body_mass_g,
+                   fit=fitted(penguin_lm),
+                   id=1:nobs(penguin_lm)) %>%
+  pivot_longer(-c(x, id))
+g_penguin_flip_mass_lm + 
+  geom_line(aes(x=x, y=value, group=id), data=pen2, col="purple")
+```
+
+
+
+
+```{r include=FALSE}
+lm_penguin <- lm(body_mass_g~flipper_length_mm, data=penguins)
+coef(lm_penguin)
+```
+
+
+<!-- ### $\hat\beta_1$: Estimator or Estimate? -->
+
+<!-- $\hat\beta_1$ can represent two things: -->
+
+<!-- * An estimate of $\beta_1$ -->
+<!--    * A number -->
+<!--    * Interpreted as the **estimated** average difference in $y$ for a one-unit difference in $x$ -->
+<!-- * An estimator for $\beta_1$ -->
+<!--    * A random variable -->
+<!--    * This is a rule for calculating a number that depends on $x$ and $y$ -->
+
+<!-- \vspace{0.5cm} -->
+
+<!-- Why does the difference matter? -->
+
+<!-- * $\hat\beta_1$ depends on the data -->
+<!-- * $\hat\beta_1$ has uncertainty (variance and possibly bias) -->
+
+<!-- Note: $\hat\beta_0$ and $\hat\beta_1$ are calculated as numbers, but we need to think of them as realizations of a random generating process. This is because they are functions of the data, which we think of as a realization of a random generating process. -->
+
