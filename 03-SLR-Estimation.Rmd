@@ -341,7 +341,7 @@ Why divide by $n-2$ here? Since $e_i = y_i - (\hat\beta_0 + \hat\beta_1x_i)$, th
 * $\hat\sigma^2 = MS_{res}$ is called "mean squared residuals"
 
 
-### Estimating $\sigma^2$ in R
+### Estimating $\sigma^2$ in R {#estsig2}
 
 
 When `summary()` is called on an `lm` object, the `sigma` slot provides $\hat\sigma$ \textcolor{red}{(NOT $\hat\sigma^2$)} for you:

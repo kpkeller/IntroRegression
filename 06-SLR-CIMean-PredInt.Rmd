@@ -1,154 +1,185 @@
-# Confidence and Prediction for the Mean Responses {#slrCIMean}
+# Inference and Prediction for the Mean Response in SLR {#slrCIMean}
 
-## Example: Fly ball distance
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+'`
 
-
-```{r eval=FALSE, include=F}
-rockies <- read_csv(paste0(data_dir, "rockies_flyball_2018.csv"))
-rockies$hit_distance_sc <- as.numeric(rockies$hit_distance_sc)
-# hr <- read_csv(paste0(data_dir, "homeruns2018.csv"))
-
-g_rockies <- ggplot(subset(rockies, !is.na(hit_distance_sc))) + 
-    geom_point(aes(x=launch_speed,
-                   y=hit_distance_sc)) +
-  theme_bw() + 
-    xlab("Launch Speed (mph)") +
-    ylab("Fly Ball Distance (ft)") + 
-    ggtitle("Fly Balls Hit by Colorado Rockies, 2018 Season")
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
 ```
-
-```{r eval=FALSE}
-g_rockies + geom_smooth(aes(x=launch_speed,
-                   y=hit_distance_sc), method="lm", se=FALSE)
-
-```
-
-
-### Estimating Mean Fly Ball Distance
-
-What is the **estimated average** distance for flyballs hit with launch speed of 90 mph?  
-
-... of 70 mph?  
-
-
-... of 100 mph?
-
-
-### Predicting Fly Ball Distance
-
-What is the **predicted** distance for a flyball hit with launch speed of 90 mph?  
-
-... of 70 mph?  
-
-
-... of 100 mph?
 
 ## Estimating Mean & Predicting Observations
 
-Two distinct questions:
+In Section \@ref(interpretslrrmean) we saw that the values along the regression line can be interpeted as the mean outcome for a given value of the predictor variable. Formally, we can write the **estimated mean** of $Y$ when $x$ equals some value $x_0$ as:
 
-\begin{center}
-\begin{tabular}{p{5cm} | p{5cm}}
-\hline
-What is the mean value of $Y$ when $x=x_0$? & What is the value of a new observation with $x=x_0$?\\
-\hline
-Estimation of the mean $E[Y | x_0] = \mu_{y|x_0}$ & Prediction of new observation $y$ \\
-\hline
-$\hat \mu_{y|x_0} = \hat\beta_0 + \hat\beta_1x_0$ & $\hat y_0 = \hat\beta_0 + \hat\beta_1x_0$ \\
-\hline
-Confidence interval for mean & Prediction Interval\\
-\hline
-\end{tabular}
-\end{center}
+$$\hat\mu_{Y|x_0} = \hat\beta_0 + \hat\beta_1x_0$$
 
-\vspace{1cm}
+The points along the line also provide the best *prediction* of the value of $Y$ for an observation with $x=x_0$. We write the **prediction for a new observation** of $Y$ when $x$ equals some value $x_0$ as:
 
-* Point estimate $\hat \mu_{y|x_0}$ and prediction $\hat y_0$ are the same
-* Uncertainty is different. Which is larger?
+$$\hat y_0 = \hat\beta_0 + \hat\beta_1x_0$$
+
+Although very similar, there an important distinction between the questions
 
 
-## Confidence Interval for the Mean Response
+1. What is the mean value of $Y$ when $x=x_0$?
+2. What is the value of a new observation with $x=x_0$?\\
 
-### Inference for the Mean Response
+The point estimate for these questions is the same, but the corresponding uncertainty is different.
+Question 1 is answered by $\hat\mu_{Y|x_0}$ and has a corresponding confidence interval. Question 2 is answered by $\hat y_0$ and has a corresponding prediction interval.
 
-Confidence interval for the mean response:
+## Inference for the mean
+### CIs and Testing
 
-$$\left(\hat\mu_{y|x_0} - t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0}), \hat\mu_{y|x_0} + t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0})\right)$$
 
-Hypothesis testing the mean response:
+Confidence intervals for $\hat\mu_{Y | x_0}$ can be constructed in the same way as for the $\beta$'s:
+
+\begin{equation}
+\left(\hat\mu_{y|x_0} - t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0}), \hat\mu_{y|x_0} + t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0})\right).
+(\#eq:meanCI)
+\end{equation}
+
+Hypothesis testing for the mean response is much less common, since inference is usually done on the regression slope ($\beta_1$) or the model overall (Section \@ref(slrFtest)). But if needed, it is also conducted in a manner analogous to the $\beta$'s:
 
 $$H_0: \mu_{y|x_0} = \mu^0_{y|x_0} \qquad \text{vs.} \qquad H_A: \mu_{y|x_0} \ne \mu^0_{y|x_0}$$
 
-$$t = \frac{\hat\mu_{y|x_0} - \mu^0_{y|x_0}}{\widehat{se}(\hat\mu_{y|x_0})}$$
+\begin{equation}
+t = \frac{\hat\mu_{y|x_0} - \mu^0_{y|x_0}}{\widehat{se}(\hat\mu_{y|x_0})}
+(\#eq:meantstat)
+\end{equation}
 
-Both require $\widehat{se}(\hat\mu_{y|x_0})$
+
 
 ### Variance of $\hat\mu_{y|x_0}$
 
-\begin{align*}
-\Var(\hat\mu_{y|x_0}) &= \Var\left(\hat\beta_0 + \hat\beta_1 x_0 \right)  \textcolor{red}{\ne \Var(\hat\beta_0) + \Var(\hat\beta_1x_0)} \\
-& = \Var\left(\overline{y} - \hat\beta_1\overline{x} + \hat\beta_1 x_0 \right)\\
+Computing either the confidence interval \@ref(eq:meanCI) or the test statistic \@ref(eq:meantstat) requires computing the standard erorr $\widehat{se}(\hat\mu_{y|x_0})$.
+
+
+We can compute the variance of $\hat\mu_{y|x_0}$ as follows:
+\begin{align}
+\Var(\hat\mu_{y|x_0}) &= \Var\left(\hat\beta_0 + \hat\beta_1 x_0 \right)\\
+& = \Var\left(\overline{y} - \hat\beta_1\overline{x} + \hat\beta_1 x_0 \right) (\#eq:varslrline2)\\
 & = \Var\left(\overline{y} + \hat\beta_1(x_0 - \overline{x} )\right)\\
-& = \Var\left(\overline{y}\right)  + \Var\left(\hat\beta_1(x_0 - \overline{x}) \right)\\
-& = \frac{\sigma^2}{n} + (x_0 - \overline{x})^2\Var\left(\hat\beta_1\right)\\
-& =  \frac{\sigma^2}{n}  + (x_0 - \overline{x})^2\frac{\sigma^2}{S_{xx}}\\
-& =  \sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right)
+& = \Var\left(\overline{y}\right)  + \Var\left(\hat\beta_1(x_0 - \overline{x}) \right)\notag\\
+& = \frac{\sigma^2}{n} + (x_0 - \overline{x})^2\Var\left(\hat\beta_1\right)\notag\\
+& =  \frac{\sigma^2}{n}  + (x_0 - \overline{x})^2\frac{\sigma^2}{S_{xx}}\notag\\
+& =  \sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right) (\#eq:varslrmean)
 \end{align*}
 
-Note: This is smallest when $x_0 = \overline{x}$
-
-### Confidence Interval for $\mu_{y|x_0}$
-
-```{r eval=FALSE}
-g_rockies + geom_smooth(aes(x=launch_speed,
-                   y=hit_distance_sc), method="lm", se=TRUE)
-```
+It is important to note that $\Var\left(\hat\beta_0 + \hat\beta_1 x_0 \right) \ne \Var(\hat\beta_0) + \Var(\hat\beta_1x_0)$ since the estimators $\hat\beta_0$ and $\hat\beta_1$ are correlated. To obtain \@ref(eq:varslrline2), we have substituted in $\hat\beta_0 = \overline{y} - \hat\beta_1\overline{x}$ (recall equation \@ref(eq:hatbeta0)).
 
 
-### Confidence Interval for $\mu_{y|x_0}$
 
-```{r eval=FALSE, include=FALSE}
-hurr <- read_csv("../../Data/hurricanes.csv")
-hurr <- subset(hurr, !is.na(mean_precip))
-```
+The variance \@ref(eq:varslrmean) changes as a function of $x$ and is minimized when $x_0 = \overline{x}$. This corresponds with what our intuition might tell us: that there is the least uncertainty near the center of the data.
 
 
-```{r eval=FALSE}
-g_hurr <- ggplot(hurr) + 
+### Estimating Mean Response in R "by hand"
+
+
+```{r g-penguin-flip-mass-lm2, echo=F, message=FALSE}
+g_penguin_flip_mass <- penguins %>%
+  # rename(Species=species) %>%
+  filter(!is.na(body_mass_g)) %>%
+  ggplot(aes(x=flipper_length_mm,
+           y=body_mass_g)) +
   theme_bw() + 
-     geom_point(aes(y= mean_precip,
-                    x=windmax)) +
-  geom_smooth(aes(y= mean_precip,
-                    x=windmax), method="lm") + 
-     xlab("Maximum Wind Speed (knots)") +
-     ylab("Mean Precipitation (mm) within 200 km") +
-  ggtitle("Hurricanes (1988-2015)") 
-g_hurr
+  geom_point(aes()) +
+    xlab("Flipper Length (mm)") +
+    ylab("Body Mass (g)")
+g_penguin_flip_mass_lm <- g_penguin_flip_mass +
+  geom_smooth(se=FALSE, method="lm", col="black")
+g_penguin_flip_mass_lm
+```
+
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+penguin_lm <- lm(body_mass_g ~ flipper_length_mm,
+   data=penguins)
+```
+
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+x0 <- 200
+muhat <- coef(penguin_lm)[1] + coef(penguin_lm)[2]*x0
+muhat
+```
+
+
+```{r}
+g_penguin_flip_mass_lm + geom_point(aes(x=x0, y=muhat), col="blue", size=3)
+```
+
+### CI for Mean Response in R "by hand"
+
+
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+# Be careful with missing values here
+xbar <- mean(penguin_lm$model$flipper_length_mm) 
+Sxx <- sum((penguin_lm$model$flipper_length_mm - xbar)^2)
+n <- nobs(penguin_lm)
+seMuHat <- sqrt(summary(penguin_lm)$sigma^2 * ((x0-xbar)^2/Sxx + 1/n))  
+seMuHat
+ciMean <- c(muhat - qt(.975, n-2)*seMuHat, muhat + qt(.975, n-2)*seMuHat)
+ciMean
 ```
 
 
 
+### Estimating Mean Response in R 
 
-## Inference for the Mean Response
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+# Estimate mean
+predict(penguin_lm,
+        newdata=data.frame(flipper_length_mm=200))
 
-$$\hat\mu_{y|x_0} = \hat\beta_0 + \hat\beta_1x_0$$
-$$\widehat{se}(\hat\mu_{y|x_0}) = \sqrt{\hat\sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right)}$$
+# Confidence interval for the mean response
+predict(penguin_lm, 
+        newdata=data.frame(flipper_length_mm=200),
+        interval="confidence",
+        level=0.95)
+```
 
-Confidence interval for the mean response:
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+predict(penguin_lm,
+        newdata=data.frame(flipper_length_mm=c(50, 70, 90, 100)),
+        interval="confidence", level=0.95)
+```
 
-$$\left(\hat\mu_{y|x_0} - t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0}), \hat\mu_{y|x_0} + t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0})\right)$$
-
-This confidence interval is a random interval that, assuming the model is correct, has a $(1-\alpha)$ probability of including the true mean of the response when $x_0$ is the value of the predictor variable.
-
-
-Hypothesis testing the mean response:
-
-$$H_0: \mu_{y|x_0} = \mu^0_{y|x_0} \qquad \text{vs.} \qquad H_A: \mu_{y|x_0} \ne \mu^0_{y|x_0}$$
-
-$$t = \frac{\hat\mu_{y|x_0} - \mu^0_{y|x_0}}{\widehat{se}(\hat\mu_{y|x_0})}$$
-
+### Plotting CI for Mean Response in R "by hand"
 
 
+```{r eval=FALSE, echo=TRUE, size="footnotesize"}
+launch_speed_seq <- seq(50, 120, length=200)
+mean_conf_int <- predict(rockies_lm,
+                         newdata=data.frame(launch_speed=launch_speed_seq),
+                         interval="confidence")
+mean_conf_int <- as.data.frame(mean_conf_int)
+
+g_rockies_wmeanCI <- g_rockies + 
+    geom_ribbon(aes(x=launch_speed_seq, ymax=upr, ymin=lwr), 
+                data=mean_conf_int,
+                fill="grey80") + 
+  geom_abline(aes(slope=coef(rockies_lm)[2],
+                  intercept=coef(rockies_lm)[1]), col="blue")
+```
+
+```{r eval=FALSE, echo=TRUE, size="footnotesize"}
+g_rockies_wmeanCI
+```
+
+### Plotting CI for Mean Response in R
+
+```{r eval=FALSE, echo=TRUE, warning=F, message=F, size="footnotesize"}
+g_penguin_flip_mass + 
+    geom_smooth(aes(x=flipper_length_mm,
+                    y=body_mass_g),
+                data=penguins,
+                method="lm",
+                se=TRUE)
+```
 
 ## Prediction Intervals
 
@@ -178,106 +209,6 @@ A $(1-\alpha)100\%$ **prediction interval** for a new observation with $x=x_0$ i
 
 A **prediction interval** is a random interval that, when the model is correct, has a $(1-\alpha)$ probability of containing a new observation that has $x_0$ as its predictor value.
 
-
-### Estimating Mean Response in R "by hand"
-
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-# Remove observations with missing values
-rockies <- subset(rockies, !is.na(hit_distance_sc))
-# Fit the model
-rockies_lm <- lm(hit_distance_sc ~ launch_speed,
-                 data=rockies)
-```
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-x0 <- 90
-yhat <- coef(rockies_lm)[1] + coef(rockies_lm)[2]*x0
-yhat
-```
-
-### Estimating Mean Response in R "by hand"
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-g_rockies + geom_point(aes(x=x0, y=yhat), col="blue", size=3)
-```
-
-
-### CI for Mean Response in R "by hand"
-
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-# Be careful with missing values here
-xbar <- mean(rockies$launch_speed) 
-Sxx <- sum((rockies$launch_speed - xbar)^2)
-n <- nobs(rockies_lm)
-seMuHat <- sqrt(summary(rockies_lm)$sigma^2 * ((x0-xbar)^2/Sxx + 1/n))  
-seMuHat
-ciMean <- c(yhat - qt(.975, n-2)*seMuHat, yhat + qt(.975, n-2)*seMuHat)
-ciMean
-```
-
-
-### Estimating Mean Response in R 
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-# Estimate mean
-predict(rockies_lm,
-        newdata=data.frame(launch_speed=90))
-
-# Confidence interval for the mean response
-predict(rockies_lm, 
-        newdata=data.frame(launch_speed=90),
-        interval="confidence", level=0.95)
-```
-
-
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-predict(rockies_lm,
-        newdata=data.frame(launch_speed=c(50, 70, 90, 100)),
-        interval="confidence", level=0.95)
-```
-
-### Plotting CI for Mean Response in R "by hand"
-
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-launch_speed_seq <- seq(50, 120, length=200)
-mean_conf_int <- predict(rockies_lm,
-                         newdata=data.frame(launch_speed=launch_speed_seq),
-                         interval="confidence")
-mean_conf_int <- as.data.frame(mean_conf_int)
-
-g_rockies_wmeanCI <- g_rockies + 
-    geom_ribbon(aes(x=launch_speed_seq, ymax=upr, ymin=lwr), 
-                data=mean_conf_int,
-                fill="grey80") + 
-  geom_abline(aes(slope=coef(rockies_lm)[2],
-                  intercept=coef(rockies_lm)[1]), col="blue")
-```
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-g_rockies_wmeanCI
-```
-
-### Plotting CI for Mean Response in R
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-g_rockies_wmeanCI2 <- g_rockies + 
-    geom_smooth(aes(x=launch_speed,
-                    y=hit_distance_sc),
-                data=rockies,
-                method="lm",
-                se=TRUE)
-```
-
-
-### Plotting CI for Mean Response in R "by hand"
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-g_rockies_wmeanCI2
-```
 
 
 ### PI for New Observation in R
