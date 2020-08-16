@@ -1,0 +1,122 @@
+RegionID,SizeRank,RegionName,RegionType,StateName,median_sale_price,MetroName_Zillow,CBSAName,cbsa,geoid,name,median_income
+102001,0,United States,Country,NA,254000,NA,NA,NA,NA,NA,NA
+394913,1,"New York, NY",Msa,NY,430000,"New York, NY","New York-Newark-Jersey City, NY-NJ-PA",35620,310M400US35620,"New York-Newark-Jersey City, NY-NJ-PA Metro Area",78478
+753899,2,"Los Angeles-Long Beach-Anaheim, CA",Msa,CA,701000,"Los Angeles, CA","Los Angeles-Long Beach-Anaheim, CA",31080,310M400US31080,"Los Angeles-Long Beach-Anaheim, CA Metro Area",72563
+394463,3,"Chicago, IL",Msa,IL,234600,"Chicago, IL","Chicago-Naperville-Elgin, IL-IN-WI",16980,310M400US16980,"Chicago-Naperville-Elgin, IL-IN-WI Metro Area",70760
+394514,4,"Dallas-Fort Worth, TX",Msa,TX,267000,"Dallas, TX","Dallas-Fort Worth-Arlington, TX",19100,310M400US19100,"Dallas-Fort Worth-Arlington, TX Metro Area",69445
+394974,5,"Philadelphia, PA",Msa,PA,244900,"Philadelphia, PA","Philadelphia-Camden-Wilmington, PA-NJ-DE-MD",37980,310M400US37980,"Philadelphia-Camden-Wilmington, PA-NJ-DE-MD Metro Area",70747
+394692,6,"Houston, TX",Msa,TX,236950,"Houston, TX","Houston-The Woodlands-Sugar Land, TX",26420,310M400US26420,"Houston-The Woodlands-Sugar Land, TX Metro Area",65394
+395209,7,"Washington, DC",Msa,DC,408500,"Washington, DC","Washington-Arlington-Alexandria, DC-VA-MD-WV",47900,310M400US47900,"Washington-Arlington-Alexandria, DC-VA-MD-WV Metro Area",102180
+394856,8,"Miami-Fort Lauderdale, FL",Msa,FL,340000,"Miami, FL","Miami-Fort Lauderdale-West Palm Beach, FL",33100,310M400US33100,"Miami-Fort Lauderdale-West Palm Beach, FL Metro Area",56328
+394347,9,"Atlanta, GA",Msa,GA,249900,"Atlanta, GA","Atlanta-Sandy Springs-Roswell, GA",12060,310M400US12060,"Atlanta-Sandy Springs-Roswell, GA Metro Area",69464
+394404,10,"Boston, MA",Msa,MA,478500,"Boston, MA","Boston-Cambridge-Newton, MA-NH",14460,310M400US14460,"Boston-Cambridge-Newton, MA-NH Metro Area",88711
+395057,11,"San Francisco, CA",Msa,CA,770000,"San Francisco, CA","San Francisco-Oakland-Hayward, CA",41860,310M400US41860,"San Francisco-Oakland-Hayward, CA Metro Area",107898
+394532,12,"Detroit, MI",Msa,MI,181900,"Detroit, MI","Detroit-Warren-Dearborn, MI",19820,310M400US19820,"Detroit-Warren-Dearborn, MI Metro Area",60513
+395025,13,"Riverside, CA",Msa,CA,380000,"Riverside, CA","Riverside-San Bernardino-Ontario, CA",40140,310M400US40140,"Riverside-San Bernardino-Ontario, CA Metro Area",65671
+394976,14,"Phoenix, AZ",Msa,AZ,300000,"Phoenix, AZ","Phoenix-Mesa-Scottsdale, AZ",38060,310M400US38060,"Phoenix-Mesa-Scottsdale, AZ Metro Area",64427
+395078,15,"Seattle, WA",Msa,WA,509950,"Seattle, WA","Seattle-Tacoma-Bellevue, WA",42660,310M400US42660,"Seattle-Tacoma-Bellevue, WA Metro Area",87910
+394865,16,"Minneapolis-St Paul, MN",Msa,MN,274500,"Minneapolis, MN","Minneapolis-St. Paul-Bloomington, MN-WI",33460,310M400US33460,"Minneapolis-St. Paul-Bloomington, MN-WI Metro Area",79578
+395056,17,"San Diego, CA",Msa,CA,640000,"San Diego, CA","San Diego-Carlsbad, CA",41740,310M400US41740,"San Diego-Carlsbad, CA Metro Area",79079
+395121,18,"St. Louis, MO",Msa,MO,185000,"Saint Louis, MO","St. Louis, MO-IL",41180,310M400US41180,"St. Louis, MO-IL Metro Area",62790
+395148,19,"Tampa, FL",Msa,FL,232000,"Tampa, FL","Tampa-St. Petersburg-Clearwater, FL",45300,310M400US45300,"Tampa-St. Petersburg-Clearwater, FL Metro Area",54912
+394358,20,"Baltimore, MD",Msa,MD,290000,"Baltimore, MD","Baltimore-Columbia-Towson, MD",12580,310M400US12580,"Baltimore-Columbia-Towson, MD Metro Area",80469
+394530,21,"Denver, CO",Msa,CO,448900,"Denver, CO","Denver-Aurora-Lakewood, CO",19740,310M400US19740,"Denver-Aurora-Lakewood, CO Metro Area",79478
+394982,22,"Pittsburgh, PA",Msa,PA,157000,"Pittsburgh, PA","Pittsburgh, PA",38300,310M400US38300,"Pittsburgh, PA Metro Area",59710
+394998,23,"Portland, OR",Msa,OR,410000,"Portland, OR","Portland-Vancouver-Hillsboro, OR-WA",38900,310M400US38900,"Portland-Vancouver-Hillsboro, OR-WA Metro Area",75599
+394458,24,"Charlotte, NC",Msa,NC,250000,"Charlotte, NC","Charlotte-Concord-Gastonia, NC-SC",16740,310M400US16740,"Charlotte-Concord-Gastonia, NC-SC Metro Area",62068
+395045,25,"Sacramento, CA",Msa,CA,415000,"Sacramento, CA","Sacramento--Roseville--Arden-Arcade, CA",40900,310M400US40900,"Sacramento--Roseville--Arden-Arcade, CA Metro Area",73142
+395055,26,"San Antonio, TX",Msa,TX,226500,"San Antonio, TX","San Antonio-New Braunfels, TX",41700,310M400US41700,"San Antonio-New Braunfels, TX Metro Area",57379
+394943,27,"Orlando, FL",Msa,FL,265000,"Orlando, FL","Orlando-Kissimmee-Sanford, FL",36740,310M400US36740,"Orlando-Kissimmee-Sanford, FL Metro Area",58610
+394466,28,"Cincinnati, OH",Msa,OH,177950,"Cincinnati, OH","Cincinnati, OH-KY-IN",17140,310M400US17140,"Cincinnati, OH-KY-IN Metro Area",62743
+394475,29,"Cleveland, OH",Msa,OH,157500,"Cleveland, OH","Cleveland-Elyria, OH",17460,310M400US17460,"Cleveland-Elyria, OH Metro Area",56203
+394735,30,"Kansas City, MO",Msa,MO,220000,"Kansas City, MO","Kansas City, MO-KS",28140,310M400US28140,"Kansas City, MO-KS Metro Area",65768
+394775,31,"Las Vegas, NV",Msa,NV,305000,"Las Vegas, NV","Las Vegas-Henderson-Paradise, NV",29820,310M400US29820,"Las Vegas-Henderson-Paradise, NV Metro Area",57076
+394492,32,"Columbus, OH",Msa,OH,210000,"Columbus, OH","Columbus, OH",18140,310M400US18140,"Columbus, OH Metro Area",64052
+394705,33,"Indianapolis, IN",Msa,IN,182500,"Indianapolis, IN","Indianapolis-Carmel-Anderson, IN",26900,310M400US26900,"Indianapolis-Carmel-Anderson, IN Metro Area",61022
+395059,34,"San Jose, CA",Msa,CA,1025000,"San Jose, CA","San Jose-Sunnyvale-Santa Clara, CA",41940,310M400US41940,"San Jose-Sunnyvale-Santa Clara, CA Metro Area",124696
+394355,35,"Austin, TX",Msa,TX,310000,"Austin, TX","Austin-Round Rock, TX",12420,310M400US12420,"Austin-Round Rock, TX Metro Area",76925
+395194,36,"Virginia Beach, VA",Msa,VA,248000,"Virginia Beach, VA","Virginia Beach-Norfolk-Newport News, VA-NC",47260,310M400US47260,"Virginia Beach-Norfolk-Newport News, VA-NC Metro Area",65604
+394902,37,"Nashville, TN",Msa,TN,281000,"Nashville, TN","Nashville-Davidson--Murfreesboro--Franklin, TN",34980,310M400US34980,"Nashville-Davidson--Murfreesboro--Franklin, TN Metro Area",65919
+395005,38,"Providence, RI",Msa,RI,299250,"Providence, RI","Providence-Warwick, RI-MA",39300,310M400US39300,"Providence-Warwick, RI-MA Metro Area",65083
+394862,39,"Milwaukee, WI",Msa,WI,235000,"Milwaukee, WI","Milwaukee-Waukesha-West Allis, WI",33340,310M400US33340,"Milwaukee-Waukesha-West Allis, WI Metro Area",60643
+394714,40,"Jacksonville, FL",Msa,FL,249988,"Jacksonville, FL","Jacksonville, FL",27260,310M400US27260,"Jacksonville, FL Metro Area",60238
+394849,41,"Memphis, TN",Msa,TN,175000,"Memphis, TN","Memphis, TN-MS-AR",32820,310M400US32820,"Memphis, TN-MS-AR Metro Area",50338
+394935,42,"Oklahoma City, OK",Msa,OK,177000,"Oklahoma City, OK","Oklahoma City, OK",36420,310M400US36420,"Oklahoma City, OK Metro Area",57485
+394807,43,"Louisville-Jefferson County, KY",Msa,KY,182500,"Louisville, KY","Louisville/Jefferson County, KY-IN",31140,310M400US31140,"Louisville/Jefferson County, KY-IN Metro Area",57405
+394669,44,"Hartford, CT",Msa,CT,235000,"Hartford, CT","Hartford-West Hartford-East Hartford, CT",25540,310M400US25540,"Hartford-West Hartford-East Hartford, CT Metro Area",77258
+395022,45,"Richmond, VA",Msa,VA,251000,"Richmond, VA","Richmond, VA",40060,310M400US40060,"Richmond, VA Metro Area",67703
+394910,46,"New Orleans, LA",Msa,LA,211955,"New Orleans, LA","New Orleans-Metairie, LA",35380,310M400US35380,"New Orleans-Metairie, LA Metro Area",50301
+394425,47,"Buffalo, NY",Msa,NY,160000,"Buffalo, NY","Buffalo-Cheektowaga-Niagara Falls, NY",15380,310M400US15380,"Buffalo-Cheektowaga-Niagara Falls, NY Metro Area",56195
+395012,48,"Raleigh, NC",Msa,NC,285000,"Raleigh, NC","Raleigh, NC",39580,310M400US39580,"Raleigh, NC Metro Area",75165
+394388,49,"Birmingham, AL",Msa,AL,192500,"Birmingham, AL","Birmingham-Hoover, AL",13820,310M400US13820,"Birmingham-Hoover, AL Metro Area",56409
+395053,50,"Salt Lake City, UT",Msa,UT,358650,"Salt Lake City, UT","Salt Lake City, UT",41620,310M400US41620,"Salt Lake City, UT Metro Area",73730
+395031,51,"Rochester, NY",Msa,NY,150000,"Rochester, NY","Rochester, NY",40380,310M400US40380,"Rochester, NY Metro Area",60190
+394640,52,"Grand Rapids, MI",Msa,MI,198000,"Grand Rapids, MI","Grand Rapids-Wyoming, MI",24340,310M400US24340,"Grand Rapids-Wyoming, MI Metro Area",63344
+395167,53,"Tucson, AZ",Msa,AZ,227000,"Tucson, AZ","Tucson, AZ",46060,310M400US46060,"Tucson, AZ Metro Area",53464
+753924,54,"Urban Honolulu, HI",Msa,HI,648955,"Honolulu, HI","Urban Honolulu, HI",46520,310M400US46520,"Urban Honolulu, HI Metro Area",84423
+395169,55,"Tulsa, OK",Msa,OK,175929,"Tulsa, OK","Tulsa, OK",46140,310M400US46140,"Tulsa, OK Metro Area",55633
+394619,56,"Fresno, CA",Msa,CA,283250,"Fresno, CA","Fresno, CA",23420,310M400US23420,"Fresno, CA Metro Area",52629
+395238,57,"Worcester, MA",Msa,MA,280000,"Worcester, MA","Worcester, MA-CT",49340,310M400US49340,"Worcester, MA-CT Metro Area",70869
+394415,58,"Stamford, CT",Msa,CT,462000,"Bridgeport, CT","Bridgeport-Stamford-Norwalk, CT",14860,310M400US14860,"Bridgeport-Stamford-Norwalk, CT Metro Area",91079
+394312,59,"Albuquerque, NM",Msa,NM,222000,"Albuquerque, NM","Albuquerque, NM",10740,310M400US10740,"Albuquerque, NM Metro Area",51134
+394308,60,"Albany, NY",Msa,NY,196500,"Albany, NY","Albany-Schenectady-Troy, NY",10580,310M400US10580,"Albany-Schenectady-Troy, NY Metro Area",71301
+394938,61,"Omaha, NE",Msa,NE,185000,"Omaha, NE","Omaha-Council Bluffs, NE-IA",36540,310M400US36540,"Omaha-Council Bluffs, NE-IA Metro Area",66241
+394908,62,"New Haven, CT",Msa,CT,227000,"New Haven, CT","New Haven-Milford, CT",35300,310M400US35300,"New Haven-Milford, CT Metro Area",67845
+394357,63,"Bakersfield, CA",Msa,CA,235500,"Bakersfield, CA","Bakersfield, CA",12540,310M400US12540,"Bakersfield, CA Metro Area",51579
+394753,64,"Knoxville, TN",Msa,TN,205000,"Knoxville, TN","Knoxville, TN",28940,310M400US28940,"Knoxville, TN Metro Area",53523
+394653,65,"Greenville, SC",Msa,SC,200000,"Greenville, SC","Greenville-Anderson-Mauldin, SC",24860,310M400US24860,"Greenville-Anderson-Mauldin, SC Metro Area",55790
+394952,66,"Ventura, CA",Msa,CA,638250,"Oxnard, CA","Oxnard-Thousand Oaks-Ventura, CA",37100,310M400US37100,"Oxnard-Thousand Oaks-Ventura, CA Metro Area",84566
+394318,67,"Allentown, PA",Msa,PA,190000,"Allentown, PA","Allentown-Bethlehem-Easton, PA-NJ",10900,310M400US10900,"Allentown-Bethlehem-Easton, PA-NJ Metro Area",65929
+394561,68,"El Paso, TX",Msa,TX,162214,"El Paso, TX","El Paso, TX",21340,310M400US21340,"El Paso, TX Metro Area",43862
+394367,69,"Baton Rouge, LA",Msa,LA,203000,"Baton Rouge, LA","Baton Rouge, LA",12940,310M400US12940,"Baton Rouge, LA Metro Area",57843
+394521,70,"Dayton, OH",Msa,OH,132000,"Dayton, OH","Dayton, OH",19380,310M400US19380,"Dayton, OH Metro Area",54942
+394843,71,"McAllen, TX",Msa,TX,158000,"Edinburg, TX","McAllen-Edinburg-Mission, TX",32580,310M400US32580,"McAllen-Edinburg-Mission, TX Metro Area",39165
+394486,72,"Columbia, SC",Msa,SC,172200,"Columbia, SC","Columbia, SC",17900,310M400US17900,"Columbia, SC Metro Area",53765
+394648,73,"Greensboro, NC",Msa,NC,162500,"Asheboro, NC","Greensboro-High Point, NC",24660,310M400US24660,"Greensboro-High Point, NC Metro Area",50026
+394304,74,"Akron, OH",Msa,OH,132660,"Akron, OH","Akron, OH",10420,310M400US10420,"Akron, OH Metro Area",60019
+753906,75,"North Port-Sarasota-Bradenton, FL",Msa,FL,270000,"Bradenton, FL","North Port-Sarasota-Bradenton, FL",35840,310M400US35840,"North Port-Sarasota-Bradenton, FL Metro Area",60921
+394798,76,"Little Rock, AR",Msa,AR,159900,"Little Rock, AR","Little Rock-North Little Rock-Conway, AR",30780,310M400US30780,"Little Rock-North Little Rock-Conway, AR Metro Area",52102
+395134,77,"Stockton, CA",Msa,CA,388000,"Stockton, CA","Stockton-Lodi, CA",44700,310M400US44700,"Stockton-Lodi, CA Metro Area",64119
+394457,78,"Charleston, SC",Msa,SC,285500,"Charleston, SC","Charleston-North Charleston, SC",16700,310M400US16700,"Charleston-North Charleston, SC Metro Area",64283
+395143,79,"Syracuse, NY",Msa,NY,144500,"Syracuse, NY","Syracuse, NY",45060,310M400US45060,"Syracuse, NY Metro Area",58715
+394484,80,"Colorado Springs, CO",Msa,CO,330000,"Colorado Springs, CO","Colorado Springs, CO",17820,310M400US17820,"Colorado Springs, CO Metro Area",67430
+395235,81,"Winston-Salem, NC",Msa,NC,166000,"Winston-Salem, NC","Winston-Salem, NC",49180,310M400US49180,"Winston-Salem, NC Metro Area",48699
+395224,82,"Wichita, KS",Msa,KS,137000,"Wichita, KS","Wichita, KS",48620,310M400US48620,"Wichita, KS Metro Area",56909
+395115,83,"Springfield, MA",Msa,MA,225000,"Springfield, MA","Springfield, MA",44140,310M400US44140,"Springfield, MA Metro Area",57857
+394440,84,"Fort Myers, FL",Msa,FL,250000,"Fort Myers, FL","Cape Coral-Fort Myers, FL",15980,310M400US15980,"Cape Coral-Fort Myers, FL Metro Area",56129
+394399,85,"Boise City, ID",Msa,ID,318995,"Boise, ID","Boise City, ID",14260,310M400US14260,"Boise City, ID Metro Area",61407
+395160,86,"Toledo, OH",Msa,OH,116000,"Toledo, OH","Toledo, OH",45780,310M400US45780,"Toledo, OH Metro Area",51321
+394816,87,"Madison, WI",Msa,WI,284500,"Madison, WI","Madison, WI",31540,310M400US31540,"Madison, WI Metro Area",70463
+394766,88,"Lakeland, FL",Msa,FL,201575,"Lakeland, FL","Lakeland-Winter Haven, FL",29460,310M400US29460,"Lakeland-Winter Haven, FL Metro Area",51670
+394931,89,"Ogden, UT",Msa,UT,294938,"Ogden, UT","Ogden-Clearfield, UT",36260,310M400US36260,"Ogden-Clearfield, UT Metro Area",76653
+394528,90,"Daytona Beach, FL",Msa,FL,220450,"Palm Coast, FL","Deltona-Daytona Beach-Ormond Beach, FL",19660,310M400US19660,"Deltona-Daytona Beach-Ormond Beach, FL Metro Area",51364
+394531,91,"Des Moines, IA",Msa,IA,217000,"Des Moines, IA","Des Moines-West Des Moines, IA",19780,310M400US19780,"Des Moines-West Des Moines, IA Metro Area",71352
+394711,92,"Jackson, MS",Msa,MS,179450,"Jackson, MS","Jackson, MS",27140,310M400US27140,"Jackson, MS Metro Area",55700
+394352,94,"Augusta, GA",Msa,GA,187048,"Aiken, SC","Augusta-Richmond County, GA-SC",12260,310M400US12260,"Augusta-Richmond County, GA-SC Metro Area",52696
+394666,96,"Harrisburg, PA",Msa,PA,182000,"Harrisburg, PA","Harrisburg-Carlisle, PA",25420,310M400US25420,"Harrisburg-Carlisle, PA Metro Area",64213
+395006,100,"Provo, UT",Msa,UT,342750,"Provo, UT","Provo-Orem, UT",39340,310M400US39340,"Provo-Orem, UT Metro Area",75344
+394549,104,"Durham, NC",Msa,NC,284500,"Durham, NC","Durham-Chapel Hill, NC",20500,310M400US20500,"Durham-Chapel Hill, NC Metro Area",62114
+394995,119,"Port St. Lucie, FL",Msa,FL,250000,"Port Saint Lucie, FL","Port St. Lucie, FL",38940,310M400US38940,"Port St. Lucie, FL Metro Area",55714
+395183,124,"Vallejo, CA",Msa,CA,439000,"Vallejo, CA","Vallejo-Fairfield, CA",46700,310M400US46700,"Vallejo-Fairfield, CA Metro Area",84395
+394746,128,"Killeen, TX",Msa,TX,165000,"Killeen, TX","Killeen-Temple, TX",28660,310M400US28660,"Killeen-Temple, TX Metro Area",53686
+395048,132,"Salem, OR",Msa,OR,309995,"Salem, OR","Salem, OR",41420,310M400US41420,"Salem, OR Metro Area",57091
+394927,149,"Ocala, FL",Msa,FL,168000,"Ocala, FL","Ocala, FL",36100,310M400US36100,"Ocala, FL Metro Area",44576
+394602,159,"Fort Collins, CO",Msa,CO,416962,"Fort Collins, CO","Fort Collins, CO",22660,310M400US22660,"Fort Collins, CO Metro Area",71091
+394405,162,"Boulder, CO",Msa,CO,567450,"Boulder, CO","Boulder, CO",14500,310M400US14500,"Boulder, CO Metro Area",83755
+394471,172,"Clarksville, TN",Msa,TN,205000,"Clarksville, TN","Clarksville, TN-KY",17300,310M400US17300,"Clarksville, TN-KY Metro Area",51280
+394645,177,"Greeley, CO",Msa,CO,369000,"Greeley, CO","Greeley, CO",24540,310M400US24540,"Greeley, CO Metro Area",75938
+394813,189,"Macon-Bibb County, GA",Msa,GA,138750,"Macon, GA","Macon, GA",31420,310M400US31420,"Macon-Bibb County, GA Metro Area",42615
+394346,220,"Athens, GA",Msa,GA,225000,"Athens, GA","Athens-Clarke County, GA",12020,310M400US12020,"Athens-Clarke County, GA Metro Area",51503
+394623,229,"Gainesville, GA",Msa,GA,262500,"Gainesville, GA","Gainesville, GA",23580,310M400US23580,"Gainesville, GA Metro Area",61699
+395246,244,"Yuba City, CA",Msa,CA,305000,"Yuba City, CA","Yuba City, CA",49700,310M400US49700,"Yuba City, CA Metro Area",54745
+395009,251,"Punta Gorda, FL",Msa,FL,230000,"Port Charlotte, FL","Punta Gorda, FL",39460,310M400US39460,"Punta Gorda, FL Metro Area",52927
+395007,253,"Pueblo, CO",Msa,CO,199450,"Pueblo, CO","Pueblo, CO",39380,310M400US39380,"Pueblo, CO Metro Area",48468
+395094,331,"Sherman, TX",Msa,TX,185000,"Sherman, TX","Sherman-Denison, TX",43300,310M400US43300,"Sherman-Denison, TX Metro Area",51158
+394546,343,"Dunn, NC",Msa,NC,189000,"Spring Lake, NC","Dunn, NC",20380,310M400US20380,"Dunn, NC Micro Area",51022
+395166,383,"Truckee, CA",Msa,CA,430000,"Grass Valley, CA","Truckee-Grass Valley, CA",46020,310M400US46020,"Truckee-Grass Valley, CA Micro Area",66299
+395153,399,"The Villages, FL",Msa,FL,277000,"Bushnell, FL","The Villages, FL",45540,310M400US45540,"The Villages, FL Metro Area",53895
+394586,504,"Faribault, MN",Msa,MN,238950,"Faribault, MN","Faribault-Northfield, MN",22060,310M400US22060,"Faribault-Northfield, MN Micro Area",65839
+394309,527,"Albemarle, NC",Msa,NC,150000,"Albemarle, NC","Albemarle, NC",10620,NA,NA,NA
+394742,595,"Kerrville, TX",Msa,TX,251200,"Kerrville, TX","Kerrville, TX",28500,NA,NA,NA
+395091,641,"Shelbyville, TN",Msa,TN,184950,"Shelbyville, TN","Shelbyville, TN",43180,NA,NA,NA
+395230,672,"Wilmington, OH",Msa,OH,139700,"Wilmington, OH","Wilmington, OH",48940,NA,NA,NA
