@@ -1,0 +1,254 @@
+# Confidence Intervals {#slrCI}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+'`
+
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
+```
+
+## Uncertainty Estimation
+
+Hypothesis tests provide an answer to a specific question (*Is there evidence to reject the null hypothesis?*), but they don't directly provide information about the uncertainty in the point estimates.
+In many contexts, what is often more useful than a conclusion from a hypothesis test is an estimate of a parameter and its uncertainty. **Confidence intervals** provide a way to describe the uncertainty in a parameter estimate.
+
+
+<!-- * Ex: Is there an association between latitude and mortality rates? -->
+<!-- * Ex: Is the estimated slope more than 1 (\$s per person/km$^2$) in a SLR model with rental prices as outcome and population density the predictor? -->
+
+
+
+## Confidence Intervals 
+
+### Inverting a Hypothesis Test
+
+To create a confidence interval, we *invert* a hypothesis test. Recall that for a hypothesis test,  we computed
+$$t = \frac{\hat\beta_1 - \beta_{10}}{\widehat{se}(\hat\beta_1)}$$
+by plugging in $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, and $\beta_{10}$.
+For a confidence interval, we reverse this process. That is, we plug in $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, and $t$, then **solve for $\beta_{10}$** as an unknown value.
+
+### Distribution of $t$
+
+The distribution of  $t = \dfrac{\hat\beta_1 - \beta_{1}}{\widehat{se}(\hat\beta_1)}$ is $T_{n-2}$. This distribution has mean zero and a standardized variance (it's close to 1, although not exactly 1). There exists a number, which we denote $t_{\alpha/2}$ such that the area between them is $1-\alpha$. Mathematically, this can be written:
+
+\begin{equation}
+P\left(-t_{\alpha/2} \le \dfrac{\hat\beta_1 - \beta_1}{\widehat{se}(\hat\beta_1)} \le t_{\alpha/2}\right) = 1 - \alpha
+(\#eq:ciinvert)
+\end{equation}
+
+Graphically, this looks like:
+
+```{r echo=FALSE}
+x <- seq(-5, 5, length=100)
+tdf <- data.frame(x=x, tdens=dt(x, df=10))
+ggt <- ggplot() + theme_classic() + coord_cartesian(xlim=c(-3.2, 3.2), ylim=c(0, 0.5), expand=F) + 
+  theme(axis.line.y = element_blank()) + 
+  xlab(expression(T[n-2])) + 
+  ylab("") + scale_y_continuous(breaks=NULL)+
+  geom_hline(aes(yintercept=0)) + 
+  geom_line(aes(x=x,y=tdens),
+            data=tdf)
+ggt + 
+  geom_polygon(aes(x=c(-1.5, -1.5, x[x>-1.5 & x < 1.5],1.5, 1.5),
+                   y=c(0, dt(-1.5, df=10), dt(x[x>-1.5 & x < 1.5], df=10),  dt(1.5, df=10), 0)),
+               fill="grey80") +
+  scale_x_continuous(breaks=c(-1.5, 1.5), labels=c("-t", "t"))+ 
+  geom_segment(aes(x=1.5, xend=1.5, y=0, yend=dt(1.5, df=10)), col="red") +
+    geom_segment(aes(x=-1.5, xend=-1.5, y=0, yend=dt(-1.5, df=10)), col="red")
+```
+
+
+
+We can rearrange equation \@ref(eq:ciinvert), so that $\beta_1$ is alone in the middle: 
+
+```{asis echo=!FALSE}
+\begin{align*}
+1-\alpha &= P\left(-t_{\alpha/2}\widehat{se}(\hat\beta_1) \le \hat\beta_1 - \beta_1 \le t_{\alpha/2}\widehat{se}(\hat\beta_1)\right)\\
+&= P\left(t_{\alpha/2}\widehat{se}(\hat\beta_1) \ge \beta_1 - \hat\beta_1 \ge -t_{\alpha/2}\widehat{se}(\hat\beta_1)\right)\\
+&= P\left(\hat\beta_1 + t_{\alpha/2}\widehat{se}(\hat\beta_1) \ge \beta_1  \ge \hat\beta_1 -t_{\alpha/2}\widehat{se}(\hat\beta_1)\right)\\
+&= P\left(\hat\beta_1 - t_{\alpha/2}\widehat{se}(\hat\beta_1) \le \beta_1  \le \hat\beta_1 + t_{\alpha/2}\widehat{se}(\hat\beta_1)\right)\\
+\end{align*}
+```
+
+
+
+## Confidence Interval
+ 
+ 
+This then gives a $(1 -\alpha)100\%$ confidence interval for $\beta_1$:
+$$\left(\hat\beta_1 - t_{\alpha/2}\widehat{se}(\hat\beta_1), \hat\beta_1 + t_{\alpha/2}\widehat{se}(\hat\beta_1)\right)$$
+We can construct a CI for $\beta_0$ in the same way:
+$$\left(\hat\beta_0 - t_{\alpha/2}\widehat{se}(\hat\beta_0), \hat\beta_0 + t_{\alpha/2}\widehat{se}(\hat\beta_0)\right)$$
+
+
+
+```{definition}
+A **$(1- \alpha)100\%$ confidence interval** is a random interval that, if the model is correct, would include ("cover") the true value of the parameter with probability $(1 - \alpha)$.
+```
+
+A common *incorrect* interpretation of a CI is:
+The probability of $\beta_1$ being in the interval is $(1- \alpha)100\%$.  
+ This is incorrect since in a confidence interval, it is the *interval* itself that is random. The parameter $\beta_1$ is a fixed (but unknown) number, so it does not have a probability associated with it.
+
+
+
+## CI for $\sigma^2$
+
+Confidence intervals for $\sigma^2$ are created using the same strategy.
+
+Fact: $\dfrac{SS_{res}}{\sigma^2} = \dfrac{(n-2)MS_{res}}{\sigma^2} = \dfrac{(n-2)\hat\sigma^2}{\sigma^2} \sim \chi^2_{n-2}$
+
+
+```{r echo=FALSE, out.width="85%",  fig.align="c"}
+x <- seq(0, 10, length=100)
+chidf <- data.frame(x=x, chidens=dchisq(x, df=4))
+ggchi2 <- ggplot() + theme_classic() + coord_cartesian(xlim=c(0, 10), expand=F) + 
+  theme(axis.line.y = element_blank()) + 
+  xlab(expression(chi[n-2]^2)) + ylab("") + scale_y_continuous(breaks=NULL) +
+  geom_hline(aes(yintercept=0)) + 
+  geom_line(aes(x=x,y=chidens),
+            data=chidf)
+ggchi2 + scale_x_continuous(breaks=c(1, 8), labels=c(expression(chi[1-alpha/2,n-2]^2), expression(chi[alpha/2, n-2]^2)))
+```
+
+$$P\left(\chi^2_{1-\frac{\alpha}{2}, n-2} \le \frac{(n-2)MS_{res}}{\sigma^2} \le \chi^2_{\frac{\alpha}{2}, n-2}\right) = 1 - \alpha$$
+
+\vspace{1cm}
+
+
+$$P\left(\frac{(n-2)MS_{res}}{\chi^2_{\frac{\alpha}{2}, n-2}} \le \sigma^2 \le \frac{(n-2)MS_{res}}{\chi^2_{1-\frac{\alpha}{2}, n-2}}\right) = 1 - \alpha$$
+
+
+## Confidence Intervals in R
+
+```{r eval=FALSE, include=FALSE}
+rocket <- read_csv(paste0(data_dir, "rocket.csv"))
+```
+
+
+```{r eval=FALSE, echo=F}
+g_rocket <- ggplot(rocket)  + theme_bw()  +
+  geom_point(aes(x=age, y=shear_strength)) +
+  ylab("Shear Strength (psi)") + 
+  xlab("Age (weeks)")
+g_rocket + geom_smooth(aes(x=age, y=shear_strength), method="lm", se=FALSE)
+```
+
+
+### Confidence Intervals "by hand" in R
+
+```{r eval=FALSE, echo=TRUE, size="scriptsize"}
+rocket_lm <- lm(shear_strength~age, data=rocket)
+
+alpha <- 0.05
+t_alphaOver2 <- qt(1-alpha/2, df = nobs(rocket_lm)-2)
+t_alphaOver2
+
+CI95Lower <- coef(rocket_lm)[2] - t_alphaOver2 * tidy(rocket_lm)$std.error[2]
+CI95Upper <- coef(rocket_lm)[2] + t_alphaOver2 * tidy(rocket_lm)$std.error[2]
+c(CI95Lower, CI95Upper)
+```
+
+
+
+### Confidence Intervals in R
+
+
+
+```{r eval=FALSE, echo=TRUE, size="scriptsize"}
+tidy(rocket_lm, conf.int=TRUE, conf.level=0.95)
+```
+
+\vspace{1cm}
+
+```{asis echo=!FALSE}
+A difference of one-week older rocket age is associated, on average, with 37.15 psi lower shear strength (95\% CI: $-43.2$, $-31.1$).
+```
+
+
+
+## Parameter Interpretation
+
+Key components of parameter interpretation (from Lect. 2):
+
+* $\hat\beta_1$ -- estimated average difference in [Y] for a 1 unit difference in [X].
+    * Avoid the term "increase", because we do not directly change an observation
+    * Can use "greater"/"lower"/"higher"/etc. to indicate direction
+* $\hat\beta_0$ -- estimated average value of [Y] when [X] is zero.
+* point estimate (i.e. the number)
+* "average" or "mean", since each observation has variation
+* units for all variables
+* context for study population and/or source of data
+
+Components we should now add to all interpretations::
+
+* Confidence interval (typically 95\% unless otherwise specified)
+* Statement from testing $H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$
+
+
+### Parameter Interpretation: Confidence Interval
+
+**Confidence intervals**
+
+* Usually include in parentheses after point estimate
+    * Ex: "... 37.15 psi lower shear strength (95\% CI: $-43.2$, $-31.1$)...."
+* A detailed interpretation of what a CI means not necessary in most contexts (but you should be able to provide it for homework/exams!)
+* Units do not need to be repeated for the CI, but should be in the sentence.
+
+### Parameter Interpretation: $p$-values
+
+**Testing $H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$**
+
+* Report the exact $p$-value, unless it is below 0.0001
+* Do not just say "significant" or "not significant". Include a clear sentence:
+    * Ex 1: "We reject the null hypothesis that there is no linear trend in the average shear strength across rockets of different ages (p < 0.0001)."
+    * Ex 2: "We reject the null hypothesis that there is no linear relationship between average shear strength and rocket age (p < 0.0001)."
+    * Ex 3: "We fail to reject the null hypothesis that there is no linear trend in the average shear strength across rockets of different ages (p = 0.52)."
+* A $p$-value without further context corresponds to the above $H_0$
+    * Ex:  "...37.15 psi lower shear strength (95\% CI: $-43.2$, $-31.1$, $p < 0.0001$)...."
+
+
+## Example: Penguins data
+
+
+```{example}
+In the penguin data, we can compute confidence intervals for the parameters by using the `conf.level=` option to the `tidy()` function:
+```
+
+```{r eval=FALSE, echo=TRUE, size="scriptsize"}
+tidy(penguin_lm, conf.int=TRUE, conf.level=0.95)
+```
+Another approach is to use the `confint()` function:
+
+```{r eval=FALSE, echo=TRUE, size="scriptsize"}
+confint(penguin_lm, conf.level=0.95)
+```
+
+
+**UPDATE THIS SENTENCE**
+
+A difference of one-week older rocket age is associated, on average, with 37.15 psi lower shear strength (95\% CI: $-43.2$, $-31.1$). We reject the null hypothesis that there is no linear trend in the average shear strength across rockets of different ages (p < 0.0001).
+
+
+<!-- ## Example: Melanoma -->
+
+
+<!-- ```{r eval=FALSE, echo=TRUE, size="footnotesize", include=FALSE} -->
+<!-- melanoma <- read_csv(paste0(data_dir, "melanoma.csv"), -->
+<!--                      col_types=cols()) -->
+<!-- ``` -->
+
+<!-- ```{r eval=FALSE, echo=TRUE, size="scriptsize"} -->
+<!-- mel_lm <- lm(mort~latitude, data=melanoma) -->
+<!-- tidy(mel_lm, conf.int=TRUE, conf.level = 0.95) -->
+<!-- ``` -->
+
+<!-- Among U.S. states, a difference of one degree latitude is associated with an average of 5.98 fewer melanoma deaths per 10 million people (95\% CI: $-7.18, -4.77$).  We reject the null hypothesis that there is no linear relationship between latitude and average number of melanoma deaths (p < 0.0001). -->
+
+<!-- We estimate that for each difference of one degree latitude among U.S. states, the average number of melanoma deaths per 10 million people is 5.98 lower (95\% CI: $-7.18, -4.77$).  We reject the null hypothesis that there is no linear trend in the relationship between the average number of melanoma deaths and latitude (p < 0.0001). -->
+

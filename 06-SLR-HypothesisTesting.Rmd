@@ -1,0 +1,412 @@
+# Hypothesis Testing in SLR {#slrhypothtest}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+'`
+
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
+```
+
+## Inference on $\beta_1$
+
+A fundamental task in statistics is **inference**, in which we use a sample of data to make generalizations about relationships in larger populations. Inference is a key component of an *association* analysis (see Section \@ref(sec:scigoals)). Inference is usually conducted via hypothesis tests (this chapter and Chapter \@ref(slrFtest)) and confidence intervals (Chapter \@ref(slrCI)).  
+
+Statistical inference is rooted in an underlying scientific goal. A standard inferential question for a regression analysis is something like: *Is there a relationship between 'x' and the average value of 'y'?*, where 'x' and 'y' are a predictor and outcome of interest. To answer this question using regression, we first need to translate it into a statistical question about specific model parameters.
+
+It helps to first note that if there is *no* relationship between the variable $x$ and the average outcome $\E[Y]$, then an appropriate linear model is the **intercept-only** model:
+
+\begin{equation}
+Y_i = \beta_0 + \epsilon_i.
+(\#eq:slrinterceptonly)
+\end{equation}
+In equation \@ref(eq:slrinterceptonly), the predictor $x$ does not appear at all, and so the regression line is simply a horizontal line with intercept $\beta_0$. Figure \@ref(fig:g-intercept-only) shows an example of data generated from a model in which there is no relationship between $Y_i$ and $x_i$.
+
+```{r g-intercept-only, echo=FALSE, fig.cap="Example data from a hypothetical regression model with $\\beta_0 = 3$ and $\\beta_1 = 0$. The black line shows the *true* mean of $y$ as a function of $x$."}
+set.seed(12)
+n <- 100
+x <- runif(n)
+y <- 3 + rnorm(n)
+ggplot() + theme_bw() + 
+  geom_point(aes(x=x,  y=y)) +
+  geom_hline(aes(yintercept=3)) +
+  ylim(0, 6)
+```
+
+How is the intercept-only model useful? Well, it allows to change the scientific question:
+
+*Is there a relationship between 'x' and the average value of 'y'?*
+
+into a statistical question:
+
+*In the model $Y_i = \beta_0 + \beta_1x_i + \epsilon_i$, is $\beta_1 \ne 0$?*
+
+If the answer to this question is "No", then $\beta_1 = 0$ and we are left with the intercept-only model. 
+
+
+<!-- \textbf{Statistical Question:} In the SLR model -->
+<!-- with $x_i =$ flipper length -->
+<!-- and $Y_i =$ body mass,  -->
+<!-- is $\beta_1 \ne 0$? -->
+
+<!-- Another way to write the statistical question is a comparison of two models: -->
+
+<!-- \begin{align*} -->
+<!-- \text{Model 1}: Y_i &= \beta_0 + \epsilon_i\\ -->
+<!-- \text{Model 2}: Y_i &= \beta_0 + \beta_1x_i + \epsilon_i -->
+<!-- \end{align*} -->
+
+<!-- Which model better describes average body mass? Model 1, which includes only an intercept, or Model 2, which includes a linear function of flipper length? -->
+
+
+
+<!-- \textbf{Statistical Question:} In the SLR model -->
+<!-- with $x_i =$ flipper length -->
+<!-- and $Y_i =$ body mass,  -->
+<!-- is $\beta_1 \ne 0$? -->
+
+
+<!-- ## Example: Penguins -->
+
+```{example}
+In the penguin data we might ask:  *Is there a relationship between flipper length and body mass in penguins?* 
+The corresponding statistical question is: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?* 
+We saw in Example \@ref(exm:penguin-lm-stepped) that the estimated SLR equation for the penguin data was $\E[Y_i] = -5780.83 + 49.69x_i$.
+Thus, the estimated slope is 49.7 g/mm. Clearly this value is not 0. But is it *meaningfully* different from 0? To answer that, we need to consider the uncertainty in this estimate.
+```
+
+## Standard Error of $\beta_1$
+
+### Sampling Distribution of $\hat\beta_1$
+
+The notation $\hat\beta_1$ actually refers to two different quantities. On one hand, this is the estimated slope of the linear regression line; that is, $\hat\beta_1$ is a number or an **estimate**. But $\hat\beta_1 = S_{xy}/S_{xx}$ also denotes an **estimator**, which is a rule for calculating an estimate from a dataset. 
+
+As an estimator, $\hat\beta_1$ has a distribution. We have previously seen that under the standard SLR assumptions:
+
+
+* $\E[\hat\beta_1] = \beta_1$
+* $\Var[\hat\beta_1] =\sigma^2/S_{xx}$
+
+The value of $\Var[\hat\beta_1]$ tells about how much variation there is the values of $\hat\beta_1$ calculated from many different datasets. If we conduct repeated experiments **all using the same population and settings**, we obtain a different $\hat\beta_1$ each time. 
+
+* The distribution of values we obtain is called the \emph{sampling distribution} of $\hat\beta_1$
+* The standard deviation (or the variance) of this distribution tells us about the uncertainty in $\hat\beta_1$
+
+
+
+
+
+<!-- Given the model -->
+
+<!-- * $Y_i = \beta_0 + \beta_1x_i + \epsilon_i$ -->
+<!-- * $\E[\epsilon_i]= 0$ and $\Var(\epsilon_i)=\sigma^2$ -->
+<!-- * $\epsilon_i$ uncorrelated -->
+
+<!-- we know that -->
+
+<!-- * $\E[\hat\beta_1] = \beta_1$ -->
+<!-- * $\Var[\hat\beta_1] =\sigma^2/S_{xx}$ -->
+
+<!-- ### Hypothetical Example: Meditation -->
+
+<!-- Suppose we have a meditation technique that is supposed to improve sleep among college students. -->
+
+<!-- \textbf{Goal}: Estimate the relationship ($\hat\beta_1$) between hours spent meditating each week ($x$) and average hours of sleep per day ($y$) -->
+
+<!-- We recruit 50 students and have 10 of them meditate for 0hr, 10 for 0.5hr, 10 for 1hr, 10 for 1.5hr, and 10 for 2h each week for 4 weeks.  -->
+
+<!-- We obtain an estimate of $\hat\beta_1 = 0.3$. -->
+
+<!-- We repeat this with 50 different students, and obtain $\hat\beta_1 = 0.6$ -->
+
+<!-- We repeat this again with 50 different students, and obtain $\hat\beta_1 = 0.4$ -->
+
+<!-- We repeat this again with 50 different students, and obtain $\hat\beta_1 = -0.05$ -->
+
+<!-- We repeat this again... -->
+
+<!-- We continue repeating the experiment until we have done it 100 times, so we have 100 $\hat\beta_1$'s. -->
+
+<!-- ```{r} -->
+<!-- set.seed(17) -->
+<!-- b1hat <- rnorm(n=100, mean=0.3, sd=0.15) -->
+<!-- ggplot() + theme_bw() +  -->
+<!--    geom_histogram(aes(x=b1hat), bins=20) + -->
+<!--    xlab(expression("Values of"~hat(beta[1]))) -->
+<!-- ``` -->
+
+
+<!-- If we conduct repeated experiments **all using the same meditation amounts, population, and setting**, we obtain a different $\hat\beta_1$ each time.  -->
+
+
+
+### Standard Errors
+
+The standard deviation of the sampling distribution of $\hat\beta_1$ is called the **standard error** of $\hat\beta_1$ and it is denoted:
+
+$$se(\hat\beta_1) = \sqrt{\Var(\hat\beta_1)} = \sqrt{\sigma^2/S_{xx}}$$
+The value of $se(\hat\beta_1)$ depends on three factors:
+
+* The variance of the error terms ($\sigma^2$)
+* The variation in the values of $x_i$ (via $S_{xx}$)
+* The number of observations (via $S_{xx}$)
+
+
+
+It's important to note that we don't know $\sigma^2$, but we can estimate it as $\hat\sigma^2$. This gives an estimate of $\Var(\hat\beta_1)$:
+$$\widehat{\Var}(\hat\beta_1) = \dfrac{\hat\sigma^2}{S_{xx}} = \dfrac{MS_{res}}{S_{xx}} = \dfrac{1}{S_{xx}}\dfrac{1}{n-2}\sum_{i=1}^n e_i^2$$
+So we calculate the estimated standard error as 
+$$\widehat{se}(\hat\beta_1) = \sqrt{\dfrac{MS_{res}}{S_{xx}}}$$
+**MOVE**: For one dataset, we only observe one realization of $\hat\beta_1$.
+
+
+## Hypothesis Testing: One-sample $t$-test
+
+To see how we incorporate $se(\hat\beta_1)$ into a hypothesis test, let's first go back to perhaps the most well-known test in statistics, the one-sample $t$-test.
+
+For a one-sample $t$-test, we assume that we have an independent sample of values $y_1$, $y_2$, \dots, $y_n$ from a population in which $Y_i \sim N(\mu, \sigma^2)$.
+Our hypothesis is then to test whether $\mu \ne \mu_0$ for some chosen value of $\mu_0$. We can write this as:
+$$H_0: \mu = \mu_0 \quad \text{vs.} \quad H_A: \mu \ne \mu_0$$
+We use the test statistic
+$$t = \frac{\hat\mu - \mu_0}{se(\hat\mu)}.$$
+If $H_0$ is true, then $t$ follows a $T$-distribution with $n-1$ degrees of freedom, i.e. $t \sim T_{(n-1)}$.
+
+* If $t$ is "large", then we reject $H_0$ in favor of $H_A$
+* If $t$ is not "large", then we do not reject $H_0$
+
+But what does "large" value of $t$ mean? Large $t$ means $\overline{y}$ is far from the hypothesized value $\mu_0$. To account for the variability in the distribution of $\hat\beta_1$, we divide $\overline{y} - \mu_0$ by its standard error. This is becasue a large difference between $\overline{y}$ and $\mu_0$ is more meaningful when $\overline{y}$ has smaller variance.
+
+We then compare $t$ to the $T_{n-1}$ distribution and compute $P(T > |t|)$:
+
+```{r include=FALSE, eval=T}
+x <- seq(-5, 5, length=100)
+tdf <- data.frame(x=x, tdens=dt(x, df=10))
+ggt <- ggplot() + theme_classic() + coord_cartesian(xlim=c(-3.2, 3.2), ylim=c(0, 0.5), expand=F) + 
+  theme(axis.line.y = element_blank()) + 
+  xlab(expression(T[n-1])) + ylab("") + scale_y_continuous(breaks=NULL)+
+  geom_hline(aes(yintercept=0)) + 
+  geom_line(aes(x=x,y=tdens),
+            data=tdf)
+```
+
+```{r t-test-plot, echo=FALSE, fig.cap="Density curve for T-distribution. Shaded areas on left and right represent $P(T > |t|)$."}
+ggt + 
+  geom_polygon(aes(x=c(1.5, 1.5, x[x>1.5]),
+                   y=c(0, dt(1.5, df=10), dt(x[x>1.5], df=10))),
+               fill="grey80") +
+    geom_polygon(aes(x=c(x[x< -1.5], -1.5, -1.5),
+                   y=c(dt(x[x< -1.5], df=10), dt(-1.5, df=10), 0)),
+               fill="grey80") +
+  scale_x_continuous(breaks=c(-1.5, 1.5), labels=c("-t", "t"))+ 
+  geom_segment(aes(x=1.5, xend=1.5, y=0, yend=dt(1.5, df=10)), col="red") +
+    geom_segment(aes(x=-1.5, xend=-1.5, y=0, yend=dt(-1.5, df=10)), col="red")
+```
+
+
+<!-- Why consider both sides of the distribution? -->
+
+<!-- What is "small"? -->
+
+<!-- * 0.05 is a widely used cutoff -->
+<!-- * 0.1 and 0.01 also used -->
+
+<!-- If $P(T > |t|) < 0.05$, then we reject $H_0$ "at the $\alpha=0.05$ level". -->
+
+This probability is given by the shaded areas on the right and left in Figure \@ref(fig:t-test-plot).
+Since our alternative hypothesis is two-sided (as opposed to a one-sided hypothesis such as $H_0: \mu > \mu_0$), then we need to consider the values in both directions.
+
+
+If $p=P(T > |t|)$ (the "$p$-value") is smaller than the chosen critical value $\alpha$, then we reject $H_0$. How to choose $\alpha$ is the subject of much debate, but a widely used value is 0.05. In some contexts, 0.01 and 0.1 are also used as critical values for rejecting $H_0$.
+
+If $P(T > |t|) > \alpha$, then we *fail to reject $H_0$*. It's important to note that failing to reject $H_0$ is not the same as proving $H_0$!
+
+
+<!-- If $P(T > |t|) < 0.05$, then we reject $H_0$ "at the $\alpha=0.05$ level". -->
+
+
+Why is $t \sim T_{n-1}$ and not $t \sim N(0, 1)$? This is because we have estimated the standard error $\widehat{se}(\overline{y}) = s/\sqrt{n}$, and so $t$ has more variation than a normal distribution. Part of what makes tests of this form so useful is that when $n$ (the sample size) is large enough, then $t$ has a $T$-distribution, *even if $Y$ does not have a normal distribution!* This is a consequence of the **Central Limit Theorem (CLT)**. 
+
+The CLT tells us that for a sequence of random variables $X_1$, $X_2$, \dots with finite mean $\mu$ and finite variance $\sigma^2$, the distribution of the mean of the observations $\overline{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$ can be approximated by a normal distribution with mean $\mu$ and variance $\sigma^2/n$ when $n$ is sufficiently large.
+
+
+## $p$-values
+
+While widely used, $p$-values are commonly mis-used. It's important to keep in mind what a $p$-value can (and can't!) tell you. A formal definition for a $p$-value is:
+
+```{definition}
+The **$p$-value** for a hypothesis test is the probability, if $H_0$ is true, of observing  a test statistic the same or more in favor of the alternative hypothesis than the result that was obtained.  
+```
+
+The underlying idea is that a small $p$-value means that getting data like what we observed is not very compatible with $H_0$ being true.
+
+<!-- $p$-value = The probability, if $H_0$ is true, of observing  a test statistic the same or more in favor of the alternative hypothesis than the result that was obtained. -->
+
+<!-- Idea: A small $p$-value means that getting data like what we observed is not very compatible with $H_0$ being true. -->
+
+
+**Incorrect** interpretations of $p$-values:
+
+* Probability the null hypothesis is incorrect
+* Probability that the alternative hypothesis is true
+* Probability of these results occurring by chance
+
+In 2018, the American Statistical Association (ASA) published a statement about  $p$-values.^[https://doi.org/10.1080/00031305.2016.1154108] Included in that statement were the following reminders:
+
+<!-- Statement from American Statistical Association (ASA) on $p$-values:\footnote{\url{https://doi.org/10.1080/00031305.2016.1154108}} -->
+
+1. $p$-values can indicate how incompatible the data are with a specified statistical model.
+2. $p$-values do not measure the probability that the studied hypothesis is true, or the probability that the data were produced by random chance alone.
+3. Scientific conclusions and business or policy decisions should not be based only on whether a $p$-value passes a specific threshold.
+4. Proper inference requires full reporting and transparency.
+5. A $p$-value, or statistical significance, does not measure the size of an effect or the importance of a result.
+6. By itself, a $p$-value does not provide a good measure of evidence regarding a model or hypothesis.
+
+
+
+
+## Hypothesis Testing for $\beta_1$
+
+In simple linear regression, we can conduct a hypothesis test for $\beta_1$ just like how we conducted the one-sample $t$-test.
+
+First, we set up the null and alternative hypotheses:
+
+$H_0: \beta_1 = \beta_{10}$
+$H_A: \beta_1 \ne \beta_{10}$^[This quantity is called "beta-one-naught", not "beta-ten"]
+
+Most commonly, $\beta_{10} = 0$, which mean we are testing whether there is a relationship between $x$ and $\E[Y]$. 
+The $t$ statistic is:
+
+$$t = \dfrac{\hat\beta_1 - \beta_{10}}{\widehat{se}(\hat\beta_1)} =  \dfrac{\hat\beta_1 - \beta_{10}}{\sqrt{\hat\sigma^2/S_{xx}}} =  \dfrac{\hat\beta_1 - \beta_{10}}{\sqrt{\frac{1}{S_{xx}}\frac{1}{n-2}\sum_{i=1}^ne_i^2}}$$
+
+If $\epsilon_i \sim N(0, \sigma^2)$ and $H_0$ is true, then $t$ has a $T$-distribution with $n-2$ degrees of freedom. If $H_0$ is true, but $\epsilon_i$ is not normally distributed, then $t$ follows a $T_{n-2}$ distribution **approximately**, because of the CLT.  We reject $H_0$ at the $\alpha$ level if $P(T > |t|) < \alpha$.
+
+
+### Testing "by hand"
+
+```{example penguin-by-hand}
+Let's return to the penguin example above, in which we asked: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?*
+```
+
+We previously calculated the estimated slope as $\hat\beta_1 = 49.7$. From the question formulation, we know that the test value $\beta_{10} = 0$. To calculate $t$, we now need to compute $\widehat{se}(\hat\beta_1) = \hat\sigma^2/S_{xx}$.
+
+We can obtain $\hat\sigma^2$ from R, either from the output of `summary()` or by calculating it directly:
+```{r eval=TRUE}
+penguin_lm <- lm(body_mass_g ~ flipper_length_mm, data=penguins)
+sig2hat <- summary(penguin_lm)$sigma^2 
+sig2hat
+# Alternative way "by hand"
+sum(residuals(penguin_lm)^2)/(nobs(penguin_lm)-2)
+```
+
+We can then  calculate $S_{xx}$ as:
+```{r}
+sxx <- sum(penguins$flipper_length_mm^2, na.rm=T) - 1/nobs(penguin_lm)*sum(penguins$flipper_length_mm, na.rm=T)^2
+sxx
+```
+
+Now we combine these values to compute
+
+$$t = \frac{\hat\beta_1 - \beta_{10}}{\sqrt{\hat\sigma^2/S_{xx}}} = \frac{49.7 - 0}{\sqrt{155455.3/67426.54}} = 32.7$$
+In R, this computation is:
+```{r}
+t <- (coef(penguin_lm)[2]- 0)/sqrt(sig2hat/sxx)
+t
+```
+
+We can then compute the $p$-value, by comparing to a $T$-distribution:
+```{r echo=TRUE}
+2*pt(abs(t), df=nobs(penguin_lm)-2, lower=FALSE)
+```
+
+This tell us that $P(T > |32.7|) < 0.0001$. And so we reject $H_0$ at the $\alpha = 0.001$ level.
+
+### Testing using R output
+
+Although the method just describe works, it can be tedious. Since the null hypothesis $H_0: \beta_1 = 0$ is so commonly tested, R provides the results of this hypothesis in its standard output.
+
+```{example}
+Compare the following output with the results calculated manually in Example \@ref(exm:penguin-by-hand).
+```
+
+```{r eval=TRUE}
+tidy(penguin_lm)
+```
+We se a column with $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, $t$, and $p$! This same information is also available from the `summmary()` command:
+
+<!-- eval=FALSE, echo=TRUE, output.lines=10:15, size="footnotesize"}  -->
+
+```{r eval=TRUE, echo=TRUE, output.lines=10:15, size="footnotesize"} 
+summary(penguin_lm)
+```
+
+
+
+## Hypothesis Testing for $\beta_0$
+
+Hypothesis testing for the intercept $\beta_0$ works in a similar fashion.
+For the null and alternative hypotheses
+
+$$H_0: \beta_0 = \beta_{00} \text{ vs. } H_A: \beta_0 \ne \beta_{00}$$
+the $t$-statistic is:
+$$T = \dfrac{\hat\beta_0 - \beta_{00}}{\widehat{se}(\hat\beta_0)} =  \dfrac{\hat\beta_0 - \beta_{00}}{\sqrt{MS_{res}\left(\frac{1}{n} + \frac{\overline{x}^2}{S_{xx}}\right)}}$$
+We then compare this value to a $T_{n-2}$ distribution.
+The value of $t$ and its $p$-value can be computed by hand, or extracted from the standard $R$ output:
+
+```{r eval=TRUE}
+tidy(penguin_lm)
+```
+In this example, the test statistic for testing $H_0$ is $t=-18.9$ and its $p$-value is less than 0.0001, so we reject $H_0$. Of course, this may not be a meaningful test, since it corresponds to the average body mass of a penguin without flippers!
+
+
+
+## Other forms of hypothesis tests for $\beta_1$
+### Testing against values other than 0
+
+Although less common, it is possible to conduct hypothesis tests against a null value other than zero. For example, we could set up the hypotheses
+
+$$H_0 : \beta_1 = 20 \quad \text{vs.} \quad H_A: \beta_1 \ne  20$$
+To conduct this hypothesis test, we would need to use the "by hand" procedure for computing $t$ and $p$.
+
+<!-- $$t=\frac{-5.98 - (-5)}{0.60} = -1.6$$ -->
+
+<!-- ```{r echo=TRUE} -->
+<!-- pt(-1.6, df=47, lower=T) -->
+<!-- ``` -->
+<!-- $$P(T < 1.6) < 0.058$$ -->
+
+<!-- We fail to reject $H_0$ at the $\alpha = 0.05$ level. -->
+
+
+
+
+
+### One-sided tests
+
+(To be added).
+<!-- $$H_0 : \beta_1 \ge -5 \quad \text{vs.} \quad H_A: \beta_1 <  -5$$ -->
+
+
+<!-- $$t=\frac{-5.98 - (-5)}{0.60} = -1.6$$ -->
+
+<!-- ```{r echo=TRUE} -->
+<!-- pt(-1.6, df=47, lower=T) -->
+<!-- ``` -->
+<!-- $$P(T < 1.6) < 0.058$$ -->
+
+<!-- We fail to reject $H_0$ at the $\alpha = 0.05$ level. -->
+
+
+
+## Exercises
+
+
+```{exercise }
+In the penguin data with flipper length as the predictor variable and body mass as the outcome, what is the conclusion of a hypothesis test of $H_0: \beta_1 = 40$ against the alternative $H_A: \beta_1 \ne 40$.
+
+```
