@@ -47,7 +47,7 @@ More generally, regression is a statistical method for explaining variability in
 
 In linear regression, the outcome variable is always a continuous variable, meaning that it takes on any numerical values. The values might be only over a specific range (e.g. body mass is necessarily greater than zero) and have a limited precision (e.g. body mass is only meausred out to a certain number of decimal places). If the outcome variable is binary (e.g. sick/healthy) or categorical (e.g. species), then a different form of regression is needed. This book and course focus primarily on linear regression, but we will briefly cover other types of regression in Chapter \@ref(sec:logistic).
 
-On the other hand, the predictor variables can be continuous or categorical. In Simple Linear Regression (Chapter \@ref(sec:slr)), there is only one continuous predictor variable. But in general, the predictors can be any combination of variable types, including interactions (Section \@ref(sec:indinter)) and non-linear transformations (Section \@ref(sec:transform)).
+On the other hand, the predictor variables can be continuous or categorical. In Simple Linear Regression (Chapter \@ref(slr)), there is only one continuous predictor variable. But in general, the predictors can be any combination of variable types, including interactions (Section \@ref(indinter)) and non-linear transformations (Section \@ref(sec:transform)).
 
 ## Regression Goals
 We can describe the goals of regression in two ways: the scientific goals and the practical (mathematical) goals.

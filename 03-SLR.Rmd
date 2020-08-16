@@ -1,4 +1,4 @@
-# Simple Linear Regression {#sec:slr}
+# Simple Linear Regression {#slr}
 
 <!--- For HTML Only --->
 `r if (!knitr:::is_latex_output()) '
@@ -232,6 +232,44 @@ ggplot(simdata) + theme_bw() +
    facet_wrap(~sigma2lab, labeller=label_parsed)
 ```
 
+### Interpreting $\beta_1$ with binary $x$
+
+Although the most common setting of the simple linear regression model is with a continuous predictor variable (such as flipper length), the model can equally be applied when the predictor variable is binary, meaning it takes on two values.
+
+If $x_i$ can take on two values, then instead of a line, the SLR model simply becomes two distinct average values for the two groups. Suppose for one group, $x = 0$ and for the other group, $x=1$.
+A variable defined this was is called an **indicator variable** since it serves as a binary marker of group membership. The two groups could be anything, such as male/female, home/away, automatic/manual, etc. (We will see how to use indicators for variables with 3 or more categories in Section \@ref(indinter).)
+
+Then the two "lines" for the model are:
+\begin{align*}
+\E[Y_i | x_i = 0] &= \beta_0
+\E[Y_i | x_i = 1] &= \beta_0 + \beta_1*1 = \beta_0 + \beta_1
+\end{align*}
+The average value of the outcome for those with $x_i=0$ is $\beta_0$ and the average value of the outcome for those with $x_i =1$ is $\beta_0 + \beta_1$. Furthermore, the difference between these values is:
+\begin{align*}
+\E[Y_i | x_i = 1] - \E[Y_i | x_i = 0] &= (\beta_0 + \beta_1) - (\beta_0) \\
+&= \beta_1
+\end{align*}
+Thus, the interpretations of $\beta_0$ and $\beta_1$ are:
+
+* $\beta_0$ is the average value of $Y$ among observations in the group with $x=0$
+* $\beta_1$ is the *difference* in average value of $Y$ between observations with $x=1$ and those with $x=0$.
+
+```{example penguin-mass-sex}
+Consider the penguin data, but now when we model body mass (the outcome) as a function of penguin sex (the predictor variable). Define the indicator variable
+```
+\begin{equation}
+x  = \begin{cases} x=0 & \text{ if } \texttt{sex} \text{ is } \texttt{"female"} \\  x=1 & \text{ if } \texttt{sex} \text{ is } \texttt{"male"} \end{cases}.
+(\#eq:xbinarypenguin)
+\end{equation}
+Then in the SLR model $Y_i = \beta_0 + \beta_1x_i + \epsilon_i$, we have the following interpretations for the regression parameters:
+
+* $\beta_0$ is the average body mass for female penguins.
+* $\beta_0 + \beta_1$ is the average body mass for male penguins.
+* $\beta_1$ is the difference in body mass between male and female penguins.
+
+
+
+
 
 ## Random Variables v. Data {#sec:realtheo}
 
@@ -325,4 +363,13 @@ In the context of Example \@ref(exm:peng-beta0), does the quantity $10\beta_0$ m
 
 ```{exercise}
 Consider a variation of Example \@ref(exm:peng-beta1), in which a simple linear regression mdoel is fit with body mass (in g) as the *predictor* variable and flipper length (in mm) as the outcome. Explain how this switch affects the interpretations of $\beta_0$, $\beta_1$, and $\sigma^2$.
+```
+
+```{exercise}
+Consider a SLR model with flipper length as the outcome and sex as the predictor, with $x$ defined as in equation \@ref(eq:xbinarypenguin). What are the interpetations of $\beta_0$ and $\beta_1$?
+```
+
+
+```{exercise}
+In the SLR model of Example \@ref(exm:penguin-mass-sex), what is the difference in average body mass between females and male? (Note that the order of the queston is important here).
 ```
