@@ -266,38 +266,40 @@ The "hats" in $\hat\beta_0$ and $\hat\beta_1$ indicate that the values are estim
 | $\beta_1 =$ slope parameter (an unknown number) | $\hat\beta_1 =$ slope *estimate* (a calculated number)  |
 | $\sigma^2 =$ variance parameter (an unknown number)  | $\hat\sigma^2 =$ variance *estimate* (a calculated number) |
 
-## Examples 
-
 <!-- Penguin Data -->
 
-```{example}
+```{example peng-lm-intro}
 In the example of penguin flipper length and body mass, the equation for the estimated regression line is:
-
 $$y_i = -5780.8 + 49.7*x_i$$
-We can interpret this line in the following sentence:
+(We will see how these numbers are calculated in Section \@ref(slrestimation).)
+We can interpret the slope of this regression line as follows:
 
-*A difference of one mm in flipper length is associated with a difference of 49.7 g greater average body mass among penguins in Antarctica.*
+*A difference of one mm in flipper length is associated with an **estimated** difference of 49.7 g greater average body mass among penguins in Antarctica.*
 ```
 
 Note the key elements in this sentence:
 
 * "average" -- Linear regression model tells us about the mean, not a specific observation
-* "one mm in flipper length" -- always provide units
+* "estimated" -- The number 49.7 is an estimate of the true (and unknown) parameter value.
+* Units are provided for flipper length and body mass.
 * "among penguins in Antarctica" -- Context and/or population
-* Observational study -- association not causation!
-
-Figure \@ref(fig:g-penguin-labelled) shows the slope and intercept graphically, while Figure \@ref(fig:g-penguin-resid) shows a graphical representation of the residuals for each observation.
+* This is observational data, so the relationship is stated as asn association, not causation.
 
 
 
+Figure \@ref(fig:g-penguin-labelled) shows this slope and intercept graphically. 
 ```{r g-penguin-labelled, echo=FALSE, message=FALSE, fig.cap="Fitted regression line for penguin data."}
 g_penguin_flip_mass_lm + 
-  geom_abline(aes(slope=49.7, intercept=-5780.8)) + 
-  geom_text(aes(x=10, y=-5780.8, label="y-intercept = -49.7"), hjust=0, vjust=0.5) +
-  geom_text(aes(x=75, y=-5780.8 + 75*50, label="Slope= -5,790.8"), hjust=0, vjust=-0.5, angle=39) +
+  geom_abline(aes(slope=49.7, intercept= -5780.8)) + 
+  geom_text(aes(x=10, y=-5780.8, label="y-intercept = -5780.8 "), hjust=0, vjust=0.5) +
+  geom_text(aes(x=75, y=-5780.8 + 75*50, label="Slope= 49.7"), hjust=0, vjust=-0.5, angle=37) +
   coord_cartesian(ylim=c(-6500, max(penguins$body_mass_g)),
                   xlim=c(-5, max(penguins$flipper_length_mm)))
 ```
+
+The residuals for each observation can be calculated as the difference between each data point and its corresponding modelled mean:
+$$ e_i = y_i - (\hat\beta_0 + \hat\beta_1x_i)$$
+Figure \@ref(fig:g-penguin-resid) shows a graphical representation of the residuals $e_i$.
 
 ```{r g-penguin-resid, echo=FALSE, message=FALSE, fig.cap="Residuals for penguin data."}
 penguin_lm <- lm(body_mass_g ~ flipper_length_mm, data=penguins)
@@ -309,35 +311,6 @@ pen2 <- data.frame(x=penguin_lm$model$flipper_length_mm,
 g_penguin_flip_mass_lm + 
   geom_line(aes(x=x, y=value, group=id), data=pen2, col="purple")
 ```
-
-
-
-
-```{r include=FALSE}
-lm_penguin <- lm(body_mass_g~flipper_length_mm, data=penguins)
-coef(lm_penguin)
-```
-
-
-<!-- ### $\hat\beta_1$: Estimator or Estimate? -->
-
-<!-- $\hat\beta_1$ can represent two things: -->
-
-<!-- * An estimate of $\beta_1$ -->
-<!--    * A number -->
-<!--    * Interpreted as the **estimated** average difference in $y$ for a one-unit difference in $x$ -->
-<!-- * An estimator for $\beta_1$ -->
-<!--    * A random variable -->
-<!--    * This is a rule for calculating a number that depends on $x$ and $y$ -->
-
-<!-- \vspace{0.5cm} -->
-
-<!-- Why does the difference matter? -->
-
-<!-- * $\hat\beta_1$ depends on the data -->
-<!-- * $\hat\beta_1$ has uncertainty (variance and possibly bias) -->
-
-<!-- Note: $\hat\beta_0$ and $\hat\beta_1$ are calculated as numbers, but we need to think of them as realizations of a random generating process. This is because they are functions of the data, which we think of as a realization of a random generating process. -->
 
 
 ## Exercises

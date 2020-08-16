@@ -175,7 +175,7 @@ There are several questions we could ask using the data from Figure \@ref(fig:bb
 * Using launch angle, can we predict whether or not a batted ball will result in a hit or an out?
 
 
-### Example: Housing Prices
+### Housing Price {#housingprices}
 
 Many factors impact housing prices, perhaps most importantly the economic demographics of the region. The following data shows the median price for a single-family residence in January 2018^[These data from Zillow, which maintains a public database of housing-related data at <https://www.zillow.com/research/data/>.] in different metropolitan areas across the U.S. On the horizontal axis is the 2018 median household income for the area, taken from the U.S. Census' American Community Survey:
 
