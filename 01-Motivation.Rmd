@@ -99,9 +99,10 @@ In Figure \@ref(fig:g-penguin-bill-sex), it appears that there might be a differ
 
 ```{r g-penguin-bill-species, echo=F, message=FALSE, fig.cap="Distribution of penguin bill length by species."}
 penguins %>%
-  # filter(!is.na(sex)) %>%
+  filter(!is.na(bill_depth_mm)) %>%
+    rename(Species=species) %>%
 ggplot(aes(x=bill_depth_mm,
-                        fill=species)) + 
+                        fill=Species)) + 
   theme_bw() + 
   geom_histogram(alpha=0.5, position="identity", bins=25) +
     xlab("Bill Depth (mm)")

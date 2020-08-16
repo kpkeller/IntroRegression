@@ -1,0 +1,375 @@
+# Estimating SLR Parameters {#slrestimation}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+'`
+
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
+```
+
+## Ordinary Least Squares Estimation of Parameters
+
+In Example \@ref(exm:peng-lm-intro), we saw how to interpret the values of estimated slopes and intercepts. But how do we obtain estimates of $\beta_0$, $\beta_1$, and $\sigma^2$?   Ideally, the line should be as close as possible to the data. But for any real-world dataset, the values will not lie directly in a straight line. So how do we define "close enough"? 
+
+The standard way is to choose $\hat\beta_0$ and $\hat\beta_1$ to minimize the sum of squared vertical distances between the observations $y_i$ and the fitted line $\hat\beta_0 + \hat\beta_1x_i$. 
+This is equivalent to minimizing the sum of squared residuals. Confusingly, this is often called the **residual sum of squares** and it is defined as^[In most cases, we suppress the dependence on $\hat\beta_0$ and $\hat\beta_1$ and just write $SS_{Res}$. But the dependence is included here to make the optimization explicit.]
+\begin{equation}
+SS_{Res} = SS_{Res}(\hat\beta_0, \hat\beta_1) = \sum_{i=1}^n e_i^2 =  \sum_{i=1}^n \left(y_i - \left(\hat\beta_0 + \hat\beta_1x_i\right)\right)^2
+(\#eq:squared-resid)
+\end{equation}
+Estimating $\hat\beta_0$ and $\hat\beta_1$ by minimizing  $SS_{Res}$ is called **ordinary least squares (OLS) estimation** of the SLR parameters.  
+
+To find the minimum of \@ref(eq:squared-resid), we can use standard calculus steps for finding a local extrema:
+
+1. Find the derivatives of $SS_{Res}(\hat\beta_0, \hat\beta_1)$ with respect to $\hat\beta_0$ and $\hat\beta_1$.
+2. Set the derivatives equal to zero.
+3. Solve for the values of $\hat\beta_0$ and $\hat\beta_1$
+
+This procedures yields the "critical point" of $SS_{Res}(\hat\beta_0, \hat\beta_1)$ (in "$\beta$-space"), which we know to be a minimum because $SS_{Res}(\hat\beta_0, \hat\beta_1)$ is a convex function. 
+
+Step 1: Find the two partial derivatives of $SS_{Res}(\hat\beta_0, \hat\beta_1)$:
+
+$$
+\begin{aligned}
+SS_{Res}(\hat\beta_0, \hat\beta_1) & = \sum_{i=1}^n \left(y_i^2 - 2\hat\beta_0y_i -2\hat\beta_1y_ix_i + \hat\beta_0^2 + 2\hat\beta_0\hat\beta_1x_i + \hat\beta_1^2x_i^2\right)\\
+\frac{\partial SS_{Res}}{\partial \hat\beta_0} &= \sum_{i=1}^n \left(-2y_i  + 2\hat\beta_0 + 2\hat\beta_1x_i \right)  = -2 \sum_{i=1}^n (y_i - \hat\beta_0 - \hat\beta_1x_i)\\
+\frac{\partial SS_{Res}}{\partial \hat\beta_1} &= \sum_{i=1}^n \left( -2y_ix_i+ 2\hat\beta_0x_i + 2\hat\beta_1x_i^2\right) = -2 \sum_{i=1}^n (y_i - \hat\beta_0 - \hat\beta_1 x_i) x_i
+\end{aligned}
+$$
+
+
+Step 2: Set them equal to zero:
+\begin{align*}
+-2 \sum_{i=1}^n (y_i - \hat\beta_0 - \hat\beta_1x_i) &= 0\\
+-2 \sum_{i=1}^n (y_i - \hat\beta_0 - \hat\beta_1 x_i) x_i & = 0
+\end{align*}
+
+and simplify:
+\begin{align}
+n\hat\beta_0  + \hat\beta_1\sum_{i=1}^n x_i & = \sum_{i=1}^n y_i (\#eq:rss1) \\ 
+\hat\beta_0 \sum_{i=1}^n x_i  + \hat\beta_1\sum_{i=1}^n x_i^2 & = \sum_{i=1}^n x_iy_i (\#eq:rss2)
+\end{align}
+
+Step 3: Solve for $\hat\beta_0$ in \@ref(eq:rss1):
+\begin{align}
+n\hat{\beta}_0  + \hat\beta_1 \sum_{i=1}^nx_i = \sum_{i=1}^ny_i \quad \Rightarrow \quad  \hat{\beta}_0   & =  \frac{1}{n}\sum_{i=1}^ny_i - \hat\beta_1 \frac{1}{n} \sum_{i=1}^nx_i \notag \\
+&= \overline{y} - \overline{x}\hat\beta_1 (\#eq:hatbeta0)
+\end{align}
+
+Plug $\hat{\beta_0}$ into \@ref(eq:rss2) and solve for $\hat\beta_1$:
+\begin{align*}
+&\left(\frac{1}{n} \sum_{i=1}^n y_i - \hat\beta_1 \frac{1}{n}\sum_{i=1}^n x_i\right) \sum_{i=1}^nx_i + \hat\beta_1 \sum_{i=1}^n x_i^2 = \sum_{i=1}^n x_iy_i \\
+&\left(\sum_{i=1}^n x_i^2 - \frac{1}{n} \left(\sum_{i=1}^n x_i \right)^2  \right)\hat\beta_1 = \sum_{i=1}^n x_iy_i  - \frac{1}{n} \sum_{i=1}^n y_i \sum_{i=1}^n x_i 
+\end{align*}
+
+<!-- \fcolorbox{red}{white}{\parbox{\textwidth}{$$\hat{\beta}_1 = \dfrac{\sum_{i=1}^n\limits x_iy_i  - \dfrac{1}{n} \sum_{i=1}^n\limits y_i \sum_{i=1}^n\limits x_i }{\sum_{i=1}^n\limits x_i^2 - \dfrac{1}{n} \left(\sum_{i=1}^n\limits x_i \right)^2} = \dfrac{\dfrac{1}{n}\sum_{i=1}^n\limits x_iy_i  - \overline{y}\overline{x} }{\dfrac{1}{n}\sum_{i=1}^n\limits x_i^2 - \overline{x}^2} $$}} -->
+
+\begin{align}
+\hat{\beta}_1 &= \dfrac{\sum_{i=1}^n\limits x_iy_i  - \dfrac{1}{n} \sum_{i=1}^n\limits y_i \sum_{i=1}^n\limits x_i }{\sum_{i=1}^n\limits x_i^2 - \dfrac{1}{n} \left(\sum_{i=1}^n\limits x_i \right)^2} \notag \\
+&= \dfrac{\dfrac{1}{n}\sum_{i=1}^n\limits x_iy_i  - \overline{y}\overline{x} }{\dfrac{1}{n}\sum_{i=1}^n\limits x_i^2 - \overline{x}^2} (\#eq:hatbeta1)
+\end{align}
+
+Equations \@ref(eq:hatbeta0) and \@ref(eq:hatbeta1) together give us the formulas for computing both regression parameters estimates. $\hat\beta_0$ and $\hat\beta_1$ are the (ordinary) **least squares estimators** of $\beta_0$ and $\beta_1$
+
+A common alternative to the form of $\hat\beta_1$ in \@ref(eq:hatbeta1) is to define the following sums-of-squares:
+
+* $\displaystyle S_{xx} = \sum_{i=1}^n x_i^2 - \frac{1}{n} \left(\sum_{i=1}^n x_i \right)^2$
+* $\displaystyle S_{xy} = \sum_{i=1}^n x_iy_i  - \frac{1}{n} \sum_{i=1}^n y_i \sum_{i=1}^n x_i$ $\qquad$ $\displaystyle$
+* $\displaystyle S_{yy} = \sum_{i=1}^n y_i^2 - \frac{1}{n} \left(\sum_{i=1}^n y_i \right)^2$
+
+The sums-of-squares $S_{xx}$ and $S_{yy}$ represent the total variation in the $x$'s and $y$'s, respectively. The value of $S_{xy}$ is the co-variation between the $x$'s and the $y$'s and takes the same sign as their correlation. Using these quantities, an equivalent formula for $\hat\beta_1$ is 
+$$ \hat\beta_1 = \frac{S_{xy}}{S_{xx}}.$$
+In this form, we can see that the slope of the regression line depends on both the co-variation between the $x$'s and the $y$'s, and the amount of variation in the $x$'s. We will return to this idea in Section \@ref(olsproperties).
+
+
+## Fitting SLR models in R
+
+The task of computing $\hat\beta_0$ and $\hat\beta_1$ is commonly called "fitting" the model. Although we could explicitly compuate the values using equations \@ref(eq:hatbeta0) and \@ref(eq:hatbeta1), it is much simpler to let R do the computations for us.
+
+### OLS estimation in R
+
+The `lm()` command, which stands for **linear model**, is used to fit a simple linear regression model in R. (As we will see in Section \@ref(mlr), the same function is used for multiple linear regression, too.) For simple linear regression, there are two key arguments for `lm()`:
+
+* The first argument is an R formula of the form `y ~ x`, where `x` and `y` are variable names for the predictor and outcome variables, respectively.
+* The other key argument is the `data=` argument. It should be given a `data.frame` or `tibble` that contains the `x` and `y` variables as columns. Although not strictly required, the `data` argument is highly recommended. If `data` is not provided, the values of `x` and `y` are taken from the global environment; this often leads to unintended errors.
+
+```{example penguin-lm-stepped}
+To compute the OLS estimates of $\beta_0$ and $\beta_1$ for the penguin data, with flipper length as the predictor and body mass as the outcome, we can use the following code:
+```
+
+```{r }
+library(palmerpenguins)
+penguin_lm <- lm(body_mass_g ~ flipper_length_mm,
+   data=penguins)
+```
+Here, we have first loaded the `palmerpenguins` package so that the `penguins` data are available in the workspace. In the call to `lm()`,  we have directly supplied the variable names (`body_mass_g` and `flipper_length_mm`) in the formula argument, which is unnamed. For the `data` argument, we have supplied the name of the tibble containing the data. It is good practice to save the output from `lm()` as an object, which facilitates retrieving additional information from the model.
+
+To see the point estimates, we can simply call the fitted object and it will print the model that was fit and the calculated coefficients:
+```{r }
+penguin_lm
+```
+
+To see more information about the model, we can use the `summary()` command:
+```{r eval=T, size="scriptsize"}
+summary(penguin_lm)
+```
+Over the following chapters, we will take a closer look at what these others quantities mean and how they can be used.
+
+Sometimes, we might need to store the model coefficients for later use or pass them as input to another function. Rather than copy them by hand, we can use the `coef()` command to extract them from the fitted model:
+```{r eval=T}
+coef(penguin_lm)
+```
+
+Although the `summary()` command provides lots of detail for a linear model, sometimes it is more convenient to have the information presented as a tibble. The  `tidy()` command, from the `broom` package, produces a tibble with the parameter estimates. 
+```{r eval=T}
+library(broom)
+tidy(penguin_lm)
+```
+The estimates can then be extracted from the `estimate` column.
+```{r}
+tidy(penguin_lm)$estimate
+```
+
+### Plotting SLR Fit 
+
+To plot the SLR fit, we can add the line as a layer to a scatterplot of the data. This can be done using the `geom_abline()` function, which takes `slope=` and `intercept=` arguments inside `aes()`.
+
+```{example }
+To plot the simple linear regression line of Example \@ref(exm:penguin-lm-stepped), we first create the scatterplot of values: 
+```
+
+```{r g-penguin-base, eval=T, warning=FALSE}
+g_penguin <- ggplot() + theme_bw() + 
+  geom_point(aes(x=flipper_length_mm,
+                 y=body_mass_g),
+             data=penguins) + 
+    xlab("Flipper Length (mm)") +
+    ylab("Body Mass (g)")
+g_penguin
+```
+
+And then can add the regression line to it:
+
+```{r g-penguin-base-lm, eval=T, warning=FALSE}
+g_penguin_lm <- g_penguin +
+    geom_abline(aes(slope=coef(penguin_lm)[2],
+                  intercept=coef(penguin_lm)[1]))
+g_penguin_lm
+```
+
+It's important to remember to *not* type the numbers in directly. Not only does that lead to a loss of precision, it's also greatly amplifies the chances of a typo. Instead, in the code above, we have used the `coef()` command to extract the slope and intercept estimates.
+
+
+An alternative approach, which doesn't actually require directly fitting the model, is to use the `geom_smooth()` command. To use this approach, provide that function 
+
+* an `x` and `y` variable inside the `aes()`, 
+* the dataset via the `data` argument
+* set `method="lm"` (Note the quotes), which tells `geom_smooth()` that you want the linear regression fit
+* optionally set `se=FALSE`, which will hide the shaded uncertainty. We will later see how these are calculated in Section \@ref(slrCIMean).
+
+For example:
+```{r eval=T, warning=FALSE, message=FALSE}
+g_penguin_lm2 <-  g_penguin +
+  geom_smooth(aes(x=flipper_length_mm,
+                  y=body_mass_g),
+              data=penguins,
+              method="lm",
+              se=FALSE)
+g_penguin_lm2
+```
+
+What happens if you forget `method="lm"`? In that case, the `geom_smooth()` function uses splines:
+
+```{r eval=T, message=FALSE, warning=FALSE}
+g_penguin +
+  geom_smooth(aes(x=flipper_length_mm,
+                  y=body_mass_g),
+              data=penguins)
+```
+
+This an extremely useful method for visualizing the trend in a dataset. Just note that it is not  the regression line. 
+
+
+### OLS estimation in R with binary x
+
+If the predictor variable is a binary variable such as sex, then we need to create a corresponding 0-1 variable for fitting the model (recall Section \@ref(interpbinaryx)). Conveniently, R will automatically create a 0-1 indicator from a binary categorical variable if that variable is included as a predictor in `lm()`. 
+
+```{example penguin-mass-sex-estimation}
+(Continuation of Example \@ref(exm:penguin-mass-sex).) Compute the OLS estimates of $\beta_0$ and $\beta_1$ for a linear regression model with penguin body mass as the outcome and penguin sex as the predictor variable.
+```
+
+We first restrict the dataset to penguins with known sex:
+```{r}
+penguins_nomissingsex <- penguins %>%
+  filter(!is.na(sex))
+```
+This ensures that our predictor can only take on two values (we will look at predictors with 3+ categories in Section \@ref(indinter)). 
+
+We then call `lm()` using this dataset:
+```{r}
+penguin_lm2 <- lm(body_mass_g~sex,
+                  data=penguins_nomissingsex)
+coef(penguin_lm2)
+```
+Note that R is providing an estimate labeled `sexmale`. The 0-1 indicator created by R automatically created the variable:
+\begin{equation}
+\texttt{sexmale}  = \begin{cases} x=0 & \text{ if } \texttt{sex} \text{ is } \texttt{"female"} \\  x=1 & \text{ if } \texttt{sex} \text{ is } \texttt{"male"} \end{cases}.
+(\#eq:penguin-sexmale)
+\end{equation}
+In equation \@ref(eq:penguin-sexmale), female penguins were the **reference category** and received a value of 0. R chose `female` as the reference category (instead of `male`) simply because of alphabetical order.
+
+We can write the following three interpretations of $\hat\beta_0$,  $\hat\beta_0 + \hat\beta_1$, and $\hat\beta_1$, respectively:
+
+* The estimated average body mass for female penguins is 3,862 grams.
+* The estimated average body mass for female penguins is 4,546 grams.
+* The estimated difference in average body mass of penguins, comparing males to females, is 683 grams, with males having larger average mass.
+
+
+
+## Properties of Least Squares Estimators {#olsproperties}
+
+
+### Why OLS?
+
+The reason OLS estimators $\hat\beta_0$ and $\hat\beta_1$ are so widely used is not only because they can be easily computed from the data, but also because they have good properties. Since $\hat\beta_0$ and $\hat\beta_1$ are random variables, they have a corresponding distribution. 
+
+We can compute the mean of $\hat\beta_1$:
+\begin{align*}
+E\left[\hat\beta_1\right] & = E\left[\frac{S_{xy}}{S_{xx}}\right]\\
+&= \frac{1}{S_{xx}}E\left[S_{xy}\right] \qquad \text{($S_{xx}$ is not random)}\\
+&= \frac{1}{S_{xx}}E\left[\sum_{i=1}^n (x_i - \overline{x})y_i \right]\\
+&= \frac{1}{S_{xx}}\sum_{i=1}^n (x_i - \overline{x})E\left[y_i \right]\\
+&= \frac{1}{S_{xx}}\sum_{i=1}^n (x_i - \overline{x})(\beta_0 + \beta_1x_i)\\
+&= \beta_0 \frac{\sum_{i=1}^n (x_i - \overline{x})}{S_{xx}} + \beta_1\frac{\sum_{i=1}^n (x_i - \overline{x})x_i}{S_{xx}}\\
+&= \beta_0 \frac{n\overline{x}- n\overline{x}}{S_{xx}} + \beta_1\frac{\sum_{i=1}^n x_i^2 - \frac{1}{n}\sum_{i=1}^n x_i \sum_{j=1}^n x_j}{S_{xx}}\\
+&= 0 + \beta_1 \frac{S_{xx}}{S_{xx}}\\
+&= \beta_1
+\end{align*}
+This means that $\hat\beta_1$ is an **unbiased** estimator of $\beta_1$. This is important since it means that, on average, using the OLS estimator $\hat\beta_1$ will give us the "right" answer. Similarly, we can show that $\hat\beta_0$ is unbiased:
+\begin{align*}
+\E\left[\hat\beta_0\right] &= \E\left[\frac{1}{n}\sum_{i=1}^ny_i - \hat\beta_1\frac{1}{n}\sum_{i=1}^nx_i\right]\\
+&= \frac{1}{n}\sum_{i=1}^n\E[y_i] - \E[\hat\beta_1]\frac{1}{n}\sum_{i=1}^nx_i\\
+&= \frac{1}{n}\sum_{i=1}^n(\beta_0 + \beta_1x_i) - \beta_1\frac{1}{n}\sum_{i=1}^nx_i\\
+&= \frac{1}{n}\sum_{i=1}^n\beta_0 + \beta_1\left(\frac{1}{n} \sum_{i=1}^nx_i - \frac{1}{n}\sum_{i=1}x_i\right)
+& = \beta_0
+\end{align*}
+
+However, it's important to note that just because $\E[\hat\beta_1] = \beta_1$ does not mean that $\hat\beta_1 = \beta_1$. For a single data set, there is no guarantee that $\hat\beta_1$ will be near $\beta_1$. One way to measure how close $\hat\beta_1$ is going to be to $\beta_1$ is to compute its variance. The smaller the variance, the more likely that $\hat\beta_1$ will be close to $\beta_1$.
+
+
+We can compute the variance of $\hat\beta_1$ explicitly:
+```{asis echo=!FALSE}
+\begin{align*}
+Var\left[\hat\beta_1\right] = \Var\left[\frac{S_{xy}}{S_{xx}}\right] & = \frac{1}{S_{xx}^2} Var\left[\sum_{i=1}^n (x_i - \overline{x}) y_i \right]\\
+&= \frac{1}{S_{xx}^2} \sum_{i=1}^n Var\left[(x_i - \overline{x}) y_i\right] \qquad \text{(Uncorrelated)}\\
+&= \frac{1}{S_{xx}^2} \sum_{i=1}^n(x_i - \overline{x})^2 Var\left[ y_i\right]\\
+&= \frac{1}{S_{xx}^2} \sum_{i=1}^n(x_i - \overline{x})^2 \sigma^2\\
+&= \frac{1}{S_{xx}} \sigma^2
+\end{align*}
+```
+
+It can also be shown that
+$$
+Var\left[\hat\beta_0\right] = \sigma^2\left(\frac{1}{n} + \frac{\overline{x}^2}{S_{xx}}\right).
+$$
+Both $\hat\beta_0$ and $\hat\beta_1$ are *linear* estimators, because they are linear combinations of the data $y_i$:
+$$\hat\beta_1 = \frac{S_{xy}}{S_{xx}} = \sum_{i=1}^n \frac{ (x_i - \overline{x})^2}{S_{xx}}y_i = \sum_{i=1}^n c_iy_i$$
+
+The  **Gauss-Markov Theorem** states that the OLS estimator has the smallest variance among linear unbiased estimators. It is the 
+BLUE -- Best Linear Unbiased Estimator.
+
+<!-- \textcolor{blue}{BLUE} -- \textcolor{blue}{B}est \textcolor{blue}{L}inear \textcolor{blue}{U}nbiased \textcolor{blue}{E}stimators. -->
+
+In essence, the Gauss-Markov Theorem tells us that the OLS estimators are best we can do, at least as long as we only consider unbiased estimators. (We'll see an alternative to this in Chapter \@ref(multicolshrinkage)).
+
+<!-- Other properties of ordinary least squares regression line are: -->
+<!-- 1. $\sum_{i=1}^n\limits e_i  = 0$ -->
+<!-- 2. $\sum_{i=1}^n\limits y_i = \sum_{i=1}^n\limits\hat y_i$ -->
+<!-- 3. OLS line passes through $(\overline{x}, \overline{y})$ -->
+<!-- 4. $\sum_{i=1}^n\limits x_ie_i = 0$ -->
+<!-- 5. $\sum_{i=1}^n\limits y_ie_i = 0$ -->
+
+## Estimating $\sigma^2$ 
+
+
+### Not Regression: Estimating Sample Variance
+
+Before discussing how to estimate $\sigma^2$ in SLR, it's helpful to first recall how we estimate the variance from a sample of a single random variable.
+
+Suppose $y_1, y_2, \dots, y_n$ are iid samples from a distribution with mean $\mu$ and variance $\sigma^2$. The estimated mean is:
+$$\overline{y} = \frac{1}{n}\sum_{i=1}^n y_i$$    
+and the estimated variance is:
+$$s^2 = \frac{1}{n - 1}\sum_{i=1}^n (y_i - \overline{y})^2$$
+
+In $s^2$, why do we divide by $n-1$? To understand this, first consider what would happen if we divided by $n$ instead:
+\begin{align*}
+E\left[\frac{1}{n}\sum_{i=1}^n(Y_i - \overline{Y})^2\right] &= E \left[ \frac{1}{n} \sum_{i=1}^n (Y_i - \mu + \mu - \overline{Y})^2 \right]\\
+ &= E \left[ \frac{1}{n} \sum_{i=1}^n \left((Y_i - \mu)^2 + 2(Y_i - \mu)(\mu - \overline{Y}) + (\mu - \overline{Y})^2\right) \right] \\
+ &= \frac{1}{n} \sum_{i=1}^n E\left[(Y_i - \mu)^2 \right] - \frac{2}{n}E\left[\sum_{i=1}^n (Y_i - \mu)(\overline{Y} - \mu) \right] + \frac{1}{n}E\left[(\overline{Y} - \mu)^2 \right]\\
+ &= \frac{1}{n} \sum_{i=1}^n \sigma^2 - \frac{2}{n}E\left[\sum_{i=1}^n (Y_i - \mu) \frac{1}{n}\sum_{j=1}^n (Y_j - \mu) \right] + \frac{1}{n}\sum_{i=1}^n \frac{\sigma^2}{n}\\
+ &= \sigma^2 - \frac{2}{n^2}\sum_{i=1}^n\sum_{j=1}^n E\left[(Y_i - \mu)(Y_j - \mu)\right] + \sigma^2/n\\
+ &= \sigma^2 - \frac{2}{n^2} \sum_{i=1}^nE\left[(Y_i - \mu)^2 \right] - \frac{2}{n^2} \sum_{i=1}^n\sum_{j=1}^n E \left[ (Y_i - \mu)(Y_j - \mu) \right] + \sigma^2/n\\
+ &= \sigma^2 - \frac{2}{n}\sigma^2 + \frac{1}{n}\sigma^2\\
+ &= \sigma^2\left(1 - \frac{1}{n}\right)\\
+ &= \frac{n-1}{n} \sigma^2
+\end{align*}
+This estimator is biased by a factor of $\frac{n-1}{n}$.
+<!-- $$\E\left[\frac{1}{n}\sum_{i=1}^n(Y_i - \overline{Y})^2 \right] = \frac{n-1}{n}\sigma^2 \ne \sigma^2$$ -->
+If we instead divide by $n-1$, then we obtain an unbiased estimator:
+$$\E\left[\frac{1}{n-1}\sum_{i=1}^n(Y_i - \overline{Y})^2 \right] = \frac{n}{n-1} \E\left[\frac{1}{n}\sum_{i=1}^n(Y_i - \overline{Y})^2 \right] = \frac{n}{n-1}\frac{n-1}{n}\sigma^2=\sigma^2$$
+
+That explains the mathematical reason for dividing by $n-1$. But what is the conceptual rationale? The answer is **degrees of freedom**. The full sample contains $n$ values. Computing the estimator $s^2$ requires first computing the sample mean $\overline{y}$. This "uses up" one degree of freedom, meaning that only $n-1$ degrees of freedom are left when computing $s^2$.
+
+This is perhaps easier to see with an example. Suppose $n=5$. If $\overline{y} = 7$ and $y_1=3, y_2=1, y_3=8, y_4=10$. What is $y_5$? It must be that $y_5=10$. Knowing $\overline{y}$ determines $\sum_{i=1}^n y_i$. In this way, computing $\overline{y}$ puts a constraint on what the possible values of the data can be. 
+
+
+
+### Estimating $\sigma^2$ in SLR
+
+Now, back to SLR. We want to estimate $\sigma^2$. Because $\Var(\epsilon_i) = \sigma^2$ and $\E[\epsilon_i] = 0$, it follows that 
+$$\E[\epsilon_i^2] = \Var(\epsilon_i) + \E[\epsilon_i]^2 = \sigma^2 + 0 = \sigma^2.$$
+Thus, an estimate of $\E[\epsilon_i^2]$ is an estimate of $\sigma^2$. A natural estimator of $\E[\epsilon_i^2]$ is $$\hat\sigma^2 = \frac{1}{n-2}\sum_{i=1}^n e_i^2$$
+Why divide by $n-2$ here? Since $e_i = y_i - (\hat\beta_0 + \hat\beta_1x_i)$, there are 2 degrees of freedom used up in computing the residuals $e_i$. 
+
+* $\sum_{i=1}^n\limits e_i^2 = SS_{res}$ is called the "sum of squared residuals" or "residual sum of squares"
+
+* $\hat\sigma^2 = MS_{res}$ is called "mean squared residuals"
+
+
+### Estimating $\sigma^2$ in R {#estsig2}
+
+
+When `summary()` is called on an `lm` object, the `sigma` slot provides $\hat\sigma$ \textcolor{red}{(NOT $\hat\sigma^2$)} for you:
+```{r eval=T}
+summary(penguin_lm)$sigma
+summary(penguin_lm)$sigma^2
+```
+
+The value of $\hat\sigma$ is also printed in the `summary` output:
+```{r eval=T, size="scriptsize", output.lines=-1:-8}
+summary(penguin_lm)
+```
+
+
+It's also possible to compute this value "by hand" in R:
+```{r eval=T}
+sig2hat <- sum(residuals(penguin_lm)^2)/(nobs(penguin_lm)-2)
+sig2hat
+sqrt(sig2hat)
+```
+
+
+## Exercises
+
+```{exercise housing-lm-coef}
+Consider the housing price data introduced in Section \@ref(housingprices), with housing price as the outcome and median income as the predictor variable. Find the OLS for a simple linear regression analysis of this data and provide a 1-sentence interpretation for each.
+```
+
+```{exercise}
+Compute $\hat\sigma^2$ for the model in Exercise \@ref(exr:housing-lm-coef) using the formulas. Compare to the value calculated from the `lm` object.
+```
