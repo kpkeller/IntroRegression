@@ -268,8 +268,6 @@ In 2018, the American Statistical Association (ASA) published a statement about 
 6. By itself, a $p$-value does not provide a good measure of evidence regarding a model or hypothesis.
 
 
-
-
 ## Hypothesis Testing for $\beta_1$
 
 In simple linear regression, we can conduct a hypothesis test for $\beta_1$ just like how we conducted the one-sample $t$-test.
@@ -287,13 +285,12 @@ $$t = \dfrac{\hat\beta_1 - \beta_{10}}{\widehat{se}(\hat\beta_1)} =  \dfrac{\hat
 If $\epsilon_i \sim N(0, \sigma^2)$ and $H_0$ is true, then $t$ has a $T$-distribution with $n-2$ degrees of freedom. If $H_0$ is true, but $\epsilon_i$ is not normally distributed, then $t$ follows a $T_{n-2}$ distribution **approximately**, because of the CLT.  We reject $H_0$ at the $\alpha$ level if $P(T > |t|) < \alpha$.
 
 
-### Testing "by hand"
+### Hypothesis Testing "by hand"
 
 ```{example penguin-by-hand}
 Let's return to the penguin example above, in which we asked: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?*
-```
-
 We previously calculated the estimated slope as $\hat\beta_1 = 49.7$. From the question formulation, we know that the test value $\beta_{10} = 0$. To calculate $t$, we now need to compute $\widehat{se}(\hat\beta_1) = \hat\sigma^2/S_{xx}$.
+```
 
 We can obtain $\hat\sigma^2$ from R, either from the output of `summary()` or by calculating it directly:
 ```{r eval=TRUE}
@@ -326,6 +323,7 @@ We can then compute the $p$-value, by comparing to a $T$-distribution:
 
 This tell us that $P(T > |32.7|) < 0.0001$. And so we reject $H_0$ at the $\alpha = 0.001$ level.
 
+
 ### Testing using R output
 
 Although the method just describe works, it can be tedious. Since the null hypothesis $H_0: \beta_1 = 0$ is so commonly tested, R provides the results of this hypothesis in its standard output.
@@ -341,11 +339,36 @@ We se a column with $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, $t$, and $p$! Th
 
 <!-- eval=FALSE, echo=TRUE, output.lines=10:15, size="footnotesize"}  -->
 
-```{r eval=TRUE, echo=TRUE, output.lines=10:15, size="footnotesize"} 
+```{r eval=TRUE, echo=TRUE} 
 summary(penguin_lm)
 ```
 
 
+
+```{r include=FALSE}
+penguins_nomissingsex <- penguins %>%
+  filter(!is.na(sex))
+penguin_lm2 <- lm(body_mass_g~sex,
+                  data=penguins_nomissingsex)
+```
+
+
+
+```{example penguin-mass-sex-testing}
+(Continuation of Example \@ref(exm:penguin-mass-sex-estimation).)
+Suppose we wish to formally test whether the average body mass is the same between male and female penguins. In the SLR model with body mass as the outcome and an indicator of sex as the predictor, this means testing $H_0: \beta_1 = 0$ against $H_A: \beta_1 \ne 0$. To do this, we can extract the necessary information from the $R$ output:
+```
+```{r}
+tidy(penguin_lm2)
+```
+
+Here, $\hat\beta_1 = 683$, $t=8.5$ and $p  < 0.0001$. So we would reject the null hypothesis and can summarize our result as:
+
+We reject the null hypothesis that there is no difference in body mass beteen female and male penguins.
+
+
+
+    
 
 ## Hypothesis Testing for $\beta_0$
 
@@ -364,6 +387,22 @@ tidy(penguin_lm)
 In this example, the test statistic for testing $H_0$ is $t=-18.9$ and its $p$-value is less than 0.0001, so we reject $H_0$. Of course, this may not be a meaningful test, since it corresponds to the average body mass of a penguin without flippers!
 
 
+## Summarizing Hypothesis Test Results
+
+
+When testing **$H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$**, it is best to write a complete sentence explaining your conclusion. In the sentence, clear describe the null hypothesis and whether it was rejected or not. Report the exact $p$-value, unless it is below 0.0001, in which case writing $p < 0.0001$ is sufficient.
+
+```{example peng-lm-intro-testingconclusion}
+We can update the interpretation summary from Example \@ref(exm:peng-lm-intro) by adding a second sentence:
+```
+  
+*A difference of one mm in flipper length is  associated with an estimated difference of 49.7 g greater average body mass among penguins in Antarctica. We reject the null hypothesis that there is no linear relationship between flipper length and average penguin body mass ($p < 0.0001$).* 
+
+Note that we have used the phrase "no linear relationship" when describing the null hypothesis that has been rejected. The SLR model can only tell us about a linear relationship; other types of relationships might still be possible. (We will look at quadratic, cubic, and other more flexible relationships in Section \@ref(transformations)).
+
+    
+    
+    
 
 ## Other forms of hypothesis tests for $\beta_1$
 ### Testing against values other than 0
@@ -406,7 +445,13 @@ To conduct this hypothesis test, we would need to use the "by hand" procedure fo
 ## Exercises
 
 
+
+
 ```{exercise }
 In the penguin data with flipper length as the predictor variable and body mass as the outcome, what is the conclusion of a hypothesis test of $H_0: \beta_1 = 40$ against the alternative $H_A: \beta_1 \ne 40$.
+```
+
+```{exercise}
+In the setting of Example \@ref(exm:penguin-mass-sex-testing), what would the null hypothesis $H_0: \beta_1 = 600$ mean scientifically? Perform a test against the alternative $H_A: \beta_1 \ne 600$ and summarize your conclusions.
 
 ```

@@ -195,6 +195,42 @@ g_penguin +
 This an extremely useful method for visualizing the trend in a dataset. Just note that it is not  the regression line. 
 
 
+### OLS estimation in R with binary x
+
+If the predictor variable is a binary variable such as sex, then we need to create a corresponding 0-1 variable for fitting the model (recall Section \@ref(interpbinaryx)). Conveniently, R will automatically create a 0-1 indicator from a binary categorical variable if that variable is included as a predictor in `lm()`. 
+
+```{example penguin-mass-sex-estimation}
+(Continuation of Example \@ref(exm:penguin-mass-sex).) Compute the OLS estimates of $\beta_0$ and $\beta_1$ for a linear regression model with penguin body mass as the outcome and penguin sex as the predictor variable.
+```
+
+We first restrict the dataset to penguins with known sex:
+```{r}
+penguins_nomissingsex <- penguins %>%
+  filter(!is.na(sex))
+```
+This ensures that our predictor can only take on two values (we will look at predictors with 3+ categories in Section \@ref(indinter)). 
+
+We then call `lm()` using this dataset:
+```{r}
+penguin_lm2 <- lm(body_mass_g~sex,
+                  data=penguins_nomissingsex)
+coef(penguin_lm2)
+```
+Note that R is providing an estimate labeled `sexmale`. The 0-1 indicator created by R automatically created the variable:
+\begin{equation}
+\texttt{sexmale}  = \begin{cases} x=0 & \text{ if } \texttt{sex} \text{ is } \texttt{"female"} \\  x=1 & \text{ if } \texttt{sex} \text{ is } \texttt{"male"} \end{cases}.
+(\#eq:penguin-sexmale)
+\end{equation}
+In equation \@ref(eq:penguin-sexmale), female penguins were the **reference category** and received a value of 0. R chose `female` as the reference category (instead of `male`) simply because of alphabetical order.
+
+We can write the following three interpretations of $\hat\beta_0$,  $\hat\beta_0 + \hat\beta_1$, and $\hat\beta_1$, respectively:
+
+* The estimated average body mass for female penguins is 3,862 grams.
+* The estimated average body mass for female penguins is 4,546 grams.
+* The estimated difference in average body mass of penguins, comparing males to females, is 683 grams, with males having larger average mass.
+
+
+
 ## Properties of Least Squares Estimators {#olsproperties}
 
 

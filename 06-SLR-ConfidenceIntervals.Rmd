@@ -12,29 +12,40 @@ library(palmerpenguins)
 library(broom)
 ```
 
-## Uncertainty Estimation
+## Confidence Intervals
 
 Hypothesis tests provide an answer to a specific question (*Is there evidence to reject the null hypothesis?*), but they don't directly provide information about the uncertainty in the point estimates.
 In many contexts, what is often more useful than a conclusion from a hypothesis test is an estimate of a parameter and its uncertainty. **Confidence intervals** provide a way to describe the uncertainty in a parameter estimate.
 
 
+
+
+```{definition}
+A **$(1- \alpha)100\%$ confidence interval** is a random interval that, if the model is correct, would include ("cover") the true value of the parameter with probability $(1 - \alpha)$.
+```
+
+A common *incorrect* interpretation of a CI is:
+The probability of $\beta_1$ being in the interval is $(1- \alpha)100\%$.  
+ This is incorrect since in a confidence interval, it is the *interval* itself that is random. The parameter $\beta_1$ is a fixed (but unknown) number, so it does not have a probability associated with it.
+ 
+ 
 <!-- * Ex: Is there an association between latitude and mortality rates? -->
 <!-- * Ex: Is the estimated slope more than 1 (\$s per person/km$^2$) in a SLR model with rental prices as outcome and population density the predictor? -->
 
 
 
-## Confidence Intervals 
+## Creating Confidence Intervals 
 
 ### Inverting a Hypothesis Test
 
-To create a confidence interval, we *invert* a hypothesis test. Recall that for a hypothesis test,  we computed
+To create a confidence interval, we *invert* a hypothesis test. 
+Recall that for testing the null hypothesis $H_0: \beta_1 = \beta_{10}$ against the alternative hypothesis $H_A: \beta_1 \ne \beta_{10}$, we computed the test statistic
 $$t = \frac{\hat\beta_1 - \beta_{10}}{\widehat{se}(\hat\beta_1)}$$
-by plugging in $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, and $\beta_{10}$.
-For a confidence interval, we reverse this process. That is, we plug in $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, and $t$, then **solve for $\beta_{10}$** as an unknown value.
+by plugging in $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, and $\beta_{10}$. We then compared the value of $t$ to a $T_{n-2}$ distribution to compute the $p$-value $p=P(T > |t|)$. 
+For a confidence interval, we reverse this process. That is, we plug in $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, and $t$, then solve for $\beta_{10}$ as an unknown value.
 
-### Distribution of $t$
-
-The distribution of  $t = \dfrac{\hat\beta_1 - \beta_{1}}{\widehat{se}(\hat\beta_1)}$ is $T_{n-2}$. This distribution has mean zero and a standardized variance (it's close to 1, although not exactly 1). There exists a number, which we denote $t_{\alpha/2}$ such that the area between them is $1-\alpha$. Mathematically, this can be written:
+The distribution of  $t = \dfrac{\hat\beta_1 - \beta_{1}}{\widehat{se}(\hat\beta_1)}$ is $T_{n-2}$. This distribution has mean zero and a standardized variance (it's close to 1, although not exactly 1). 
+There exists a number, which we denote $t_{\alpha/2}$, such that the area under the curve between $-t_{\alpha/2}$ and $t_{\alpha/2}$ is $1-\alpha$. Mathematically, this can be written:
 
 \begin{equation}
 P\left(-t_{\alpha/2} \le \dfrac{\hat\beta_1 - \beta_1}{\widehat{se}(\hat\beta_1)} \le t_{\alpha/2}\right) = 1 - \alpha
@@ -77,7 +88,7 @@ We can rearrange equation \@ref(eq:ciinvert), so that $\beta_1$ is alone in the 
 
 
 
-## Confidence Interval
+### Confidence Interval
  
  
 This then gives a $(1 -\alpha)100\%$ confidence interval for $\beta_1$:
@@ -87,17 +98,6 @@ $$\left(\hat\beta_0 - t_{\alpha/2}\widehat{se}(\hat\beta_0), \hat\beta_0 + t_{\a
 
 
 
-```{definition}
-A **$(1- \alpha)100\%$ confidence interval** is a random interval that, if the model is correct, would include ("cover") the true value of the parameter with probability $(1 - \alpha)$.
-```
-
-A common *incorrect* interpretation of a CI is:
-The probability of $\beta_1$ being in the interval is $(1- \alpha)100\%$.  
- This is incorrect since in a confidence interval, it is the *interval* itself that is random. The parameter $\beta_1$ is a fixed (but unknown) number, so it does not have a probability associated with it.
-
-
-
-## CI for $\sigma^2$
 
 Confidence intervals for $\sigma^2$ are created using the same strategy.
 
@@ -126,33 +126,48 @@ $$P\left(\frac{(n-2)MS_{res}}{\chi^2_{\frac{\alpha}{2}, n-2}} \le \sigma^2 \le \
 
 ## Confidence Intervals in R
 
-```{r eval=FALSE, include=FALSE}
-rocket <- read_csv(paste0(data_dir, "rocket.csv"))
-```
-
-
-```{r eval=FALSE, echo=F}
-g_rocket <- ggplot(rocket)  + theme_bw()  +
-  geom_point(aes(x=age, y=shear_strength)) +
-  ylab("Shear Strength (psi)") + 
-  xlab("Age (weeks)")
-g_rocket + geom_smooth(aes(x=age, y=shear_strength), method="lm", se=FALSE)
-```
-
-
 ### Confidence Intervals "by hand" in R
 
-```{r eval=FALSE, echo=TRUE, size="scriptsize"}
-rocket_lm <- lm(shear_strength~age, data=rocket)
+To compute a confidence interval "by hand" in R, we can plug in the appropriate values into the formulas.  The estimates $\hat\beta_1$ and $\widehat{se}(\hat\beta_1)$ can be calculated from an `lm` object. 
+To compute $t_{\alpha/2}$, use the `qt()` command, which can be used to find $x$ such that $P(T < x) = \tilde{p}$ for a given value of $\tilde{p}$. 
+In order to compute $t_{\alpha/2}$, we need to find $x$ such that $P(T < x) = 1- \alpha/2$. 
+Because of the symmetry of the $T$ distribution, this will yield an $x = t_{\alpha/2}$. 
+This can be implemented in the following code:
 
+```{r}
 alpha <- 0.05
-t_alphaOver2 <- qt(1-alpha/2, df = nobs(rocket_lm)-2)
+t_alphaOver2 <- qt(1-alpha/2,
+                   df = 100-2)
 t_alphaOver2
+```
 
-CI95Lower <- coef(rocket_lm)[2] - t_alphaOver2 * tidy(rocket_lm)$std.error[2]
-CI95Upper <- coef(rocket_lm)[2] + t_alphaOver2 * tidy(rocket_lm)$std.error[2]
+An alternative approach is to find $P(T > x ) = \alpha/2$. To do this using `qt()`, set the `lower=FALSE` option:
+```{r}
+t_alphaOver2 <- qt(alpha/2,
+                   df = 100-2,
+                   lower=FALSE)
+t_alphaOver2
+```
+
+
+```{example}
+In the penguin data, suppose we wish to construct a confidence interval for $\beta_1$ using the formulas. This can be done with the following code:
+```
+
+```{r echo=TRUE}
+penguin_lm <- lm(body_mass_g~flipper_length_mm,
+                data=penguin)
+alpha <- 0.05
+t_alphaOver2 <- qt(1-alpha/2,
+                   df = nobs(penguin_lm)-2)
+CI95Lower <- coef(penguin_lm)[2] - t_alphaOver2 * tidy(penguin_lm)$std.error[2]
+CI95Upper <- coef(penguin_lm)[2] + t_alphaOver2 * tidy(penguin_lm)$std.error[2]
 c(CI95Lower, CI95Upper)
 ```
+
+
+We can now expand our summary statement about $\beta_1$ to be:
+
 
 
 
