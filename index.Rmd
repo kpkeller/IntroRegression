@@ -13,10 +13,11 @@ description: "TBD"
 
 <!-- `r Sys.Date()` -->
 
-# Foreword
+# Preface
 
-This book emerged from the course notes I developed as instructor for a course (STAT 341) at Colorado State University. My intent is for this to serve as a resource for an introductory-level course on regression methods. The emphasis is on application and interpretation as much as the mathematical details.
- This book assumes an understanding of basic statistical concepts, including expectation and variance. The examples almost exclusively use the R programming language, and basic familiarity with R is assumed.
+This book emerged from the course notes I developed as instructor for a course (STAT 341) at Colorado State University. My intent is for this to serve as a resource for an introductory-level undergraduate course on regression methods. Emphasis is on the application of methods, and so mathematical concepts are intertwined with examples using the R computing language. 
+
+This book assumes an understanding of basic statistical concepts, including expectation and variance. The examples almost exclusively use the R programming language, and basic familiarity with R is assumed.
 
 ## Disclaimer
 
