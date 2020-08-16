@@ -192,7 +192,7 @@ Equivalent interpretation statements for $\beta_0$ in this context:
 * $\beta_0$ is the average body mass (in g) for penguins that have a flipper length of 0 mm. 
 * The average body mass for penguins that have 0 mm long flippers is $\beta_0$ grams.
 
-### Interpreting $\beta_0 + \beta_1x_i$
+### Interpreting $\beta_0 + \beta_1x_i$ {#interpretslrrmean}
 
 From Equation \@ref(eq:slrmean), the points on the regression line can be interpreted as the average value of the outcome variable for units with a particular value of $x$.
 
