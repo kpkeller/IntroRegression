@@ -13,16 +13,16 @@ description: "TBD"
 
 <!-- `r Sys.Date()` -->
 
-# Preface
+# Preface {-}
 
 This book emerged from the course notes I developed as instructor for a course (STAT 341) at Colorado State University. My intent is for this to serve as a resource for an introductory-level undergraduate course on regression methods. Emphasis is on the application of methods, and so mathematical concepts are intertwined with examples using the R computing language. 
 
 This book assumes an understanding of basic statistical concepts, including expectation and variance. The examples almost exclusively use the R programming language, and basic familiarity with R is assumed.
 
-## Disclaimer
+## Disclaimer {-}
 
 This work is currently (as of Fall 2020) under development and the content is subject to change as more material is added.
 
-## License
+## License {-}
 
 All content is copyright &copy; 2020 Joshua Keller. The work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
