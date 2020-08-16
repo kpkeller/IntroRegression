@@ -113,7 +113,7 @@ In almost any data analysis project, an important task is providing an interpeta
   * For linear regression, "difference in average" is the same as "average difference". You can use either phrase.
   * In this section only, we are assuming that $\beta_1$ is known. Starting in Section \@ref(slrestimation) we will introduce estimates of this parameter and start including "estimated" in interpretations.
 * Specify that this is for a 1-unit difference in the predictor variable (x).
-* Be cautious about referring to $\beta_1$ as an "increase" or a "decrease". Those words imply that an intervention was conducted, in which the value of $x$ was directly modified. This is possible in controlled experiments, but is not the case for observational datasets.
+* Be cautious about referring to $\beta_1$ as an "increase" or a "decrease". Those words imply that an intervention was conducted, in which the value of $x$ was directly modified. This is possible in controlled experiments, but is not the case for observational datasets. To indicate direction, it can be helpful to use words such as "greater", "lower", or "higher".
 * Include confidence intervals (see Section \@ref(slrCI))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrCI)]
 * If appropriate, include information about the conclusion from a hypothesis test (see Section \@ref(slrhypothtest))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrhypothtest)]
 * Include units for both the outcome and predictor
@@ -145,10 +145,25 @@ Possible summarizing sentences for $\beta_1$:
 * The average difference in body mass for penguins that have 1 mm longer flippers is $\beta_1$ grams.
 * The difference in average body mass for penguins that differ in flipper length by one millimeter is $\beta_1$ grams.
 
+We will expand upon these sentences in Examples \@ref(exm:peng-lm-intro), \@ref(exm:peng-lm-intro-testingconclusion), and \@ref(exm:peng-lm-intro-ci).
 
-```{example}
-In Example \@ref(exm:peng-beta1), what is the interpretation of $10\beta_1$?
+
+### Interpreting $c\beta_1$
+
+Because $\beta_1$ is the slope of the regression, we can easily interpret multiple of $\beta_1$, say $c\beta_1$ for some $c \in \mathbb{R}$, as differences in the average value of the outcome variable for differences of $c$ units in the predictor variable.
+
+```{example peng-lm-intro-10unit}
+In Example \@ref(exm:peng-beta1), the value $10\beta_1$ can be summarized as:
+the difference in average body mass (in g) for penguins that differ in flipper length by 10 mm. 
 ```
+
+
+```{example peng-lm-intro-01unit}
+In Example \@ref(exm:peng-beta1), the value $25\beta_1$ can be summarized as:
+the difference in average body mass (in g) for penguins that differ in flipper length by 2.5 cm. 
+```
+
+Interpreting multiples of $\beta_1$ is closely related to the idea of re-scaling the predictor $x$,  which is covered in Section \@ref(rescaling).
 
 ### Interpreting $\beta_0$
 
@@ -354,7 +369,7 @@ g_penguin_flip_mass_lm +
 ## Exercises
 
 ```{exercise}
-In the context of Example \@ref(exm:peng-beta1), what is an interpretation of $50\beta_1$?
+In the context of Example \@ref(exm:peng-beta1), what is an interpretation of $5\beta_1$?
 ```
 
 ```{exercise}
