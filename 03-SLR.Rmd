@@ -232,7 +232,7 @@ ggplot(simdata) + theme_bw() +
    facet_wrap(~sigma2lab, labeller=label_parsed)
 ```
 
-### Interpreting $\beta_1$ with binary $x$
+### Interpreting $\beta_1$ with binary $x$ {#interpbinaryx}
 
 Although the most common setting of the simple linear regression model is with a continuous predictor variable (such as flipper length), the model can equally be applied when the predictor variable is binary, meaning it takes on two values.
 
