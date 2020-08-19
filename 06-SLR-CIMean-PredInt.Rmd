@@ -16,22 +16,90 @@ library(broom)
 
 ## Estimating Mean & Predicting Observations
 
+### Estimation or Prediction?
+
 In Section \@ref(interpretslrrmean) we saw that the values along the regression line can be interpeted as the mean outcome for a given value of the predictor variable. Formally, we can write the **estimated mean** of $Y$ when $x$ equals some value $x_0$ as:
 
-$$\hat\mu_{Y|x_0} = \hat\beta_0 + \hat\beta_1x_0$$
+\begin{equation}
+\hat\mu_{Y|x_0} = \hat\beta_0 + \hat\beta_1x_0
+(\#eq:slrmuhat)
+\end{equation}
 
 The points along the line also provide the best *prediction* of the value of $Y$ for an observation with $x=x_0$. We write the **prediction for a new observation** of $Y$ when $x$ equals some value $x_0$ as:
 
-$$\hat y_0 = \hat\beta_0 + \hat\beta_1x_0$$
+\begin{equation}
+\hat y_0 = \hat\beta_0 + \hat\beta_1x_0
+(\#eq:slryhat)
+\end{equation}
 
 Although very similar, there an important distinction between the questions
 
 
 1. What is the mean value of $Y$ when $x=x_0$?
-2. What is the value of a new observation with $x=x_0$?\\
+2. What is the value of a new observation with $x=x_0$?
 
 The point estimate for these questions is the same, but the corresponding uncertainty is different.
 Question 1 is answered by $\hat\mu_{Y|x_0}$ and has a corresponding confidence interval. Question 2 is answered by $\hat y_0$ and has a corresponding prediction interval.
+
+
+### Computing $\hat\mu_{Y|x_0}$ and $\hat{y}_0$
+
+The point estimates $\hat\mu_{Y|x_0}$  and $\hat{y}_0$ can be computed by directly plugging in the point estimates to \@ref(eq:slrmuhat) or \@ref(eq:slryhat). 
+
+```{example penguin-lm-prediction}
+In Example \@ref(exm:penguin-lm-stepped), we saw the fitted regression line for mean peguin body mass ($y$) as a function of flipper length ($x$) was:
+$$\hat{y}  = -5780.83 + 49.69x$$
+Using this model, what is the mean body mass for a penguin with flipper length of 200mm?  
+```
+```{solution} 
+(Version 1) We can compute these directly from the model objects:
+```
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+penguin_lm <- lm(body_mass_g ~ flipper_length_mm,
+   data=penguins)
+```
+
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+x0 <- 200
+muhat <- coef(penguin_lm)[1] + coef(penguin_lm)[2]*x0
+muhat
+```  
+From this, we obtain the estimated mean as 4,156 grams.
+
+
+But rather than compute this value using addition and multiplication, we can use the `predict()` function in R, which will compute these values for us based on a fitted `lm` object. The necessary arguments for making predictions are:
+
+* `object=`, the `lm` for the model you want to make predictions for
+* `newdata=`, a data frame containing the *named* variables with the values for prediction
+
+
+```{solution} 
+(Version 2 for Example \@ref(exm:penguin-lm-prediction).) Rather than do the arithmetic by hand, we can use the `predict()` function. We create a data frame called `preddata` that contains the information for prediction, and then pass it to `predict()`.
+```
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
+penguin_lm <- lm(body_mass_g ~ flipper_length_mm,
+   data=penguins)
+preddata <- data.frame(flipper_length_mm=200)
+predict(penguin_lm,
+        newdata=preddata)
+```  
+We again obtain the estimated mean as 4,156 grams. 
+
+
+In addition to being less likely to lead to typos, using the `predict()` command is easily scalable to multiple values.
+
+```{example}
+For the same model as Example \@ref(exm:penguin-lm-prediction), what is the predicted mean body mass for penguins with flipper lengths of 150mm, 200mm, 225mm, and 250mm?
+```
+```{solution}
+We can create a data frame with muliple values and then make predictions using that data frame:
+```{r}
+preddata2 <- data.frame(flipper_length_mm=c(150, 200, 225, 250))
+predict(penguin_lm,
+        newdata=preddata2)
+```
+
+
 
 ## Inference for the mean
 ### CIs and Testing
@@ -61,6 +129,7 @@ Computing either the confidence interval \@ref(eq:meanCI) or the test statistic 
 
 
 We can compute the variance of $\hat\mu_{y|x_0}$ as follows:
+
 \begin{align}
 \Var(\hat\mu_{y|x_0}) &= \Var\left(\hat\beta_0 + \hat\beta_1 x_0 \right)\\
 & = \Var\left(\overline{y} - \hat\beta_1\overline{x} + \hat\beta_1 x_0 \right) (\#eq:varslrline2)\\
@@ -69,7 +138,7 @@ We can compute the variance of $\hat\mu_{y|x_0}$ as follows:
 & = \frac{\sigma^2}{n} + (x_0 - \overline{x})^2\Var\left(\hat\beta_1\right)\notag\\
 & =  \frac{\sigma^2}{n}  + (x_0 - \overline{x})^2\frac{\sigma^2}{S_{xx}}\notag\\
 & =  \sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right) (\#eq:varslrmean)
-\end{align*}
+\end{align}
 
 It is important to note that $\Var\left(\hat\beta_0 + \hat\beta_1 x_0 \right) \ne \Var(\hat\beta_0) + \Var(\hat\beta_1x_0)$ since the estimators $\hat\beta_0$ and $\hat\beta_1$ are correlated. To obtain \@ref(eq:varslrline2), we have substituted in $\hat\beta_0 = \overline{y} - \hat\beta_1\overline{x}$ (recall equation \@ref(eq:hatbeta0)).
 

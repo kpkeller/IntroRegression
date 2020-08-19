@@ -589,7 +589,13 @@ $$\left(\hat\beta_0 - t_{\alpha/2}\widehat{se}(\hat\beta_0), \hat\beta_0 + t_{\a
 ## Exercises
 
 
+```{exercise }
+Use R to compute the two-sided $p$-value for a test statistic $t=1.5$. Assume this comes from a regression model fit to $n=25$ observations.
+```
 
+```{exercise}
+Suppose we fit a simple linear regresion model with celebrity income as the predictor variable and their number of social media followers as the outcome. Explain what the null hypothesis $H_0: \beta_1 = 0$ would mean in this context.
+```
 
 ```{exercise }
 In the penguin data with flipper length as the predictor variable and body mass as the outcome, what is the conclusion of a hypothesis test of $H_0: \beta_1 = 40$ against the alternative $H_A: \beta_1 \ne 40$.
@@ -597,5 +603,9 @@ In the penguin data with flipper length as the predictor variable and body mass 
 
 ```{exercise}
 In the setting of Example \@ref(exm:penguin-mass-sex-testing), what would the null hypothesis $H_0: \beta_1 = 600$ mean scientifically? Perform a test against the alternative $H_A: \beta_1 \ne 600$ and summarize your conclusions.
+```
 
+
+```{exercise}
+Suppose we fit a simple linear regression model with $n=100$ observations and $\hat\beta_1 = 10$. Given a 95\% confidence interval of $(5, 15)$, what is the value of $\hat{se}(\hat\beta_1)$?
 ```
