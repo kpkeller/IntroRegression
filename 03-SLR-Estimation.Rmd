@@ -89,7 +89,7 @@ In this form, we can see that the slope of the regression line depends on both t
 
 ## Fitting SLR models in R
 
-The task of computing $\hat\beta_0$ and $\hat\beta_1$ is commonly called "fitting" the model. Although we could explicitly compuate the values using equations \@ref(eq:hatbeta0) and \@ref(eq:hatbeta1), it is much simpler to let R do the computations for us.
+The task of computing $\hat\beta_0$ and $\hat\beta_1$ is commonly called "fitting" the model. Although we could explicitly compute the values using equations \@ref(eq:hatbeta0) and \@ref(eq:hatbeta1), it is much simpler to let R do the computations for us.
 
 ### OLS estimation in R
 

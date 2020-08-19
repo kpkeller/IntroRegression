@@ -45,7 +45,7 @@ Finding the best fitting line in Figure \@ref(fig:g-penguin-flip-mass-lm) is an 
 
 More generally, regression is a statistical method for explaining variability in an **outcome variable** (other names include: independent variable, covariate, explanatory variable, regressor) using variation in one or more **predictor variables** (other names include: dependent variable, response variable).
 
-In linear regression, the outcome variable is always a continuous variable, meaning that it takes on any numerical values. The values might be only over a specific range (e.g. body mass is necessarily greater than zero) and have a limited precision (e.g. body mass is only meausred out to a certain number of decimal places). If the outcome variable is binary (e.g. sick/healthy) or categorical (e.g. species), then a different form of regression is needed. This book and course focus primarily on linear regression, but we will briefly cover other types of regression in Chapter \@ref(sec:logistic).
+In linear regression, the outcome variable is always a continuous variable, meaning that it takes on any numerical values. The values might be only over a specific range (e.g. body mass is necessarily greater than zero) and have a limited precision (e.g. body mass is only measured out to a certain number of decimal places). If the outcome variable is binary (e.g. sick/healthy) or categorical (e.g. species), then a different form of regression is needed. This book and course focus primarily on linear regression, but we will briefly cover other types of regression in Chapter \@ref(sec:logistic).
 
 On the other hand, the predictor variables can be continuous or categorical. In Simple Linear Regression (Chapter \@ref(slr)), there is only one continuous predictor variable. But in general, the predictors can be any combination of variable types, including interactions (Section \@ref(indinter)) and non-linear transformations (Section \@ref(sec:transform)).
 
@@ -138,7 +138,7 @@ bb <- bb %>%
   mutate(Outcome=factor(hit, levels=c(T, F), labels=c("Hit", "Out")))
 ```
 
-Figure \@ref(fig:bb-scatter-lspeed-hitdist) shows all of the balls in play from the Colorado Rockies in the 2019 season. Along the horizontal axis is the launch speed, which is the speed at which the ball left the bat when hit. The vertical axis shows the distance the ball travelled. The color of each point shows whether the batted ball resulted in a hit or an out.
+Figure \@ref(fig:bb-scatter-lspeed-hitdist) shows all of the balls in play from the Colorado Rockies in the 2019 season. Along the horizontal axis is the launch speed, which is the speed at which the ball left the bat when hit. The vertical axis shows the distance the ball traveled. The color of each point shows whether the batted ball resulted in a hit or an out.
 
 ```{r bb-scatter-lspeed-hitdist, echo=FALSE, fig.cap="Distance travelled and launch speed for balls in play from Colorado Rockies in 2019."}
 g_bb_lspeed_hitdist <- bb %>%
@@ -153,7 +153,7 @@ g_bb_lspeed_hitdist
 There are several questions we could ask using the data from Figure \@ref(fig:bb-scatter-lspeed-hitdist):
 
 * Is there a relationship between launch speed and hit distance? If yes, can that relationship be quantified?
-* For a ball hit at 90 mph, what is the predicted distance travelled?
+* For a ball hit at 90 mph, what is the predicted distance traveled?
 * Using launch speed, can we predict whether or not a batted ball will result in a hit or an out?
 
 
@@ -172,7 +172,7 @@ g_bb_langle_hitdist
 There are several questions we could ask using the data from Figure \@ref(fig:bb-scatter-langle-hitdist):
 
 * Is there a relationship between launch angle and hit distance? If yes, can that relationship be quantified?
-* For a ball hit at 45 degrees, what is the predicted distance travelled?
+* For a ball hit at 45 degrees, what is the predicted distance traveled?
 * Using launch angle, can we predict whether or not a batted ball will result in a hit or an out?
 
 

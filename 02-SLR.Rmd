@@ -91,13 +91,13 @@ For now, the key assumption is $E[\epsilon_i] = 0$. Importantly, we do not requi
 
 ### Regression Line Equation
 
-A consequence of Sssumption 1 ($\E[\epsilon_i] = 0$) is that the mean of $Y_i$ is a straight line:
+A consequence of Assumption 1 ($\E[\epsilon_i] = 0$) is that the mean of $Y_i$ is a straight line:
 
 \begin{align}
 \E[Y_i] &= \E[\beta_0 + \beta_1x_i + \epsilon_i] \notag\\
 &=  \E[\beta_0 + \beta_1x_i] + \E[\epsilon_i]\notag\\
 &=  \beta_0 + \beta_1x_i + 0 \notag\\
-&=  \beta_0 + \beta_1x_i \label{eq:slrmean}
+&=  \beta_0 + \beta_1x_i (\#eq:slrmean)
 \end{align}
 
 This allows us to interpret the parameters $\beta_0$ and $\beta_1$ in terms of the  slope and intercept of the line.
@@ -107,15 +107,15 @@ This allows us to interpret the parameters $\beta_0$ and $\beta_1$ in terms of t
  
 The $\beta_1$ parameter represents the **slope** of the regression line. In other words, $\beta_1$ is the difference in $\E[Y_i]$ between observations that differ in $x_i$ by one unit.
 
-In almost any data analysis project, an important task is providing an interpetation of the model parameters. When describing the interpretation of $\beta_1$, it is important to include these key elements:
+In almost any data analysis project, an important task is providing an interpretation of the model parameters. When describing the interpretation of $\beta_1$, it is important to include these key elements:
 
-* An interpretation of $\beta_1$ as an **estiumated difference** in the average value of the outcome variable
+* An interpretation of $\beta_1$ as an **estimated difference** in the average value of the outcome variable
   * For linear regression, "difference in average" is the same as "average difference". You can use either phrase.
   * In this section only, we are assuming that $\beta_1$ is known. Starting in Section \@ref(slrestimation) we will introduce estimates of this parameter and start including "estimated" in interpretations.
 * Specify that this is for a 1-unit difference in the predictor variable (x).
 * Be cautious about referring to $\beta_1$ as an "increase" or a "decrease". Those words imply that an intervention was conducted, in which the value of $x$ was directly modified. This is possible in controlled experiments, but is not the case for observational datasets. To indicate direction, it can be helpful to use words such as "greater", "lower", or "higher".
-* Include confidence intervals (see Section \@ref(slrCI))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrCI)]
-* If appropriate, include information about the conclusion from a hypothesis test (see Section \@ref(slrhypothtest))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrhypothtest)]
+* Include confidence intervals (see Section \@ref(slrbetaci))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrbetasummary)]
+* If appropriate, include information about the conclusion from a hypothesis test (see Section \@ref(slrbetahypothtest))^[The examples in this chapter will skip this for now. This will be added in the examples in Section \@ref(slrbetasummary)]
 * Include units for both the outcome and predictor
 * If known, include statement about population/context.
 
@@ -145,7 +145,7 @@ Possible summarizing sentences for $\beta_1$:
 * The average difference in body mass for penguins that have 1 mm longer flippers is $\beta_1$ grams.
 * The difference in average body mass for penguins that differ in flipper length by one millimeter is $\beta_1$ grams.
 
-We will expand upon these sentences in Examples \@ref(exm:peng-lm-intro), \@ref(exm:peng-lm-intro-testingconclusion), and \@ref(exm:peng-lm-intro-ci).
+We will expand upon these sentences in Examples \@ref(exm:peng-lm-intro) and \@ref(peng-lm-intro-inference).
 
 
 ### Interpreting $c\beta_1$
@@ -336,7 +336,7 @@ Note the key elements in this sentence:
 * "estimated" -- The number 49.7 is an estimate of the true (and unknown) parameter value.
 * Units are provided for flipper length and body mass.
 * "among penguins in Antarctica" -- Context and/or population
-* This is observational data, so the relationship is stated as asn association, not causation.
+* This is observational data, so the relationship is stated as an association, not causation.
 
 
 
@@ -350,7 +350,7 @@ g_penguin_flip_mass_lm +
                   xlim=c(-5, max(penguins$flipper_length_mm)))
 ```
 
-The residuals for each observation can be calculated as the difference between each data point and its corresponding modelled mean:
+The residuals for each observation can be calculated as the difference between each data point and its corresponding modeled mean:
 $$ e_i = y_i - (\hat\beta_0 + \hat\beta_1x_i)$$
 Figure \@ref(fig:g-penguin-resid) shows a graphical representation of the residuals $e_i$.
 

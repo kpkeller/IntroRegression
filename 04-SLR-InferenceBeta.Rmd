@@ -131,7 +131,7 @@ If $H_0$ is true, then $t$ follows a $T$-distribution with $n-1$ degrees of free
 * If $t$ is "large", then we reject $H_0$ in favor of $H_A$
 * If $t$ is not "large", then we do not reject $H_0$
 
-But what does "large" value of $t$ mean? Large $t$ means $\overline{y}$ is far from the hypothesized value $\mu_0$. To account for the variability in the distribution of $\hat\beta_1$, we divide $\overline{y} - \mu_0$ by its standard error. This is becasue a large difference between $\overline{y}$ and $\mu_0$ is more meaningful when $\overline{y}$ has smaller variance.
+But what does "large" value of $t$ mean? Large $t$ means $\overline{y}$ is far from the hypothesized value $\mu_0$. To account for the variability in the distribution of $\hat\beta_1$, we divide $\overline{y} - \mu_0$ by its standard error. This is because a large difference between $\overline{y}$ and $\mu_0$ is more meaningful when $\overline{y}$ has smaller variance.
 
 We then compare $t$ to the $T_{n-1}$ distribution and compute $P(T > |t|)$:
 
@@ -219,7 +219,7 @@ In 2018, the American Statistical Association (ASA) published a statement about 
 6. By itself, a $p$-value does not provide a good measure of evidence regarding a model or hypothesis.
 
 
-## Hypothesis Testing for $\beta_1$
+## Hypothesis Testing for $\beta_1$ {#slrbetahypothtest}
 
 In simple linear regression, we can conduct a hypothesis test for $\beta_1$ just like how we conducted the one-sample $t$-test.
 
@@ -282,7 +282,7 @@ Compare the following output with the results calculated manually the previous s
 ```{r eval=TRUE}
 tidy(penguin_lm)
 ```
-We se a column with $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, $t$, and $p$! This same information is also available from the `summmary()` command:
+We see a column with $\hat\beta_1$, $\widehat{se}(\hat\beta_1)$, $t$, and $p$! This same information is also available from the `summmary()` command:
 
 <!-- eval=FALSE, echo=TRUE, output.lines=10:15, size="footnotesize"}  -->
 
@@ -346,7 +346,7 @@ To conduct this hypothesis test, we would need to use the "by hand" procedure fo
 
 ## Confidence Intervals (CIs)
 
-### Definition and Interpreation
+### Definition and Interpretation
 
 Hypothesis tests provide an answer to a specific question (*Is there evidence to reject the null hypothesis?*), but they don't directly provide information about the uncertainty in the point estimates.
 In many contexts, what is often more useful than a conclusion from a hypothesis test is an estimate of a parameter and its uncertainty. **Confidence intervals** provide a way to describe the uncertainty in a parameter estimate.
@@ -453,7 +453,7 @@ We can rearrange equation \@ref(eq:ciinvert), so that $\beta_1$ is alone in the 
 
 
 
-## CIs for  $\beta_1$
+## CIs for  $\beta_1$ {#slrbetaci}
  
 The procedure from the previous section  gives a $(1 -\alpha)100\%$ confidence interval for $\beta_1$:
 $$\left(\hat\beta_1 - t_{\alpha/2}\widehat{se}(\hat\beta_1), \hat\beta_1 + t_{\alpha/2}\widehat{se}(\hat\beta_1)\right)$$
@@ -528,11 +528,11 @@ confint(penguin_lm)
 
     
     
-## Summarizing Inference for $\beta_1$
+## Summarizing Inference for $\beta_1$ {#slrbetasummary}
 
 When testing **$H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$**, it is best to write a complete sentence explaining your conclusion. In the sentence, clear describe the null hypothesis and whether it was rejected or not. Report the exact $p$-value, unless it is below 0.0001, in which case writing $p < 0.0001$ is sufficient.
 
-Confidence intervals are generally reported in parantheses after a point esitmate is given. It is standard to specify the confidence level when doing so.
+Confidence intervals are generally reported in parentheses after a point estimate is given. It is standard to specify the confidence level when doing so.
 
 ```{example peng-lm-intro-inference}
 We can update the interpretation summary from Example \@ref(exm:peng-lm-intro) by adding a second sentence so that our full conclusion is:
@@ -553,7 +553,7 @@ tidy(penguin_lm2, conf.int=TRUE)
 
 Here, $\hat\beta_1 = 683$, $t=8.5$ and $p  < 0.0001$. So we would reject the null hypothesis and can summarize our result as:
 
-*We reject the null hypothesis that there is no difference in body mass beteen female and male penguins ($p < 0.0001$). The estimated difference in average body mass of penguins, comparing males to females, is 683 grams (95% CI: 526, 840), with males having larger average mass.* 
+*We reject the null hypothesis that there is no difference in body mass between female and male penguins ($p < 0.0001$). The estimated difference in average body mass of penguins, comparing males to females, is 683 grams (95% CI: 526, 840), with males having larger average mass.* 
 
 
     
