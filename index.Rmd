@@ -1,5 +1,5 @@
 --- 
-title: "Introduction to Regression Analysis"
+title: "Introduction to Regression Analysis in R"
 author: "Joshua P. Keller"
 date: ""
 site: bookdown::bookdown_site

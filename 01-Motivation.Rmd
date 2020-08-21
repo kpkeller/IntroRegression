@@ -3,8 +3,11 @@
 ```{r include=FALSE}
 library(ggplot2)
 library(dplyr)
+library(stringr)
 library(readr)
 library(palmerpenguins)
+
+knitr::opts_chunk$set(fig.align="center")
 ```
 
 ## The Palmer Penguins
@@ -13,7 +16,7 @@ library(palmerpenguins)
 <!-- (Artwork by \@allison_horst)  -->
 <!-- ^[https://github.com/allisonhorst/palmerpenguins]) -->
 
-At the Palmer research station in Antarctica^[https://pal.lternet.edu], researchers made measurements on three different penguin species: Adélie, Chinstrap, and Gentoo. The `palmerpenguin` R package (@palmerpenguins) contains these measurements, which include 342 measurements of the flipper length and body mass:
+At the Palmer research station in Antarctica^[https://pal.lternet.edu], researchers made measurements on three different penguin species: Adélie, Chinstrap, and Gentoo. The `palmerpenguin` R package (@palmerpenguins) contains these measurements, which we will use in many of the examples. There are 342 measurements of penguins' flipper length and body mass:
 
 ```{r g-penguin-flip-mass, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset."}
 g_penguin_flip_mass <- penguins %>%
@@ -37,7 +40,7 @@ g_penguin_flip_mass_lm <- g_penguin_flip_mass +
   geom_smooth(se=FALSE, method="lm", col="black")
 g_penguin_flip_mass_lm
 ```
-The slope of this line tells us about the size and direction of the relationship between flipper length and body mass. We can also estimate the amount of uncertainty in the intercept and slope of the line.
+The slope of this line tells us about the size and direction of the relationship between flipper length and average body mass. We can also estimate the amount of uncertainty in the intercept and slope of the line.
 
 ## What is regression?
 
@@ -45,9 +48,9 @@ Finding the best fitting line in Figure \@ref(fig:g-penguin-flip-mass-lm) is an 
 
 More generally, regression is a statistical method for explaining variability in an **outcome variable** (other names include: independent variable, covariate, explanatory variable, regressor) using variation in one or more **predictor variables** (other names include: dependent variable, response variable).
 
-In linear regression, the outcome variable is always a continuous variable, meaning that it takes on any numerical values. The values might be only over a specific range (e.g. body mass is necessarily greater than zero) and have a limited precision (e.g. body mass is only measured out to a certain number of decimal places). If the outcome variable is binary (e.g. sick/healthy) or categorical (e.g. species), then a different form of regression is needed. This book and course focus primarily on linear regression, but we will briefly cover other types of regression in Chapter \@ref(sec:logistic).
+In linear regression, the outcome variable is always a continuous variable, meaning that it takes on any numerical values. The values might be only over a specific range (e.g. body mass is necessarily greater than zero) and have a limited precision (e.g. body mass is only measured out to a certain number of decimal places). If the outcome variable is binary (e.g. sick/healthy) or categorical (e.g. species), then a different type of regression model is needed. This book will focus primarily on linear regression, but we will cover other types of regression in Chapters \@ref(logistic) and \@ref(logisticinference).
 
-On the other hand, the predictor variables can be continuous or categorical. In Simple Linear Regression (Chapter \@ref(slr)), there is only one continuous predictor variable. But in general, the predictors can be any combination of variable types, including interactions (Section \@ref(indinter)) and non-linear transformations (Section \@ref(sec:transform)).
+On the other hand, the predictor variables can be almost any type, whether continuous or categorical. In Simple Linear Regression (Chapters \@ref(slr) through \@ref(slrother)), there is only one continuous predictor variable. But in its general form, Multiple Linear Regression (Chapter \@ref(mlr)) can include an arbitrary number of parameters. The predictors can be any combination of variable types, including interactions (Chapter \@ref(indinter)) and non-linear transformations (Chapter \@ref(transformations)).
 
 ## Regression Goals
 We can describe the goals of regression in two ways: the scientific goals and the practical (mathematical) goals.
@@ -59,9 +62,9 @@ The **scientific goals** of regression are: description, inference, and predicti
 The **descriptive** goal of regression is focused on showing the relationship between $x$ and $y$. Emphasis is on quantifying and visualizing the relationship, rather than on drawing specific conclusions. Descriptive goals are inherently exploratory, and don't always require a specific question. Sometimes, we have data on an entire population, in which case the goal of the analysis is about describing relationships rather than making inference for a larger population.
 
 One of the fundamental goals of statistics, and one that sets it apart from other data science fields, is **inference**. Inference takes a descriptive analysis one step further, and uses information about uncertainty to quantify the *strength* of a relationship. In short, inference is used to answer the question: *Is there a relationship between $x$ and $y$, beyond what we would just expect by chance?*
-Fundamental tools in statistical inference are confidence intervals and hypothesis testing.
+Fundamental tools in statistical inference are confidence intervals and hypothesis testing. Inferential goals are also sometimes called *association* goals, since the objective is to learn about an association (or lack thereof) between variables.
 
-A third, and fundamentally different, goal of regression analysis is **prediction**, when we want to predict values of $y$ for new observations using their value of $x$. Prediction is perhaps the most common goal in much of machine learning, and regression is only one of many tools that can be used to make predictions for a dataset.
+A third, and fundamentally different, goal of regression analysis is **prediction**, when we want to predict values of $y$ for new observations using their value of $x$. Prediction is the primary goal in the area of statistical (machine) learning, and regression is only one of many tools that can be used to make predictions for a dataset. This book covers prediction in Chapter \@ref(modelselection). 
 
 Consider the following example questions using the penguin dataset:
 
@@ -84,18 +87,28 @@ Throughout this book, we will make repeated use of several example datasets, whi
 
 ### Palmer Penguins (Part 2)
 
+```{example penguin-exposition-billdepth-sex}
 Other values in the Palmer Penguins dataset include penguin sex and  measurements of bill depth. The following histograms show the distributions of bill depth by sex:
+```  
+  
 ```{r g-penguin-bill-sex, echo=F, fig.cap="Distribution of penguin bill length by sex."}
 penguins %>%
   filter(!is.na(sex)) %>%
+  mutate(Sex=str_to_title(sex)) %>%
 ggplot(aes(x=bill_depth_mm,
-                        fill=sex)) + 
+                        fill=Sex)) + 
   theme_bw() + 
   geom_histogram(alpha=0.5, position="identity", bins=25) +
     xlab("Bill Depth (mm)")
 ```
 
 In Figure \@ref(fig:g-penguin-bill-sex), it appears that there might be a difference in the average bill length by sex. We can use linear regression to quantify this difference.
+
+
+
+```{example penguin-exposition-billdepth-species}
+The following histograms show the distributions of bill depth by species:
+```
 
 ```{r g-penguin-bill-species, echo=F, message=FALSE, fig.cap="Distribution of penguin bill length by species."}
 penguins %>%
@@ -112,6 +125,11 @@ ggplot(aes(x=bill_depth_mm,
 
 **A:** Yes! Using linear regression, we can estimate the difference in mean bill length between the three penguin species.
 
+
+```{example penguin-exposition-billdepth-speciessex}
+Figure \@ref(fig:g-penguin-bill-species-sex) shows the distribution of bill length by species and sex.
+```
+
 ```{r g-penguin-bill-species-sex, echo=F, message=FALSE, fig.cap="Distribution of penguin bill length by species."}
 penguins %>%
   filter(!is.na(sex)) %>%
@@ -122,14 +140,13 @@ ggplot(aes(x=bill_depth_mm)) +
     xlab("Bill Depth (mm)")
 ```
 
-
-**Q:** Figure \@ref(fig:g-penguin-bill-species-sex) shows the distribution of bill length by species and sex. It looks like there might be a difference in the distributions of bill length by *both* species and sex. Can we quantify this?
+**Q:**  It looks like there might be a difference in the distributions of bill length by *both* species and sex. Can we quantify this?
 
 **A:** Yes! Using linear regression, we can estimate the mean bill length for all possible combinations of sex and species.
 
 ### Baseball Hits
 
-More so than almost any sport, baseball is full of statistics. While traditional statistics such as batting average and earned run average have long been collected, the tracking systems in modern baseball stadiums all a plethora of information to be collected for each batted ball. 
+More so than almost any sport, baseball is full of statistics. While traditional statistics such as batting average and earned run average have long been collected, the tracking systems in modern baseball stadiums allow a plethora of information to be collected for each batted ball. 
 
 ```{r echo=FALSE, include=FALSE}
 bb <- read_csv("data/rockies_hits_2019.csv")
@@ -138,8 +155,9 @@ bb <- bb %>%
   mutate(Outcome=factor(hit, levels=c(T, F), labels=c("Hit", "Out")))
 ```
 
+```{example bb-exposition-lspeed-hitdist}
 Figure \@ref(fig:bb-scatter-lspeed-hitdist) shows all of the balls in play from the Colorado Rockies in the 2019 season. Along the horizontal axis is the launch speed, which is the speed at which the ball left the bat when hit. The vertical axis shows the distance the ball traveled. The color of each point shows whether the batted ball resulted in a hit or an out.
-
+```
 ```{r bb-scatter-lspeed-hitdist, echo=FALSE, fig.cap="Distance travelled and launch speed for balls in play from Colorado Rockies in 2019."}
 g_bb_lspeed_hitdist <- bb %>%
   filter(!is.na(launch_speed)) %>%
@@ -156,9 +174,9 @@ There are several questions we could ask using the data from Figure \@ref(fig:bb
 * For a ball hit at 90 mph, what is the predicted distance traveled?
 * Using launch speed, can we predict whether or not a batted ball will result in a hit or an out?
 
-
+```{example bb-exposition-langle-hitdist}
 Another variable that is measured is the launch angle of balls in play, which is the angle (in degrees) that the ball leaves the bat. A launch angle of 0 means the ball was hit straight out; a positive angle means it was hit up in to the air and a negative angle means it was hit down into the ground.
-
+```
 ```{r bb-scatter-langle-hitdist, echo=FALSE, fig.cap="Distance travelled and launch angle for balls in play from Colorado Rockies in 2019."}
 g_bb_langle_hitdist <- bb %>%
   filter(!is.na(launch_speed)) %>%
@@ -178,8 +196,9 @@ There are several questions we could ask using the data from Figure \@ref(fig:bb
 
 ### Housing Price {#housingprices}
 
+```{example housing-exposition-income-priace}
 Many factors impact housing prices, perhaps most importantly the economic demographics of the region. The following data shows the median price for a single-family residence in January 2018^[These data from Zillow, which maintains a public database of housing-related data at <https://www.zillow.com/research/data/>.] in different metropolitan areas across the U.S. On the horizontal axis is the 2018 median household income for the area, taken from the U.S. Census' American Community Survey:
-
+```
 ```{r include=FALSE}
 housing_inc <- read_csv("data/housing_income.csv")
 housing_inc <- subset(housing_inc, !is.na(median_income))
@@ -195,13 +214,13 @@ gg_housing_inc
 ```
 
 
-### Photosynthesis Data
+<!-- ### Photosynthesis Data -->
 
-(to be added)
+<!-- (to be added) -->
 
-### Car Mileage Data
+<!-- ### Car Mileage Data -->
 
-(to be added)
+<!-- (to be added) -->
 
 
 
