@@ -195,6 +195,26 @@ g_penguin +
 This an extremely useful method for visualizing the trend in a dataset. Just note that it is not  the regression line. 
 
 
+```{r include=FALSE}
+bike <- read_csv("data/bike_sharing.csv",
+                 col_types = list(year=col_character()))
+bike_lm <- lm(registered_users~temp, data=bike)
+summary(bike_lm)
+```
+
+
+```{example}
+Consider the bike sharing data from Section \@ref(bikedata) and Figure \@ref(fig:bike-temp-usage). After fitting an SLR model with temperature as the predictor variable and number of registered users as the outcome, we obtain the line:
+```
+$$ \hat y = 1370.9 + 112.4 x$$
+We can interpret these coefficients as:
+
+* The estimated average number of registered users active in the bike sharing program on a day with high temperature 0 degrees Celsius is 1,371.
+* A difference of one degree Celsius in daily high temperature is associated with an average of 112 more registered users actively renting a bike.
+
+
+
+
 ### OLS estimation in R with binary x
 
 If the predictor variable is a binary variable such as sex, then we need to create a corresponding 0-1 variable for fitting the model (recall Section \@ref(interpbinaryx)). Conveniently, R will automatically create a 0-1 indicator from a binary categorical variable if that variable is included as a predictor in `lm()`. 
@@ -366,10 +386,19 @@ sqrt(sig2hat)
 
 ## Exercises
 
-```{exercise housing-lm-coef}
-Consider the housing price data introduced in Section \@ref(housingprices), with housing price as the outcome and median income as the predictor variable. Find the OLS for a simple linear regression analysis of this data and provide a 1-sentence interpretation for each.
+```{exercise}
+Fit an SLR model to the bill size data among Gentoo penguins, using bill length as the predictor and bill depth as the outcome. Find $\hat\beta_0$ and $\hat\beta_1$ using the formulas and then compare to the value calculated by `lm()`.
+```
+
+```{exercise mpg-lm-coef}
+Using the `mpg` data (see Section \@ref(mpgdata)), use `lm()` to find the estimates of $\hat\beta_0$ and $\hat\beta_1$ for a SLR model with city highway miles per gallon as the outcome variable and engine displacement as the predictor variable. Provide a one-sentence interpreation of each estimate.
 ```
 
 ```{exercise}
-Compute $\hat\sigma^2$ for the model in Exercise \@ref(exr:housing-lm-coef) using the formulas. Compare to the value calculated from the `lm` object.
+Compute $\hat\sigma^2$ for the model in Exercise \@ref(exr:mpg-lm-coef) using the formulas. Compare to the value calculated from the `lm` object.
+```
+
+
+```{exercise housing-lm-coef}
+Consider the housing price data introduced in Section \@ref(housingprices), with housing price as the outcome and median income as the predictor variable. Find the OLS estimates for a simple linear regression analysis of this data and provide a 1-sentence interpretation for each.
 ```

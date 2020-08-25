@@ -214,6 +214,44 @@ gg_housing_inc
 ```
 
 
+### Bike Share Programs {#bikedata}
+
+A bike sharing program recorded meteorological factors as part of efforts to understand factors related to bike usage on weekdays. A subset of this data is plotted in Figure \@ref(fig:bike-temp-usage)
+
+```{r include=FALSE}
+bike <- read_csv("data/bike_sharing.csv",
+                 col_types = list(year=col_character()))
+```
+
+```{r bike-temp-usage, echo=FALSE, fig.cap="Bike sharing data."}
+bike %>%
+  rename(Year=year) %>%
+ggplot() + theme_bw() + 
+    geom_point(aes(x=temp, y=registered_users, col=Year)) +
+  xlab("Temperature (Celsius)") +
+  ylab("Number of Active Registered Users")
+```
+
+
+It looks like there is a positive relationship between temperature and the number of active bike users. There also appears to be a year effect, with more users in 2012 compared to 2011. Can we use temperature, year, and other factors such as humidity and windspeed to predict the number of users active for a given day?
+
+### Car fuel efficiency {#mpgdata}
+
+The `ggplot2` package contains the `mpg` dataset on fuel efficiency for vehicles from 1999-2008. Figure \@ref(fig:mpg-displ-cyl) shows the relationship between displacement and city miles per gallon.
+
+```{r mpg-displ-cyl, echo=FALSE, fig.cap="Fuel efficiency data from `mpg` dataset."}
+mpg %>%
+  mutate(cyl=as.character(cyl)) %>%
+ggplot() + theme_bw() + 
+  geom_point(aes(x=displ,
+                 y=cty,
+                 col=cyl)) +
+    labs(color="Number of\nCylinders",
+         x="Engine Displacement (Liters)",
+         y="City Miles Per Gallon")
+```
+
+
 <!-- ### Photosynthesis Data -->
 
 <!-- (to be added) -->
