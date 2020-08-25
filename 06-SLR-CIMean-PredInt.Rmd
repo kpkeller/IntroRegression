@@ -88,7 +88,7 @@ We again obtain the estimated mean as 4,156 grams.
 
 In addition to being less likely to lead to typos, using the `predict()` command is easily scalable to multiple values.
 
-```{example}
+```{example peng-lm-multimean}
 For the same model as Example \@ref(exm:penguin-lm-prediction), what is the predicted mean body mass for penguins with flipper lengths of 150mm, 200mm, 225mm, and 250mm?
 ```
 ```{solution}
@@ -101,11 +101,11 @@ predict(penguin_lm,
 
 
 
-## Inference for the mean
+## Inference for the mean ($mu_{Y|x_0}$)
+
 ### CIs and Testing
 
-
-Confidence intervals for $\hat\mu_{Y | x_0}$ can be constructed in the same way as for the $\beta$'s:
+Confidence intervals for $\mu_{Y | x_0}$ can be constructed in the same way as for the $\beta$'s:
 
 \begin{equation}
 \left(\hat\mu_{y|x_0} - t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0}), \hat\mu_{y|x_0} + t_{\alpha/2}\widehat{se}(\hat\mu_{y|x_0})\right).
@@ -147,42 +147,11 @@ It is important to note that $\Var\left(\hat\beta_0 + \hat\beta_1 x_0 \right) \n
 The variance \@ref(eq:varslrmean) changes as a function of $x$ and is minimized when $x_0 = \overline{x}$. This corresponds with what our intuition might tell us: that there is the least uncertainty near the center of the data.
 
 
-### Estimating Mean Response in R "by hand"
+### Computing the CI for Mean Response
 
+#### "By Hand"
 
-```{r g-penguin-flip-mass-lm2, echo=F, message=FALSE}
-g_penguin_flip_mass <- penguins %>%
-  # rename(Species=species) %>%
-  filter(!is.na(body_mass_g)) %>%
-  ggplot(aes(x=flipper_length_mm,
-           y=body_mass_g)) +
-  theme_bw() + 
-  geom_point(aes()) +
-    xlab("Flipper Length (mm)") +
-    ylab("Body Mass (g)")
-g_penguin_flip_mass_lm <- g_penguin_flip_mass +
-  geom_smooth(se=FALSE, method="lm", col="black")
-g_penguin_flip_mass_lm
-```
-
-```{r eval=TRUE, echo=TRUE, size="footnotesize"}
-penguin_lm <- lm(body_mass_g ~ flipper_length_mm,
-   data=penguins)
-```
-
-```{r eval=TRUE, echo=TRUE, size="footnotesize"}
-x0 <- 200
-muhat <- coef(penguin_lm)[1] + coef(penguin_lm)[2]*x0
-muhat
-```
-
-
-```{r}
-g_penguin_flip_mass_lm + geom_point(aes(x=x0, y=muhat), col="blue", size=3)
-```
-
-### CI for Mean Response in R "by hand"
-
+Using equation \@ref(eq:varslrmean), we can directly compute $\widehat{se}(\hat\mu_{y|x_0})$ and derive a confidence interval.
 
 ```{r eval=TRUE, echo=TRUE, size="footnotesize"}
 # Be careful with missing values here
@@ -196,26 +165,21 @@ ciMean
 ```
 
 
+#### Using `predict()`
 
-### Estimating Mean Response in R 
+In addition to computing the point estimate $\hat{\mu}_{y|x_0}$, the `predict()` command can automatically compute a confidence interval. To do this, set the `interval="confidence"` argument.
 
-```{r eval=TRUE, echo=TRUE, size="footnotesize"}
-# Estimate mean
+```{example}
+For the point estimates in Example \@ref(exm:peng-lm-multimean), find a 99\% confidence interval.
+```
+```{solution}
+```{r}
 predict(penguin_lm,
-        newdata=data.frame(flipper_length_mm=200))
-
-# Confidence interval for the mean response
-predict(penguin_lm, 
-        newdata=data.frame(flipper_length_mm=200),
-        interval="confidence",
-        level=0.95)
+        newdata=preddata2,
+        interval="confidence", 
+        level=0.99)
 ```
 
-```{r eval=TRUE, echo=TRUE, size="footnotesize"}
-predict(penguin_lm,
-        newdata=data.frame(flipper_length_mm=c(50, 70, 90, 100)),
-        interval="confidence", level=0.95)
-```
 
 ### Plotting CI for Mean Response in R "by hand"
 
@@ -247,7 +211,8 @@ g_penguin_flip_mass +
                     y=body_mass_g),
                 data=penguins,
                 method="lm",
-                se=TRUE)
+                se=TRUE,
+                level=0.99)
 ```
 
 ## Prediction Intervals

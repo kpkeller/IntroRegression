@@ -503,7 +503,6 @@ c(CI95Lower, CI95Upper)
 
 
 <!-- We can now expand our summary statement from Example \@ref(exm:peng-lm-intro-testingconclusion) about $\beta_1$ to be: -->
-
 <!-- *A difference of one mm in flipper length is  associated with an estimated difference of 49.7 g (95% CI: 46.7, 52.7) greater average body mass among penguins in Antarctica. We reject the null hypothesis that there is no linear relationship between flipper length and average penguin body mass ($p < 0.0001$).*  -->
 
 
