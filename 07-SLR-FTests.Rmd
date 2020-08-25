@@ -1,0 +1,298 @@
+# Sums of Squares and F-Tests {#slrFtest}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+'`
+
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
+```
+
+
+Analyzing the variance/variation in the data provides information about overall model fit
+
+* Sum of squares decomposition
+* F-Tests 
+* Coefficient of Determination ($R^2$)
+
+
+
+
+## Sum of Squares Decomposition
+
+$SS_{tot} = \displaystyle\sum_{i=1}^n(y_i - \overline{y})^2$ is the *total sum of squares*
+
+\begin{align*}
+\sum_{i=1}^n (y_i - \overline{y})^2 &= \sum_{i=1}^n \left(y_i - \hat y_i + \hat y_i - \overline{y}\right)^2 \\
+&= \sum_{i=1}^n (y_i - \hat y_i)^2 + 2 \sum_{i=1}^n(y_i - \hat y_i)(\hat y_i - \overline{y}) + \sum_{i=1}^n (\hat y_i - \overline y)^2\\
+&= \sum_{i=1}^n (y_i - \hat y_i)^2 + 2 \sum_{i=1}^n(y_i - \hat y_i)\hat y_i \\
+& \qquad \qquad \qquad - 2 \sum_{i=1}^n(y_i - \hat y_i)\overline{y}+ \sum_{i=1}^n (\hat y_i - \overline y)^2\\
+&= \sum_{i=1}^n (y_i - \hat y_i)^2 +  \sum_{i=1}^n (\hat y_i - \overline y)^2\\
+&= SS_{res} + SS_{reg}
+\end{align*}
+
+
+```{r}
+x <- 1:6
+beta0 <- 1
+beta1 <- 0.5
+eps <- c(0.2, -1, 0.3, 0.1, 0.4, -0.6 )
+muy <- beta0 + beta1* x
+y <- muy  + eps
+g_base <- ggplot() + theme_bw() + 
+  geom_abline(aes(slope=beta1, intercept=beta0)) + 
+  geom_abline(aes(slope=0, intercept=mean(y)), lty=2)+ 
+  geom_point(aes(x=x, y=y), size=3)
+```
+
+
+```{r}
+g_base
+```
+
+
+### Total Sum of Squares ($SS_{tot}$)
+
+$SS_{tot} = \displaystyle\sum_{i=1}^n(y_i - \overline{y})^2$ is total variability in the $y$'s
+
+```{r}
+g_base + geom_segment(aes(x=x, xend=x, y=mean(y), yend=y), col="darkgreen", lwd=2)
+```
+
+
+### Residual Sum of Squares ($SS_{res}$)
+
+$SS_{res} = \sum_{i=1}^n (y_i - \hat y_i)^2$ is variability "left over" from fitted regression model
+
+```{r}
+g_base + geom_segment(aes(x=x, xend=x, y=y, yend=muy), col="orange", lwd=2)
+
+```
+
+
+
+### Regression Sum of Squares ($SS_{reg}$)
+
+$SS_{reg} = \sum_{i=1}^n (\hat y_i - \overline{y})^2$ is variability explained by the fitted regression model
+
+```{r}
+g_base + geom_segment(aes(x=x, xend=x, y=mean(y), yend=muy), col="blue", lwd=2)
+
+```
+
+
+
+## Not regression: F-Test for Two Variances
+
+
+Recall the F-test for comparing the variance in two populations
+
+Setup:
+
+* Sample of size $n_1$ from population 1
+    * $y_{11}, y_{12}, \dots, y_{1n_1}$
+    * Sample variance is $s_1^2$
+* Sample of size $n_2$ from population 2
+    * $y_{21}, y_{22}, \dots, y_{2n_2}$
+    * Sample variance is $s_2^2$
+    
+
+Is the variance of population 1 ($\sigma_1^2$) different from the variance of population 2 ($\sigma_2^2$)?
+
+$$H_0: \frac{\sigma_1^2}{\sigma_2^2} = 1 \quad \text{vs.} \quad H_A: \frac{\sigma_1^2}{\sigma_2^2} \ne 1$$
+
+Test statistic: $f = \dfrac{s_1^2}{s_2^2}$  
+If $H_0$ is true, $f \sim F_{n_1 - 1, n_2 - 1}$
+
+
+Reject $H_0$ is $f$ is too small (ratio near zero) or too big (ratio is large)
+
+```{r}
+x <- seq(0, 5, length=200)
+fdx <- df(x, df1=8, df2=16)
+ggplot() + theme_classic() + coord_cartesian(xlim=c(0, 5), ylim=c(0, 1), expand=F) +
+  geom_line(aes(x=x, y=fdx)) + 
+  theme(axis.line.y = element_blank()) + 
+  xlab(expression(F)) + ylab("") + scale_y_continuous(breaks=NULL)+
+  geom_hline(aes(yintercept=0)) 
+
+
+```
+
+
+
+## F-Test for Regression
+
+$H_0 =$ There is no linear relationship between the $x$'s and the average value of $y$  
+$H_A =$ There is a linear relationship between the $x$'s and the average value of $y$
+
+Note: In SLR there is only one $x$ variable, so this is equivalent to testing $H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$  
+
+Test statistic:
+$$f = \frac{\text{Signal}}{\text{Noise}} = \frac{MS_{reg}}{MS_{res}} = \frac{SS_{reg}/df_{reg}}{SS_{res}/df_{res}} = \frac{SS_{reg}/1}{SS_{res}/(n-2)}$$
+
+* This test is one-sided. Reject $H_0$ if $f$ is large enough
+* If $H_0$ is true, $f \sim F_{1, n-2}$
+
+
+### Example: Melanoma Data
+
+In the melanoma example, is there a linear relationship between state latitude and melanoma mortality?
+
+$H_0 =$ There is no linear relationship between state latitude and the average value of melanoma mortality  
+$H_A =$ There is a linear relationship between state latitude and the average value of melanoma mortality  
+
+### F-test in R "by hand"
+
+```{r eval=F, echo=TRUE, size="footnotesize", include=FALSE}
+melanoma <- read_csv(paste0(data_dir, "melanoma.csv"),
+                     col_types=cols())
+```
+
+```{r eval=F, echo=TRUE, size="small"}
+mel_lm <- lm(mort~latitude, data=melanoma)
+SSres <- sum(residuals(mel_lm)^2)
+SSres
+SSreg <- sum((fitted(mel_lm) - mean(melanoma$mort))^2)
+SSreg
+```
+
+
+```{r eval=F, echo=TRUE, size="small"}
+# Be careful with parenthesis!
+f <- (SSreg/1)/(SSres/(nobs(mel_lm)- 2))
+f
+pf(f, df1=1, df2=nobs(mel_lm)- 2, lower=FALSE)
+```
+
+### F-test in R
+
+R will compute the value of $f$ and its $p$-value for you:
+
+```{r eval=F, echo=TRUE, size="footnotesize", output.lines=9:18}
+summary(mel_lm)
+```
+
+
+## Coefficient of Determination
+
+### Model Fit
+
+How can we tell if the model fit is "good"?
+
+\vspace{4in}
+
+
+
+### Coefficient of Determination ($R^2$)
+
+What percentage of the variation in $y$ is explained by the regression model?
+
+$$\frac{SS_{reg}}{SS_{tot}} = 1 - \frac{SS_{res}}{SS_{tot}} = R^2$$
+
+
+
+$R^2$ is the **Coefficient of Determination**.
+
+* In SLR, $R^2$ is a measure of model fit.
+* When we have multiple $x$'s, we will need to use a different version of $R^2$
+
+
+What is a "good" $R^2$?
+
+* Above 0.8 is almost always "good"
+* In some contexts, $R^2$ between 0.6 and 0.8 is good
+* In some contexts, $R^2$ between 0.2 and 0.6 is good
+
+
+Context matters! What is "good" for prediction may differ from what is "good" for learning about the underlying science.
+
+
+### Computing $R^2$ in R
+
+Computing $R^2$ "by hand":
+
+```{r eval=F, echo=TRUE, size="small"}
+SStot <- sum((melanoma$mort - mean(melanoma$mort))^2)
+1 - SSres/SStot
+```
+
+
+R will compute the value of $R^2$ for you:
+
+```{r eval=F, echo=TRUE, size="footnotesize", output.lines=9:18}
+summary(mel_lm)
+```
+
+## ANOVA Table
+
+$F$-tests are part of Analysis of Variance (ANOVA).
+
+Information can be summarized in an "ANOVA Table":
+
+\vspace{1cm}
+
+\begin{tabular}{l cccc}
+\hline
+Source of & Sum of & Degrees of \\
+Variation & Squares &   Freedom & MS & F \\
+\hline
+Regression & $SS_{reg}$ & $1$ & $MS_{reg}$ & $MS_{reg}/MS_{res}$ \\
+Residual & $SS_{res}$ & $n-2$ & $MS_{res}$ & -- \\
+Total & $SS_{tot}$ & $n-1$ & -- & -- \\
+\hline
+\end{tabular}
+
+
+
+## Example: Colorado Rockies Fly Balls
+
+```{r eval=F}
+flyball <- read_csv(paste0(data_dir, "rockies_flyball_2018.csv"))
+flyball$hit_distance_sc <- as.numeric(flyball$hit_distance_sc)
+# hr <- read_csv(paste0(data_dir, "homeruns2018.csv"))
+
+g_rockies <- ggplot(subset(flyball, !is.na(hit_distance_sc))) + 
+    geom_point(aes(x=launch_speed,
+                   y=hit_distance_sc)) +
+    xlab("Launch Speed (mph)") +
+    ylab("Fly Ball Distance (ft)") + 
+    ggtitle("Fly Balls Hit by Colorado Rockies, 2018 Season")
+```
+
+
+```{r eval=F, echo=TRUE, size="footnotesize", output.lines=7:19}
+rockies_lm <- lm(hit_distance_sc~launch_speed, data=flyball)
+summary(rockies_lm)
+```
+
+How much variation in fly ball distance is explained by launch speed?
+
+\vspace{2cm}
+
+
+Is there evidence of an overall linear relationship between launch speed and average fly ball distance?
+
+
+\vspace{2cm}
+
+
+
+## Hypothesis Testing Recap
+
+We have seen three hypothesis tests:
+
+1. $T$-test for $H_0: \beta_0 = \beta_{00}$ v. $H_A: \beta_0 \ne \beta_{00}$
+    * This is often irrelevant, since intercept is not of interest
+2. $T$-test for $H_A: \beta_1 = \beta_{10}$ v. $H_A: \beta_1 \ne \beta_{10}$
+    * Often $\beta_{10} = 0$
+3. $F$-test for $H_0:$ no linear relationship between the $x$'s and the average value of $y$
+    * Sometimes called test for "significance of regression"
+    
+In SLR, 2 \& 3 are exactly equivalent. They will differ in multiple linear regression (MLR).
+
+

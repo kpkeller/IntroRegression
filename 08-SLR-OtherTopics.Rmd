@@ -1,0 +1,604 @@
+# Other Topics in SLR {#slrother}
+
+## Centered $x$
+
+### Equations for a line
+
+Two common forms for equation of a line:
+
+\begin{tabular}{lll}
+& Slope-Intercept & Point-Slope \\
+\hline
+Equation & $y=ax + b$ & $y - y_1 = m(x - x_1)$ \\
+Slope & $a$ & $m$ \\
+$y$-intercept & $b$ & $y_1 - mx_1$\\
+\hline
+\end{tabular}
+
+
+Similarly, we can write the SLR model in multiple ways
+
+### Regression with Centered $x$
+
+```{r eval=FALSE}
+g1 <- ggplot() + theme_test() + 
+   geom_hline(aes(yintercept=0), col="grey") +
+   geom_vline(aes(xintercept=0), col="grey") +
+   geom_abline(aes(slope=0.5,
+                   intercept=1)) +
+   geom_point(aes(x=x, y=y), data=data.frame(x=2, y=2)) +
+   xlab("") + ylab("") + 
+   scale_x_continuous(breaks=c(0, 2), labels=c(0, expression(bar(x))), limits=c(-1, 5)) + 
+   scale_y_continuous(breaks=c(0, 1, 2), labels=c(0, expression(beta[0]), expression(bar(y))), limits=c(-0.5, 4)) + 
+   theme(axis.text=element_text(size=14))
+g1
+```
+
+We know the line passes through $(\overline{x}, \beta_0 + \beta_1\overline{x})$. 
+
+
+Let's use $(\overline{x}, \beta_0 + \beta_1\overline{x})$ as the "origin".
+
+
+```{r eval=FALSE}
+g1 + 
+   geom_hline(aes(yintercept=2), col="red", lty=2) +
+   geom_vline(aes(xintercept=2), col="red", lty=2)
+```
+
+
+```{asis echo=!FALSE}
+\begin{align*}
+Y_i &= \beta_0 + \beta_1x_i + \epsilon_i \\
+&= \beta_0 + \beta_1x_i  - \beta_1\overline{x} + \beta_1\overline{x} + \epsilon_i \\
+&= \textcolor{blue}{\beta_0 + \beta_1\overline{x}}  + \beta_1 (x_i  - \overline{x})  + \epsilon_i \\
+&= \textcolor{blue}{\beta_0'}  + \beta_1 (x_i  - \overline{x})  + \epsilon_i 
+\end{align*}
+
+$$\hat\beta_1 = \dfrac{S_{xy}}{S_{xx}} \quad \text{and} \quad \hat\beta_0' = \overline y$$
+```
+
+```{asis echo=FALSE}
+$Y_i =$
+\vspace{6cm}
+```
+
+### Centered Regression
+
+$$ Y_i = \beta_0'  + \beta_1 (x_i  - \overline{x})  + \epsilon_i $$
+
+
+* $\hat\beta_0' =$  average value of $y$ at the average value of $x$
+* $\hat\beta_1$ and $\hat\beta_0'$ are uncorrelated
+* $\hat\beta_1$ is the same whether or not $x$ is centered
+
+
+### Example: Rockies Fly Balls
+
+```{r eval=FALSE, include=F}
+flyball <- read_csv(paste0(data_dir, "rockies_flyball_2018.csv"), col_types=cols())
+flyball$hit_distance_sc <- as.numeric(flyball$hit_distance_sc)
+```
+
+In the rockies fly ball dataset:
+
+* $x$ = launch speed (mph)
+* $y$ = fly ball distance (ft)
+
+What if we center launch speed?
+
+```{r eval=FALSE, echo=TRUE}
+flyball <- flyball %>%
+  mutate(launch_speed_centered=launch_speed - mean(launch_speed))
+```
+
+
+Model with centered $x$:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+flyball_lm1 <- lm(hit_distance_sc ~ launch_speed_centered, data=flyball)
+tidy(flyball_lm1)
+```
+
+\vspace{0.4cm}
+Model with original $x$:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+flyball_lm0 <- lm(hit_distance_sc~launch_speed, data=flyball)
+tidy(flyball_lm0)
+```
+
+## Rescaling Units {#rescaling}
+
+What happens if we change the units of $x_i$? of $y_i$?
+
+\vspace{4cm}
+
+
+### Example: Colorado Rental Prices
+
+```{r eval=FALSE, message=FALSE}
+rental_prices <- read_csv(paste0(data_dir, "rental_prices.csv"))
+```
+
+
+```{r eval=FALSE, message=FALSE}
+g_rental <- ggplot(subset(rental_prices,
+       state=="CO" & zcta!="81611"),
+       aes(x=pop_density,
+                   y=median_rental_price)) +
+   theme_bw() + 
+    geom_point() +
+    scale_y_continuous(breaks=c(0.5, 1, 1.5, 2, 2.5, 3), labels=1000*c(0.5, 1, 1.5, 2, 2.5, 3)) +
+   xlab("Population Density (people per km^2)") +
+   ylab("Median Rental Price ($'s)") + 
+   ggtitle("Apt Rental Prices in Colorado Zip Codes (July 2019)") +
+   geom_smooth(method="lm", se=FALSE)
+g_rental
+```
+
+
+```{r eval=FALSE}
+g_rental + scale_x_continuous(breaks=c(0, 2000, 4000, 6000), labels=c(0, 2, 4, 6)) + xlab("Population Density (1000 people per km^2)")
+
+```
+
+
+
+
+
+
+### Rescaling $x$
+
+* $Y_i =$ Median Rental Price ($'s)
+* $x_i =$ Population Density (people per km$^2$)
+* $\tilde{x}_i =$ Population Density (1,000 people per km$^2$)
+
+\begin{align*}
+Y_i &= \beta_0 + \beta_1 x_i + \epsilon_i \\
+&= \beta_0 + \beta_1 (1000 \tilde{x_i}) + \epsilon_i \qquad \tilde{x_i} = x_i/1000\\
+&= \beta_0 + \textcolor{red}{1000\beta_1} \tilde{x_i} + \epsilon_i\\
+&= \beta_0 + \textcolor{red}{\tilde\beta_1} \tilde{x_i} + \epsilon_i\\
+\end{align*}
+
+
+The SLR model using $\tilde{x_i} = cx_i$ has slope parameter $\tilde{\beta}_1 = \beta/c$
+
+### Example: Colorado Rental Prices
+
+Model with original $x$:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+rental_lm0 <- lm(median_rental_price ~ pop_density, data=rental_prices)
+tidy(rental_lm0)
+```
+
+\vspace{0.4cm}
+Model with $x$ in 1000's people/km$^2$:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+rental_lm1 <- lm(median_rental_price ~ I(pop_density/1000),
+                 data=rental_prices)
+tidy(rental_lm1)
+```
+
+```{r eval=FALSE}
+g_rental
+```
+
+
+```{r eval=FALSE, message=FALSE}
+g_rental + scale_y_continuous(breaks=c(0.5, 1, 1.5, 2, 2.5, 3), labels=c(0.5, 1, 1.5, 2, 2.5, 3)) + ylab("Median Rental Price ($1000's)")
+```
+
+
+
+
+### Rescaling $y$
+
+* $Y_i =$ Median Rental Price ($'s)
+* $x_i =$ Population Density (people per km$^2$)
+* $\tilde{Y}_i =$ Median Rental Price ($1,000's)
+
+\begin{align*}
+Y_i &= \beta_0 + \beta_1 x_i + \epsilon_i \\
+(1000\tilde{Y_i})&= \beta_0 + \beta_1x_i + \epsilon_i \qquad \tilde{Y_i} = Y_i/1000\\
+Y_i &= \textcolor{red}{\beta_0/1000} + \textcolor{red}{\beta_1/1000} x_i + \textcolor{red}{\epsilon_i/1000}\\
+Y_i &= \textcolor{red}{\tilde\beta_0} + \textcolor{red}{\tilde\beta_1} x_i + \textcolor{red}{\tilde\epsilon_i}\\
+\end{align*}
+
+
+
+The SLR model using $\tilde{Y_i} = cY_i$ has  parameters $\tilde\beta_0 = c\beta_0$, $\tilde{\beta}_1 = c\beta$, and $\tilde\sigma^2 = c^2\sigma^2$
+
+### Example: Colorado Rental Prices
+
+Model with original $y$:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+tidy(rental_lm0)
+```
+
+\vspace{0.4cm}
+Model with $y$ in $1,000s:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+rental_lm2 <- lm(I(median_rental_price/1000) ~ pop_density,
+                 data=rental_prices)
+tidy(rental_lm2)
+```
+
+
+
+### Example: Rockies Fly Balls
+
+In the rockies fly ball dataset:
+
+* $x$ = launch speed (mph)
+* $y$ = fly ball distance (ft)
+
+What if we use kph instead of mph?
+
+```{r eval=FALSE, echo=TRUE}
+flyball <- flyball %>%
+  mutate(launch_speed_kph=1.6*launch_speed)
+```
+
+
+Model with $x$ in kph:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+flyball_lm2 <- lm(hit_distance_sc ~ launch_speed_kph, data=flyball)
+tidy(flyball_lm2)
+```
+
+\vspace{0.4cm}
+Model with $x$ in mph:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+tidy(flyball_lm0)
+```
+
+
+In the rockies fly ball dataset:
+
+* $x$ = launch speed (mph)
+* $y$ = fly ball distance (ft)
+
+What if we use m instead of ft?
+
+```{r eval=FALSE, echo=TRUE}
+flyball <- flyball %>%
+  mutate(hit_distance_m=0.305*hit_distance_sc)
+```
+
+Model with $y$ in m:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+flyball_lm3 <- lm(hit_distance_m ~ launch_speed, data=flyball)
+tidy(flyball_lm3)
+```
+
+
+\vspace{0.8cm}
+Model with $y$ in ft:
+```{r eval=FALSE, echo=TRUE, output.lines=2:5}
+tidy(flyball_lm0)
+```
+
+Model with $y$ in m:
+```{r eval=FALSE, echo=TRUE}
+summary(flyball_lm3)$sigma^2
+```
+
+\vspace{0.8cm}
+Model with $y$ in ft:
+```{r eval=FALSE, echo=TRUE}
+summary(flyball_lm0)$sigma^2
+```
+
+
+
+
+
+
+
+
+
+## Cautions and Considerations for SLR
+
+
+**DROP THIS??**
+
+
+1. Model Assumptions
+
+2. Location of x-values
+
+3. Extrapolation
+
+4. Outliers
+
+5. Missing Data
+
+6. Correlation does not imply causation
+
+7. Predicting x leads to measurement error
+
+8. Study design and context is critically important
+
+
+### Simple Linear Regression Model
+
+The simple linear regression (SLR) model is:
+
+
+```{asis echo=!FALSE}
+$$Y_i = \beta_0 + \beta_1x_i + \epsilon_i,$$
+```
+
+```{asis echo=FALSE}
+\vspace{2cm}
+```
+
+
+with the following assumptions:
+
+
+```{asis echo=!FALSE}
+* $\E[\epsilon_i] = 0$
+  
+* $\Var[\epsilon_i] = \sigma^2$ (constant variance; not $\sigma_i^2$)
+
+* $\epsilon_i$ are uncorrelated
+
+* No assumption about normality!
+```
+
+```{asis echo=FALSE}
+* \quad
+\vspace{0.7cm}
+* \quad
+\vspace{0.7cm}
+* \quad
+\vspace{0.7cm}
+```
+
+### Caution 1: Model Assumptions
+
+What happens when these assumptions are violated?
+
+* Interpretations can change
+* Confidence intervals can be wrong
+* $p$-values can be incorrect
+* Conclusions can be incorrect
+
+We will discuss this in more detail after multiple linear regression.
+
+
+### Caution 2: Location of $x$-values
+
+Location of $x$-values has large **influence** on the regression line
+
+```{r eval=FALSE}
+n <- 20
+set.seed(8)
+x <- runif(n, 5, 15)
+y <- 1 + 0.5*x + rnorm(n)
+x1 <- c(x, 10)
+y1 <- c(y, 40)
+x2 <- c(x, 20)
+y2 <- c(y, 40)
+
+g1 <- ggplot() + theme_bw() + 
+   xlab("") + ylab("") + 
+   xlim(c(5, 21)) + 
+   ylim(c(-7, 50)) +
+   geom_point(aes(x=x1, y=y1)) +
+   geom_abline(aes(slope=coef(lm(y1~x1))[2],
+                   intercept=coef(lm(y1~x1))[1]),
+               col="blue")
+g2 <- ggplot() + theme_bw() + 
+   xlab("") + ylab("") + 
+   xlim(c(5, 21)) + 
+   ylim(c(-7, 50)) +
+   geom_point(aes(x=x2, y=y2))+
+   geom_abline(aes(slope=coef(lm(y2~x2))[2],
+                   intercept=coef(lm(y2~x2))[1]),
+               col="blue")
+grid.arrange(g1, g2, ncol=2)
+
+```
+
+
+### Caution 2: Location of $x$-values
+
+Location of $x$-values has large influence on the regression line
+
+$\Rightarrow$ Collect data with $x$ values meaningful for the question you want to answer.
+
+We will discuss **leverage** and **influence** in more detail after multiple linear regression.
+
+### Caution 3: Extrapolation
+
+\includegraphics{img/extrapolating.png}
+
+{https://xkcd.com/605/}
+
+In most cases, do not use a model to estimate or predict outside of the range of the data.
+
+
+```{r eval=FALSE, out.width="75%"}
+ggplot() + theme_bw() + 
+   xlab("") + ylab("") + 
+   xlim(c(5, 21)) + 
+   ylim(c(-7, 20)) +
+   geom_point(aes(x=x, y=y)) +
+   geom_abline(aes(slope=coef(lm(y~x))[2],
+                   intercept=coef(lm(y~x))[1]),
+               col="blue")
+```
+
+Extrapolation can be difficult to detect when there are multiple $x$'s.
+
+
+### Caution 4: Outliers
+
+\includegraphics{img/outlier.png}
+
+{http://davidmlane.com/ben/cartoons.html}
+
+
+"**Outliers** are observations that differ considerably from the rest of the data" (p43)
+
+* Deciding what is an outlier or not is imprecise
+* Context important in making judgment calls
+   * A coding or input error?
+   * Instrument failure?
+   * Just an unusual observation?
+   * Is goal association or prediction?
+* Do **NOT** remove an outlier without reporting it
+
+### Caution 5: Missing Data
+
+* In real-world data:
+   * A predictor variable can be missing for an observation
+   * A response variable can be missing for an observation
+   * An observation can be missing (e.g. no response to survey)
+* Impact can vary
+   * Sometimes no noticeable impact on results
+   * Sometimes leads to completely wrong conclusions
+* Data you observe **CANNOT** tell you whether or not your missing data is a problem
+   * Study design and data collection procedures can
+   * Assumptions must be made about missing data
+
+
+### Caution 6: Correlation does not imply causation
+
+\includegraphics{img/correlation.png}
+
+{https://xkcd.com/552/}
+
+
+* Correlation between variables does not mean there is causal or meaningful relationship.
+   * Particularly for observational studies
+
+Just fitting an SLR model **CANNOT** tell you whether $x$ causes $y$. You must know study design (e.g. controlled experiment) and context to make claims of causality.
+
+
+### Caution 7: Predicting $x$ leads to measurement error
+
+* In some contexts, we do not observe $x$ directly.
+   1. Predict $x$
+   2. Fit SLR model using $y$ and predicted $x$
+* "Measurement Error" in the predicted $x$ can lead to bias in your results
+
+
+
+### Caution 8: Study Design and Context is Critically Important
+
+* Ability to draw conclusions depends on understanding where the data come from
+* Small $p$-values don't necessarily mean an important result; large $p$-values don't necessarily mean nothing was learned
+
+\begin{center}
+\includegraphics[width=0.6\textwidth]{img/random_number.png}
+\end{center}
+
+{https://xkcd.com/221/}
+
+
+<!-- # Goals Recap -->
+
+
+<!-- ## Learning Objectives -->
+
+<!-- \small -->
+
+<!-- > \textbf{Course Description.}   -->
+<!-- > This course covers estimation and inference for linear regression models. Additional topics include model adequacy and residual analysis, variable transformation, weighted regression, variable selection, and generalized linear models. -->
+
+<!-- > \textbf{Learning Objectives.}   -->
+<!-- > Upon completion of this course, students will be able to:   -->
+<!-- > 1.	Fit and interpret simple and multiple linear regression models.   -->
+<!-- > 2.	Describe the assumptions underlying regression models and evaluate whether the assumptions are met.   -->
+<!-- > 3.	Design an appropriate regression analysis to answer a scientific question.   -->
+
+
+
+<!-- ## Regression Goals -->
+
+<!-- Underlying question: -->
+
+<!-- How can we use variation in one variable (predictor; $x$) to describe variation in another variable (outcome; $y$)? -->
+
+<!-- Goals:  -->
+
+<!-- * Association: quantify the relationship using model parameters  -->
+<!-- * Prediction: use model to make prediction $\hat y$ -->
+
+<!-- ## Simple Linear Regression Model -->
+
+<!-- The simple linear regression (SLR) model is: -->
+
+
+<!-- ```{asis echo=!FALSE} -->
+<!-- $$Y_i = \beta_0 + \beta_1x_i + \epsilon_i,$$ -->
+<!-- ``` -->
+
+<!-- ```{asis echo=FALSE} -->
+<!-- \vspace{2cm} -->
+<!-- ``` -->
+
+
+<!-- with the following assumptions: -->
+
+
+
+
+<!-- ```{asis echo=!FALSE} -->
+<!-- * $\E[\epsilon_i] = 0$ -->
+
+<!-- * $\Var[\epsilon_i] = \sigma^2$ (constant variance; not $\sigma_i^2$) -->
+
+<!-- * $\epsilon_i$ are uncorrelated -->
+
+<!-- * No assumption about normality! -->
+<!-- ``` -->
+
+<!-- ```{asis echo=FALSE} -->
+<!-- * \quad -->
+<!-- \vspace{0.7cm} -->
+<!-- * \quad -->
+<!-- \vspace{0.7cm} -->
+<!-- * \quad -->
+<!-- \vspace{0.7cm} -->
+<!-- ``` -->
+
+
+<!-- ## SLR Interpretation -->
+
+<!-- * What is the interpretation of $\beta_0$? -->
+<!-- * What is the interpretation of $\beta_1$? -->
+<!-- * What is the interpretation of $\sigma^2$? -->
+<!-- * How do these parameters change if we modify $x$ and $y$? -->
+
+
+<!-- ## SLR Estimation -->
+
+<!-- * Calculating the estimators $\hat\beta_0$, $\hat\beta_1$, and $\hat\sigma^2$ -->
+<!-- * Using these to estimate $\hat\mu_{y|x_0}$  -->
+<!-- * Predicting $\hat y$ -->
+
+<!-- ## SLR Inference for $\beta_1$ -->
+
+<!-- What does $\hat\beta_1$ tell us about $\beta_1$? -->
+
+
+<!-- * Do we have evidence that $\beta_1$ is non-zero? -->
+<!--    * Why is this question important? -->
+<!-- * Do we have evidence that $\beta_1$ is meaningfully different from $\beta_{10}$? -->
+
+<!-- Answer these questions using hypothesis tests and confidence intervals, which require estimating $\widehat{se}(\hat\beta_1)$ -->
+
+
+<!-- We can ask analogous questions about $\beta_0$ and $\mu_{y|x_0}$ -->
+
+
+<!-- ## SLR Inference for model -->
+
+<!-- Is there a meaningful relationship between the $x$'s and the average value of $y$? -->
+
+<!-- * $F$-test for regression -->
+<!-- * $R^2$ -->
+
