@@ -31,9 +31,12 @@ g_penguin_flip_mass <- penguins %>%
 g_penguin_flip_mass
 ```
 
+```{example penguin-flip-mass-question} 
 From Figure \@ref(fig:g-penguin-flip-mass), there clearly seems to be a relationship between flipper length and body mass of the penguins. Can we quantify the size and strength of this relationship?
 
 Yes! Using linear regression we can find the best fitting line through the data:
+```
+
 
 ```{r g-penguin-flip-mass-lm, echo=FALSE, message=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset, with best fitting line."}
 g_penguin_flip_mass_lm <- g_penguin_flip_mass +
@@ -66,13 +69,16 @@ Fundamental tools in statistical inference are confidence intervals and hypothes
 
 A third, and fundamentally different, goal of regression analysis is **prediction**, when we want to predict values of $y$ for new observations using their value of $x$. Prediction is the primary goal in the area of statistical (machine) learning, and regression is only one of many tools that can be used to make predictions for a dataset. This book covers prediction in Chapter \@ref(modelselection). 
 
-Consider the following example questions using the penguin dataset:
+```{example }
+Consider the following questions using the penguin data in Figure \@ref(fig:g-penguin-flip-mass-lm):
+```
 
 1. **Descriptive**: What is the shape of the relationship between flipper length and body mass?
 2. **Inferential**: Is there a relationship between flipper length and average body mass in penguins?
 3. **Prediction**: What is the predicted body mass for a penguin with 200mm flippers?
 4. **Inferential**: What is the estimated differences in body mass between penguins who differ in flipper length by 50mm?
-
+    
+  
 <!-- For example, a descriptive goal would be to describe the nature of the relationship between household income and housing prices in U.S. cities. Using the housing prices dataset, which contains information on all major cities in the U.S., we could show that there is a positive trend between these variables. -->
 
 <!-- An inferential goal would be to determine if the relationship is more than we would expect by chance. -->
@@ -196,15 +202,19 @@ There are several questions we could ask using the data from Figure \@ref(fig:bb
 
 ### Housing Price {#housingprices}
 
+Many factors impact housing prices, perhaps most importantly the economic demographics of the region. Zillow, the online real estate company, maintains a public database of housing-related data at <https://www.zillow.com/research/data/>. Combining this data with demographic information from the Census can let us analyze different housing trends.
+
+
 ```{example housing-exposition-income-priace}
-Many factors impact housing prices, perhaps most importantly the economic demographics of the region. The following data shows the median price for a single-family residence in January 2018^[These data from Zillow, which maintains a public database of housing-related data at <https://www.zillow.com/research/data/>.] in different metropolitan areas across the U.S. On the horizontal axis is the 2018 median household income for the area, taken from the U.S. Census' American Community Survey:
+Figure \@ref(fig:g-housing-inc-price) shows data from Zillow on the median price for a single-family residence in January 2018 in different metropolitan areas across the U.S. On the horizontal axis is the 2018 median household income for the area, taken from the U.S. Census' American Community Survey.
 ```
+
 ```{r include=FALSE}
 housing_inc <- read_csv("data/housing_income.csv")
 housing_inc <- subset(housing_inc, !is.na(median_income))
 ```
 
-```{r plot-housing, echo=FALSE}
+```{r g-housing-inc-price, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas."}
 gg_housing_inc <- ggplot(housing_inc, aes(x=median_income,
                  y=median_sale_price)) + theme_bw() + 
   geom_point() +
@@ -213,6 +223,7 @@ gg_housing_inc <- ggplot(housing_inc, aes(x=median_income,
 gg_housing_inc
 ```
 
+In Figure \@ref(fig:g-housing-inc-price), there seems to be a relationship between median house price and median annual income. One question we might ask is, how robust is the relationship to removing the outlier point in the top right? The data for Figure \@ref(fig:g-housing-inc-price) can be downloaded here: [housing_income.csv](data/housing_income.csv).
 
 ### Bike Share Programs {#bikedata}
 

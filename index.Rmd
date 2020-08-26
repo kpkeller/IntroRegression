@@ -21,7 +21,7 @@ This book assumes an understanding of basic statistical concepts, including expe
 
 ## Disclaimer {-}
 
-This work is currently (as of Fall 2020) under development and the content is subject to change as more material is added.
+This work is currently (as of Fall 2020) under development and the content is subject to change as more material is added. If you find any errors, please let me know.
 
 ## License {-}
 

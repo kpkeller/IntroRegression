@@ -101,7 +101,7 @@ predict(penguin_lm,
 
 
 
-## Inference for the mean ($mu_{Y|x_0}$)
+## Inference for the mean ($\mu_{Y|x_0}$)
 
 ### CIs and Testing
 
@@ -172,7 +172,7 @@ In addition to computing the point estimate $\hat{\mu}_{y|x_0}$, the `predict()`
 ```{example}
 For the point estimates in Example \@ref(exm:peng-lm-multimean), find a 99\% confidence interval.
 ```
-```{solution}
+
 ```{r}
 predict(penguin_lm,
         newdata=preddata2,
@@ -180,33 +180,49 @@ predict(penguin_lm,
         level=0.99)
 ```
 
+### Plotting CI for Mean Response in R 
 
-### Plotting CI for Mean Response in R "by hand"
+### "By hand"
+To plot pointwise confidence intervals for $\mu_{y|x_0}$, the first step is compute the intervals for a sequence of predictor variable values. Then add the points to a plot using the `geom_ribbon()` function from `ggplot2`. Because of the quadratic term in Equation \@ref(eq:varslrmean), the interval band has a curved shape.
 
 
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-launch_speed_seq <- seq(50, 120, length=200)
-mean_conf_int <- predict(rockies_lm,
-                         newdata=data.frame(launch_speed=launch_speed_seq),
+```{example} 
+(Continuation of Example \@ref(exm:penguin-lm-prediction) For the penguin model, plot the pointwise 95% confidence interval for the mean.
+```
+
+```{r}
+flipper_length_seq <- seq(170, 240, length=200)
+mean_conf_int <- predict(penguin_lm,
+                         newdata=data.frame(flipper_length_mm=flipper_length_seq),
                          interval="confidence")
 mean_conf_int <- as.data.frame(mean_conf_int)
+```
 
-g_rockies_wmeanCI <- g_rockies + 
-    geom_ribbon(aes(x=launch_speed_seq, ymax=upr, ymin=lwr), 
+```{r echo=F}
+g_penguin <- ggplot() + theme_bw() + 
+  geom_point(aes(x=flipper_length_mm,
+                 y=body_mass_g),
+             data=penguins) + 
+    xlab("Flipper Length (mm)") +
+    ylab("Body Mass (g)")
+```
+
+```{r}
+g_penguin +
+    geom_ribbon(aes(x=flipper_length_seq, ymax=upr, ymin=lwr), 
                 data=mean_conf_int,
                 fill="grey80") + 
-  geom_abline(aes(slope=coef(rockies_lm)[2],
-                  intercept=coef(rockies_lm)[1]), col="blue")
+  geom_abline(aes(slope=coef(penguin_lm)[2],
+                  intercept=coef(penguin_lm)[1]), col="blue")
 ```
 
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-g_rockies_wmeanCI
-```
 
-### Plotting CI for Mean Response in R
+### Using `geom_smooth()`
 
-```{r eval=FALSE, echo=TRUE, warning=F, message=F, size="footnotesize"}
-g_penguin_flip_mass + 
+Alternatively, we can let `geom_smooth()` do the calculation for us:
+
+```{r echo=TRUE, warning=F, message=F}
+g_penguin + 
     geom_smooth(aes(x=flipper_length_mm,
                     y=body_mass_g),
                 data=penguins,
@@ -248,7 +264,7 @@ A **prediction interval** is a random interval that, when the model is correct, 
 ### PI for New Observation in R
 
 ```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-sePred <- sqrt(seMuHat^2 + summary(rockies_lm)$sigma^2)
+sePred <- sqrt(seMuHat^2 + summary(penguin_lm)$sigma^2)
 yhat_PI <- c(yhat - qt(.975, n-2)*sePred, yhat + qt(.975, n-2)*sePred)
 yhat_PI
 

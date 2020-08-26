@@ -76,7 +76,7 @@ If the answer to this question is "No", then $\beta_1 = 0$ and we are left with 
 
 <!-- ## Example: Penguins -->
 
-```{example}
+```{example penguin-lm-hypothquest}
 In the penguin data we might ask:  *Is there a relationship between flipper length and body mass in penguins?* 
 The corresponding statistical question is: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?* 
 We saw in Example \@ref(exm:penguin-lm-stepped) that the estimated SLR equation for the penguin data was $\E[Y_i] = -5780.83 + 49.69x_i$.
@@ -117,6 +117,8 @@ It's important to note that we don't know $\sigma^2$, but we can estimate it as 
 $$\widehat{\Var}(\hat\beta_1) = \dfrac{\hat\sigma^2}{S_{xx}} = \dfrac{1}{S_{xx}}\dfrac{1}{n-2}\sum_{i=1}^n e_i^2$$
 So we calculate the estimated standard error as 
 $$\widehat{se}(\hat\beta_1) = \sqrt{\dfrac{MS_{res}}{S_{xx}}}$$
+
+
 ## Not Regression: One-sample $t$-test
 
 To see how we incorporate $se(\hat\beta_1)$ into a hypothesis test, let's first go back to perhaps the most well-known test in statistics, the one-sample $t$-test.
@@ -238,7 +240,9 @@ If $\epsilon_i \sim N(0, \sigma^2)$ and $H_0$ is true, then $t$ has a $T$-distri
 
 ### Hypothesis Testing "by hand"
 
-Let's return to the penguin example above, in which we asked: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?*
+```{example penguin-lm-hypoth-byhand}
+Let's return to the penguin data in Example \@ref(exm:penguin-lm-hypothquest), in which we asked: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?*
+```
 
 We previously calculated the estimated slope as $\hat\beta_1 = 49.7$. From the question formulation, we know that the test value $\beta_{10} = 0$. To calculate $t$, we now need to compute $\widehat{se}(\hat\beta_1) = \hat\sigma^2/S_{xx}$.
 We can obtain $\hat\sigma^2$ from R, either from the output of `summary()` or by calculating it directly:
@@ -277,7 +281,9 @@ This tell us that $P(T > |32.7|) < 0.0001$. And so we reject $H_0$ at the $\alph
 
 Although the method just describe works, it can be tedious and is prone to mistakes. Since the null hypothesis $H_0: \beta_1 = 0$ is so commonly tested, R provides the results of the corresponding hypothesis test in its standard output.
 
-Compare the following output with the results calculated manually the previous subsection.
+```{example }
+Compare the following output with the results calculated manually in Example \@ref(exm:penguin-lm-hypoth-byhand).
+```
 
 ```{r eval=TRUE}
 tidy(penguin_lm)
@@ -300,48 +306,69 @@ penguin_lm2 <- lm(body_mass_g~sex,
 ```
 
 
-
-
-
 ## Other forms of hypothesis tests for $\beta_1$
 
-
-
-    
 ### Testing against values other than 0
 
 Although less common, it is possible to conduct hypothesis tests against a null value other than zero. For example, we could set up the hypotheses
 
-$$H_0 : \beta_1 = 20 \quad \text{vs.} \quad H_A: \beta_1 \ne  20$$
+\begin{equation}
+H_0 : \beta_1 = 40 \quad \text{vs.} \quad H_A: \beta_1 \ne  40
+(\#eq:onesidedh0)
+\end{equation}
+
+
 To conduct this hypothesis test, we would need to use the "by hand" procedure for computing $t$ and $p$.
 
-<!-- $$t=\frac{-5.98 - (-5)}{0.60} = -1.6$$ -->
 
-<!-- ```{r echo=TRUE} -->
-<!-- pt(-1.6, df=47, lower=T) -->
-<!-- ``` -->
-<!-- $$P(T < 1.6) < 0.058$$ -->
+```{example}
+In the penguin data from Example \@ref(exm:penguin-lm-hypothquest), what is the conclusion of testing the null hypothesis in Equation \@ref(eq:onesidedh0)?
+```
+    
+We compute $t$ as:
 
-<!-- We fail to reject $H_0$ at the $\alpha = 0.05$ level. -->
+$$t = \frac{49.7 - 40}{\sqrt{1.52}} = 7.9$$
 
+In R, this can be computed as:
 
+```{r echo=TRUE}
+penguin_lm_df <- tidy(penguin_lm)
+t <- (penguin_lm_df$estimate[2]- 40)/sqrt(penguin_lm_df$std.error[2])
+t
+```
+
+We can then compute the $p$-value, by comparing to a $T$-distribution:
+```{r echo=TRUE}
+2*pt(abs(t), df=nobs(penguin_lm)-2, lower=FALSE)
+```
+
+We reject the null hypothesis that $\beta_1 = 40$ at the $\alpha < 0.0001$ level.
 
 
 
 ### One-sided tests
 
-(To be added).
-<!-- $$H_0 : \beta_1 \ge -5 \quad \text{vs.} \quad H_A: \beta_1 <  -5$$ -->
+Another alternative is a one-sided test, which involves null and alternative hypotheses of the form:
+
+\begin{equation}
+H_0 : \beta_1 \ge 0 \quad \text{vs.} \quad H_A: \beta_1 <  0
+(\#eq:onesidedh0)
+\end{equation}
+
+With one-sided hypotheses, the calculation of $t$ is the same as in the two-sided setting, but the calculation of the $p$-value is different. Instead of $p = P(T > |t|)$, we evaluate $p = P(T > t)$ or $P(T < p)$, depending on whether the alternative hypothesis is greater than ($>$) or less than ($<$). The direction of the inequality for calculating the $p$-value should always match the direction in the alternative hypothesis. 
 
 
-<!-- $$t=\frac{-5.98 - (-5)}{0.60} = -1.6$$ -->
+```{example}
+In the penguin data from Example \@ref(exm:penguin-lm-hypothquest), what is the conclusion from a test of the hypotheses in equation \@ref(eq:onesidedh0)?
+```
 
-<!-- ```{r echo=TRUE} -->
-<!-- pt(-1.6, df=47, lower=T) -->
-<!-- ``` -->
-<!-- $$P(T < 1.6) < 0.058$$ -->
+We can use the value $t=32.7$ calculated earlier. But now we evaluated the $p$-value as:
 
-<!-- We fail to reject $H_0$ at the $\alpha = 0.05$ level. -->
+```{r}
+pt(penguin_lm_df$statistic[2], df=nobs(penguin_lm)-2, lower=TRUE)
+```
+
+In this example, $p \approx 1$, so we fail to reject the null hypothesis that $\beta_1$ is greater than or equal to zero.
 
 
 ## Confidence Intervals (CIs)
@@ -567,7 +594,7 @@ For the null and alternative hypotheses
 
 $$H_0: \beta_0 = \beta_{00} \text{ vs. } H_A: \beta_0 \ne \beta_{00}$$
 the $t$-statistic is:
-$$T = \dfrac{\hat\beta_0 - \beta_{00}}{\widehat{se}(\hat\beta_0)} =  \dfrac{\hat\beta_0 - \beta_{00}}{\sqrt{MS_{res}\left(\frac{1}{n} + \frac{\overline{x}^2}{S_{xx}}\right)}}$$
+$$T = \dfrac{\hat\beta_0 - \beta_{00}}{\widehat{se}(\hat\beta_0)} =  \dfrac{\hat\beta_0 - \beta_{00}}{\sqrt{\hat\sigma^2\left(\frac{1}{n} + \frac{\overline{x}^2}{S_{xx}}\right)}}$$
 We then compare this value to a $T_{n-2}$ distribution.
 The value of $t$ and its $p$-value can be computed by hand, or extracted from the standard $R$ output:
 
@@ -582,8 +609,7 @@ In this example, the test statistic for testing $H_0$ is $t=-18.9$ and its $p$-v
 We can construct a CI for $\beta_0$ in the same way as for $\beta_1$:
 $$\left(\hat\beta_0 - t_{\alpha/2}\widehat{se}(\hat\beta_0), \hat\beta_0 + t_{\alpha/2}\widehat{se}(\hat\beta_0)\right)$$
 
-
-
+These can be computed by R in the same manner as CI's for $\beta_1$.
 
 ## Exercises
 
@@ -597,7 +623,7 @@ Suppose we fit a simple linear regresion model with celebrity income as the pred
 ```
 
 ```{exercise }
-In the penguin data with flipper length as the predictor variable and body mass as the outcome, what is the conclusion of a hypothesis test of $H_0: \beta_1 = 40$ against the alternative $H_A: \beta_1 \ne 40$.
+In the penguin data with flipper length as the predictor variable and body mass as the outcome, what is the conclusion of a hypothesis test of $H_0: \beta_1 = 48$ against the alternative $H_A: \beta_1 \ne 48$?
 ```
 
 ```{exercise}
@@ -607,4 +633,9 @@ In the setting of Example \@ref(exm:penguin-mass-sex-testing), what would the nu
 
 ```{exercise}
 Suppose we fit a simple linear regression model with $n=100$ observations and $\hat\beta_1 = 10$. Given a 95\% confidence interval of $(5, 15)$, what is the value of $\hat{se}(\hat\beta_1)$?
+```
+
+
+```{exercise}
+Write a conclusion sentence about $\beta_1$ for the model fit in Example \@ref(exm:penguin-mass-sex-estimation).
 ```

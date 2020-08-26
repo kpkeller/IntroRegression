@@ -20,7 +20,10 @@ library(broom)
 
 In simple linear regression (SLR), our goal is to find the best-fitting straight line, commonly called the **regression line**, through a set of paired $(x, y)$ data. 
 
-For example, we could seek the best-fitting straight line for the penguin data:
+
+```{example }
+In Example \@ref(exm:penguin-flip-mass-question), we introduced data on penguin flipper length and body mass. We could seek the best-fitting straight line for this data:
+```
 
 ```{r g-penguin-flip-mass-lm1b, echo=F, message=FALSE}
 g_penguin_flip_mass <- penguins %>%
