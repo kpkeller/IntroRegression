@@ -1,0 +1,265 @@
+# Inference on $\beta_j$ in MLR
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\bm x}$
+$\\newcommand{\\bmX}{\\bm X}$
+$\\newcommand{\\bmy}{\\bm y}$
+$\\newcommand{\\bmbeta}{\\bm{\\beta}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+## Hypothesis Testing in MLR
+
+Questions we can ask about our model:
+
+1. What is the importance of a specific predictor? (T-test)
+2. What is the overall importance of the model? (F-test)
+3. Which subsets of predictors are important? (Partial F-tests)
+
+Question 1 Examples: 
+
+* What is the relationship, if any, between average air pollution levels and cardiovascular mortality rates, after controlling for temperature?
+* What is the relationship, if any, between gender and salary, controlling for years of experience and position title?
+* What is the relationship, if any, between marijuana use and opioid overdoses, controlling for socioeconomic status?
+* What is the relationship, if any, between hours spent on homework and final exam score, controlling for class level and department?
+
+Question 2 Examples:
+
+* How well do temperature and air pollution explain variation in cardiovascular mortality rates?
+* Do gender, years of experience, and position title explain differences in salary?
+* Can rates of opioid overdoses be explained by rates of marijuana use and socioeconomic status?
+* Can we predict final exam score using time spent on homework, class level, and department?
+
+
+We will first consider Question 1 (specific predictors), and then turn to Question 2 (overall significance) and Question 3 (groups of predictors).
+
+## Hypothesis Tests for $\beta_j$
+
+
+### Example: Modeling Photosynthesis Output
+
+What factors impact photosynthesis output of trees?
+
+* Data from Reich \textit{et al.}, \textit{Nature}, 2018 (\texttt{photo.csv} on Canvas). 
+* They measured photosynthesis output under different conditions (e.g., warmed vs. ambient air)
+
+Fit a multiple linear regression model that adjusts for soil moisture content, warming treatment (tree was warmed or not) and leaf temperature.
+\small
+\begin{align*}
+Y &= \text{ Photosynthesis output (variable \texttt{photosyn})}\\
+x_1 &= \text{ Soil Water Content Ratio (variable \texttt{soil\_water})} \\
+x_2 &= \text{ Tree Warmed Indicator (variable \texttt{warming\_treatment};}\\
+& \qquad \qquad \text{1 = \texttt{warmed}, 0 = \texttt{ambient})}\\
+x_3 &= \text{ Leaf Temperature in Degrees Celsius (variable \texttt{tleaf})}
+\end{align*}
+
+
+### Photosynthesis Data
+
+```{r eval=FALSE, echo=TRUE, message="hide", size="footnotesize"}
+photo <- read_csv("../../Data/photo.csv", col_types = cols())
+head(photo)
+```
+
+```{r eval=FALSE, echo=F, message="hide", warning=FALSE, fig.height=6, fig.width=8}
+g1 <- ggplot(photo) +
+  geom_point(aes(x=soil_water, y=photosyn, col=warming_treatment)) + 
+  scale_color_discrete(name="Warming Treatment: ") + xlab("Soil Water Content Ratio") + ylab(expression("Photosynthesis Output ("~mu~"mol"/m^2/s~")"))
+g2 <- ggplot(photo) +
+  geom_point(aes(x=tleaf, y=photosyn, col=warming_treatment)) + 
+  xlab("Leaf Temperature (deg C)") + ylab(expression("Photosynthesis Output ("~mu~"mol"/m^2/s~")"))
+g12 <- plot_grid(g1 + theme(legend.position="none"),
+                          g2 + theme(legend.position="none"),
+                          labels = c("", ""),
+                 ncol=2)
+legend_b <- get_legend(g1 + theme(legend.position="bottom",legend.justification="center"))
+plot_grid( g12, legend_b, nrow = 2, rel_heights = c(1, .2), align="hv")
+```
+
+### Modeling the Photosynthesis Data
+
+```{r eval=FALSE, echo=TRUE, size="footnotesize", output.lines=-1:-9}
+ph_lm <- lm(photosyn~soil_water + warming_treatment  + tleaf,
+            data=photo)
+summary(ph_lm)
+```
+
+The fitted model is:
+
+$$\hat y = 3.89 + 40.5x_{1} + 1.4x_{2} -0.022x_3$$
+
+\small
+\begin{align*}
+Y &= \text{ Photosynthesis output (variable \texttt{photosyn})}\\
+x_1 &= \text{ Soil Water Content Ratio (variable \texttt{soil\_water})} \\
+x_2 &= \text{ Tree Warmed Indicator (variable \texttt{warming\_treatment};}\\
+& \qquad \qquad \text{1 = \texttt{warmed}, 0 = \texttt{ambient})}\\
+x_3 &= \text{ Leaf Temperature in Degrees Celsius (variable \texttt{tleaf})}
+\end{align*}
+
+
+### Hypothesis Tests for $\beta_1$ in Photosynthesis data
+
+Scientific question: Is there a relationship between soil water content ratio and photosynthesis output, *after adjusting for leaf temperature and warming treatment*?
+
+Statistical question: Is $\beta_{1}\ne 0$ in this model?
+
+
+### Hypothesis Tests for $\beta_j$
+
+General form of hypothesis test:
+$H_0: \beta_j = \beta_{j0}$ vs. $H_A: \beta_j \ne \beta_{j0}$
+
+Use the same form of test statistic:
+$$t = \frac{\hat\beta_j - \beta_{j0}}{se(\hat\beta_j)}$$
+
+* $se(\hat\beta_j) = \sqrt{\hat\sigma^2C_{jj}}$, where $\mathbf{C} = (\XtX)^{-1}$
+  * Depends on $x_j$ AND the other $x$'s
+*  Under the null hypothesis, $t$ follows a T-distribution with $n-p$ degrees of freedom
+*   The $T$ statistic R provides by default corresponds to $\beta_{j0}=0$.
+
+### Hypothesis Tests for $\beta_1$ in Photosynthesis data
+
+Scientific question: Is there a relationship between soil water content ratio and photosynthesis output, *after adjusting for leaf temperature and warming treatment*?
+
+Statistical question: Is $\beta_{1}\ne 0$ in this model?
+
+
+$$t = \frac{\hat\beta_1 - \beta_{10}}{se(\hat\beta_1)} = \frac{40.5 - 0}{2.84} = 14.24$$
+
+$$P(|T_{1311}| > |14.24|) < 0.0001$$
+
+Conclusion: We reject the null hypothesis that $\beta_1 = 0$ and conclude that there is a linear relationship between soil water content and photosynthesis output, when adjusting for warming treatment and leaf temperature.
+
+
+### Hypothesis Tests for $\beta_3$ in Photosynthesis data
+
+Statistical question: Is $\beta_{3} \ne 0$ in this model?
+
+Hypothesis Test:
+
+\vspace{1cm}
+
+Scientific question:
+
+\vspace{3cm}
+
+
+
+$$t = \frac{\hat\beta_3 - \beta_{30}}{se(\hat\beta_3)} = \frac{-0.022 - 0}{0.025} = -0.877$$
+
+$$P(|T_{1311}| > |-0.877|) = 0.381$$
+
+Conclusion:
+\vspace{3cm}
+
+
+## Confidence Intervals for $\beta_j$
+
+
+Confidence Intervals have the same form as before:  
+$$(\hat\beta_j - t_{\alpha/2}\widehat{se}(\hat\beta_j), \hat\beta_j + t_{\alpha/2}\widehat{se}(\hat\beta_j))$$
+where $t_{\alpha/2}$ is such that $P(T_{n-p} > t_{\alpha/2}) = \alpha/2$.
+
+
+
+This is a random interval that, assuming the model is correct, includes the true value of the parameter $\beta_j$ with probability (1-$\alpha$).
+
+
+Compute confidence intervals in R the same way as SLR:
+```{r eval=FALSE, echo=TRUE, size="footnotesize"}
+library(broom)
+tidy(ph_lm, conf.int=TRUE, conf.level=0.95)
+```
+
+
+
+
+### Example: Concrete Data
+
+
+```{r eval=FALSE, include=F}
+concrete <- read_csv("../../Data/concrete.csv")
+summary(lm(comp_strength~cement_conc, data=concrete))
+summary(lm(comp_strength~cement_conc + water_conc +  plasticizer_conc, data=concrete))
+```
+
+On Homework 2, we saw an SLR model fit to data on concrete strength.
+$$\hat y = 13.44 + 0.080x$$
+
+```{r eval=FALSE, echo=FALSE, out.width="80%"}
+ggplot(concrete) + theme_bw() + 
+  geom_point(aes(x=cement_conc, y=comp_strength)) +
+  geom_smooth(aes(x=cement_conc, y=comp_strength), method="lm", se=F) +
+  xlab(expression("Cement Concentration"~(kg/m^3))) + 
+  ylab("Compressive Strength (MPa)")
+```
+
+Two other factors can impact concrete strength:
+
+* Water concentration
+* Plasticizer concentration
+
+```{r eval=FALSE, echo=FALSE, out.width="90%", fig.width=8}
+gc1 <- ggplot(concrete) + theme_bw() + 
+  geom_point(aes(x=water_conc, y=comp_strength)) +
+  geom_smooth(aes(x=water_conc, y=comp_strength), method="lm", se=F) +
+  xlab(expression("Water Concentration"~(kg/m^3))) + 
+  ylab("Compressive Strength (MPa)")
+gc2 <- ggplot(concrete) + theme_bw() + 
+  geom_point(aes(x=plasticizer_conc, y=comp_strength)) +
+    geom_smooth(aes(x=plasticizer_conc, y=comp_strength), method="lm", se=F) +
+  xlab(expression("Plasticizer Concentration"~(kg/m^3))) + 
+  ylab("Compressive Strength (MPa)")
+plot_grid(gc1, gc2)
+```
+
+
+Does the relationship between cement concentration and concrete strength remain after adjusting for water concentration and plasticizer concentration?
+
+$$Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i3} + \epsilon_i$$
+
+Statistical question: 
+\vspace{2cm}
+
+Hypothesis Test:
+
+\vspace{1cm}
+
+```{r concrete11, eval=FALSE, include=T, echo=T, size="scriptsize"}
+concrete_lm <- lm(comp_strength~cement_conc + water_conc +  plasticizer_conc,
+                  data=concrete)
+tidy(concrete_lm, conf.int=TRUE)
+```
+
+Conclusion:
+
+\vspace{4in}
+
+### Example: Concrete Data -- CI "by Hand"
+
+```{r eval=FALSE, echo=TRUE}
+t_alphaOver2 <- qt(p=0.975, df=nobs(concrete_lm))
+b1hat <- coef(concrete_lm)[2]
+seb1hat <- sqrt(diag(vcov(concrete_lm)))[2]
+b1hat - t_alphaOver2*seb1hat
+b1hat + t_alphaOver2*seb1hat
+```
+
+
+
+
+```{r eval=FALSE, eval=F}
+# Use this for Homework 7
+housing <- read_csv("../../Data/housing_prices_CO.csv")
+housing <- housing %>%
+  mutate(med_hh_income=med_hh_income/1000,
+         pop_density=pop_density/1000)
+summary(lm(price_psf~pop_density + med_hh_income, data=housing))
+summary(lm(price_psf~pop_density  + med_hh_income + I(metro=="Glenwood Springs"), data=housing))
+```
