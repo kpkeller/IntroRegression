@@ -172,7 +172,7 @@ In addition to computing the point estimate $\hat{\mu}_{y|x_0}$, the `predict()`
 ```{example}
 For the point estimates in Example \@ref(exm:peng-lm-multimean), find a 99\% confidence interval.
 ```
-
+```{solution}
 ```{r}
 predict(penguin_lm,
         newdata=preddata2,
@@ -180,76 +180,89 @@ predict(penguin_lm,
         level=0.99)
 ```
 
+
 ### Plotting CI for Mean Response in R 
 
-### "By hand"
-To plot pointwise confidence intervals for $\mu_{y|x_0}$, the first step is compute the intervals for a sequence of predictor variable values. Then add the points to a plot using the `geom_ribbon()` function from `ggplot2`. Because of the quadratic term in Equation \@ref(eq:varslrmean), the interval band has a curved shape.
+#### "By hand"
 
+To make the plot by hand, we first need to construct a sequence of predictor values, compute the mean and corresponding CI for those values, and then at to a plot. This is demonstrated in the following code:
 
-```{example} 
-(Continuation of Example \@ref(exm:penguin-lm-prediction) For the penguin model, plot the pointwise 95% confidence interval for the mean.
-```
-
-```{r}
-flipper_length_seq <- seq(170, 240, length=200)
-mean_conf_int <- predict(penguin_lm,
-                         newdata=data.frame(flipper_length_mm=flipper_length_seq),
-                         interval="confidence")
-mean_conf_int <- as.data.frame(mean_conf_int)
-```
-
-```{r echo=F}
+```{r include=FALSE}
 g_penguin <- ggplot() + theme_bw() + 
   geom_point(aes(x=flipper_length_mm,
                  y=body_mass_g),
-             data=penguins) + 
+             data=subset(penguins, !is.na(flipper_length_mm))) + 
     xlab("Flipper Length (mm)") +
     ylab("Body Mass (g)")
 ```
 
-```{r}
-g_penguin +
-    geom_ribbon(aes(x=flipper_length_seq, ymax=upr, ymin=lwr), 
-                data=mean_conf_int,
-                fill="grey80") + 
+
+```{r eval=TRUE, echo=TRUE, size="small"}
+# Create a sequence of predictor values
+flipper_length_pred_df <- data.frame(flipper_length_mm=seq(170, 240, length=200))
+
+# Compute mean and its CI
+body_mass_ci <- predict(penguin_lm,
+        newdata=flipper_length_pred_df,
+        interval="confidence", 
+        level=0.95)
+body_mass_ci_df <- data.frame(body_mass_ci,
+                              flipper_length_mm= flipper_length_pred_df$flipper_length_mm)
+
+# Plot
+g_penguin + 
+    geom_ribbon(aes(x=flipper_length_mm,
+                    ymax=upr,
+                    ymin=lwr), 
+                data=body_mass_ci_df,
+                fill="grey80",
+                alpha=0.5) + 
   geom_abline(aes(slope=coef(penguin_lm)[2],
                   intercept=coef(penguin_lm)[1]), col="blue")
 ```
 
 
-### Using `geom_smooth()`
+####  Using `geom_smooth()`
 
-Alternatively, we can let `geom_smooth()` do the calculation for us:
+For plotting, it can be much faster to let `geom_smooth()` do the calculations for you. By calling that function with `method="lm"` and `se=TRUE` (the default), we can easily add the fitted regression line and corresponding CI to a plot:
 
-```{r echo=TRUE, warning=F, message=F}
-g_penguin + 
+```{r eval=TRUE, echo=TRUE, warning=F, message=F, size="small"}
+g_penguin+ 
     geom_smooth(aes(x=flipper_length_mm,
                     y=body_mass_g),
                 data=penguins,
                 method="lm",
                 se=TRUE,
-                level=0.99)
+                level=0.95)
 ```
+
+Use the `level=` argument to `geom_smooth()` to choose a different confidence level.
+
+
+
 
 ## Prediction Intervals
 
-Predicting the value of a new observation with $x=x_0$:
 
- $$\hat y_0 = \hat\beta_0 + \hat\beta_1x_0$$
-
-
-Difference between true new observation and prediction is:
-
-$$Y_0 - \hat y_0 = (\beta_0 + \beta_1 x_0) - (\hat\beta_0 + \hat\beta_1x_0) + \epsilon_0$$
-
-
-Uncertainty needs to account for two parts: estimating the mean $(\hat\beta_0 + \hat\beta_1x_0)$ and random error in new observation ($\epsilon_0$)
+Let $\tilde{Y}_0$ represent a new observation with corresponding predictor value $x_0$. We predict the value of $\tilde{Y}_0$ using $\hat y_0$ from equation \@ref(eq:slryhat). 
+The difference in mean between the new observation and its prediction is:
 \begin{align*}
-\Var(Y_0 - \hat y_0) &= \Var\left((\beta_0 + \beta_1 x_0) - (\hat\beta_0 + \hat\beta_1x_0)\right) + \Var(\epsilon_0) \\
-&= \sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right) + \sigma^2 = \sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}} + 1\right) 
+\E[\tilde{Y}_0 - \hat y_0] &= \E[\tilde{Y}] - \E[\hat{y}_0] \\
+&= [\beta_0 + \beta_1x_0] - [\beta_0 + \beta_1x_0] \\
+& = 0.
 \end{align*}
+The variance is:
+\begin{align}
+\Var(Y_0 - \hat y_0) &= \Var\left( (\beta_0 + \beta_1 x_0  + \epsilon_0) - (\hat\beta_0 + \hat\beta_1x_0) \right)\notag\\ 
+&= \Var\left((\beta_0 + \beta_1 x_0) - (\hat\beta_0 + \hat\beta_1x_0)\right) + \Var(\epsilon_0) \notag\\
+&= \sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right) + \sigma^2 \notag\\
+& = \sigma^2\left(\frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}} + 1\right) 
+(\#eq:varyhat)
+\end{align}
 
-A $(1-\alpha)100\%$ **prediction interval** for a new observation with $x=x_0$ is:
+Thus, the uncertainty in the new observation is the uncertainty in the estimated mean $\hat y_0  = \hat\mu_{y|x_0]}$ *and* the uncertainty in a new observation ($\sigma^2$).
+
+Using equation \@ref(eq:varyhat), we can compute a $(1-\alpha)100\%$ **prediction interval** for a new observation with $x=x_0$ as:
 
 \begin{align*}
 &\Big(\hat y_0 - t_{\alpha/2}\sqrt{\sigma^2\left(1 + \frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right)},\\
@@ -259,54 +272,55 @@ A $(1-\alpha)100\%$ **prediction interval** for a new observation with $x=x_0$ i
 
 A **prediction interval** is a random interval that, when the model is correct, has a $(1-\alpha)$ probability of containing a new observation that has $x_0$ as its predictor value.
 
+Heuristically, you can think of a prediction interval as similar to a confidence interval but for an observation, not a parameter. Accordingly, a prediction interval will always be larger than the corresponding confidence interval.
 
 
-### PI for New Observation in R
+### PI for New Observation
 
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
+As with confidence intervals, we can compute prediction intervals either directly form the formula  or using the `predict()` command. 
+
+#### "By Hand" 
+
+The following code shows how to use equation \@ref(eq:varyhat) directly:
+
+```{r eval=TRUE, echo=TRUE, size="footnotesize"}
 sePred <- sqrt(seMuHat^2 + summary(penguin_lm)$sigma^2)
-yhat_PI <- c(yhat - qt(.975, n-2)*sePred, yhat + qt(.975, n-2)*sePred)
+yhat_PI <- c(muhat - qt(.975, n-2)*sePred, muhat + qt(.975, n-2)*sePred)
 yhat_PI
+```
 
-# Prediction Interval for the mean response
-predict(rockies_lm, 
-        newdata=data.frame(launch_speed=90),
-        interval="prediction", level=0.95)
+#### Using `predict()`
+
+To use `predict()`, set `interval="prediction"` instead of `"confidence"`:
+
+```{r echo=TRUE}
+predict(penguin_lm, 
+        newdata=preddata,
+        interval="prediction",
+        level=0.95)
 ```
 
 
-### Plotting PI for New Observation in R
+### Plotting CI for Mean Response in R
 
+Plotting the prediction interval is also analogous to the confidence interval, except that it can't be done automatically using `geom_smooth()`. Instead, we follow the "by hand" approach and make prediction intervals for a sequence and add them to a plot:
 
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-yhat_pred_int <- predict(rockies_lm,
-                         newdata=data.frame(launch_speed=launch_speed_seq),
-                         interval="prediction")
-yhat_pred_int <- as.data.frame(yhat_pred_int)
+```{r eval=TRUE, echo=TRUE, size="small"}
+body_mass_pi <- predict(penguin_lm,
+        newdata=flipper_length_pred_df,
+        interval="prediction", 
+        level=0.95)
+body_mass_pi_df <- data.frame(body_mass_pi,
+                              flipper_length_mm= flipper_length_pred_df$flipper_length_mm)
 
-g_rockies_wPI <- g_rockies + 
-    geom_ribbon(aes(x=launch_speed_seq, ymax=upr, ymin=lwr), 
-                data=yhat_pred_int,
-                fill="grey80") + 
-  geom_abline(aes(slope=coef(rockies_lm)[2],
-                  intercept=coef(rockies_lm)[1]), col="blue") +
-  geom_point(aes(x=launch_speed, y=hit_distance_sc), data=rockies)
+g_penguin + 
+    geom_ribbon(aes(x=flipper_length_mm,
+                    ymax=upr,
+                    ymin=lwr), 
+                data=body_mass_pi_df,
+                fill="grey80",
+                alpha=0.5) + 
+  geom_abline(aes(slope=coef(penguin_lm)[2],
+                  intercept=coef(penguin_lm)[1]), col="blue")
 ```
 
-### Plotting CI for Mean Response in R "by hand"
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-g_rockies_wPI
-```
-
-### PI vs. CI in R
-
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
-predict(rockies_lm, 
-        newdata=data.frame(launch_speed=c(70, 90, 100)),
-        interval="confidence", level=0.95)
-
-predict(rockies_lm, 
-        newdata=data.frame(launch_speed=c(70, 90, 100)),
-        interval="prediction", level=0.95)
-```
