@@ -368,7 +368,7 @@ We can use the value $t=32.7$ calculated earlier. But now we evaluated the $p$-v
 pt(penguin_lm_df$statistic[2], df=nobs(penguin_lm)-2, lower=TRUE)
 ```
 
-In this example, $p \approx 1$, so we fail to reject the null hypothesis that $\beta_1$ is greater than or equal to zero.
+In this example, $p \approx 1$, so we fail to reject the null hypothesis that $\beta_1$ is greater than or equal to zero. This should come as no surprise, since our estimate $\hat\beta_1$ is (much) greater than zero.
 
 
 ## Confidence Intervals (CIs)

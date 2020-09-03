@@ -182,7 +182,7 @@ predict(penguin_lm,
 
 ### Plotting CI for Mean Response in R 
 
-### "By hand"
+#### "By hand"
 To plot pointwise confidence intervals for $\mu_{y|x_0}$, the first step is compute the intervals for a sequence of predictor variable values. Then add the points to a plot using the `geom_ribbon()` function from `ggplot2`. Because of the quadratic term in Equation \@ref(eq:varslrmean), the interval band has a curved shape.
 
 
@@ -207,7 +207,7 @@ g_penguin <- ggplot() + theme_bw() +
     ylab("Body Mass (g)")
 ```
 
-```{r}
+```{r message=FALSE}
 g_penguin +
     geom_ribbon(aes(x=flipper_length_seq, ymax=upr, ymin=lwr), 
                 data=mean_conf_int,
@@ -217,7 +217,7 @@ g_penguin +
 ```
 
 
-### Using `geom_smooth()`
+#### Using `geom_smooth()`
 
 Alternatively, we can let `geom_smooth()` do the calculation for us:
 
@@ -251,10 +251,10 @@ Uncertainty needs to account for two parts: estimating the mean $(\hat\beta_0 + 
 
 A $(1-\alpha)100\%$ **prediction interval** for a new observation with $x=x_0$ is:
 
-\begin{align*}
-&\Big(\hat y_0 - t_{\alpha/2}\sqrt{\sigma^2\left(1 + \frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right)},\\
-& \qquad  \qquad \hat y_0 + t_{\alpha/2}\sqrt{\sigma^2\left(1 + \frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right)} \Big)
-\end{align*}
+\begin{align}
+&\Big(\hat y_0 - t_{\alpha/2}\sqrt{\sigma^2\left(1 + \frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right)},\notag\\
+& \qquad  \qquad \hat y_0 + t_{\alpha/2}\sqrt{\sigma^2\left(1 + \frac{1}{n}  + \frac{(x_0 - \overline{x})^2}{S_{xx}}\right)} \Big) (\#eq:slrpi)
+\end{align}
 
 
 A **prediction interval** is a random interval that, when the model is correct, has a $(1-\alpha)$ probability of containing a new observation that has $x_0$ as its predictor value.
@@ -263,15 +263,22 @@ A **prediction interval** is a random interval that, when the model is correct, 
 
 ### PI for New Observation in R
 
-```{r eval=FALSE, echo=TRUE, size="footnotesize"}
+Creating a prediction interval using the formula \@ref(eq:slrpi) uses many of the same values as calculating a confidence interval for the mean. If we have already computed $\widehat{se}(\mu_{y|x_o})$ as `seMuHat`, then calculating the prediction interval can be done as:
+
+```{r eval=TRUE, echo=TRUE}
 sePred <- sqrt(seMuHat^2 + summary(penguin_lm)$sigma^2)
 yhat_PI <- c(yhat - qt(.975, n-2)*sePred, yhat + qt(.975, n-2)*sePred)
 yhat_PI
+```
 
-# Prediction Interval for the mean response
-predict(rockies_lm, 
-        newdata=data.frame(launch_speed=90),
-        interval="prediction", level=0.95)
+
+Alternatively, setting `interval="prediction"` inside `predict()` will compute the prediction intervals automatically from the model fit:
+
+```{r echo=TRUE}
+predict(penguin_lm, 
+        newdata=preddata,
+        interval="prediction",
+        level=0.95)
 ```
 
 
@@ -292,8 +299,6 @@ g_rockies_wPI <- g_rockies +
                   intercept=coef(rockies_lm)[1]), col="blue") +
   geom_point(aes(x=launch_speed, y=hit_distance_sc), data=rockies)
 ```
-
-### Plotting CI for Mean Response in R "by hand"
 
 ```{r eval=FALSE, echo=TRUE, size="footnotesize"}
 g_rockies_wPI
