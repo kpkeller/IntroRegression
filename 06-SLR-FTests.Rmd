@@ -1,4 +1,4 @@
-# Sums of Squares and F-Tests {#slrFtest}
+# Inference for the Model in SLR {#slrFtest}
 
 <!--- For HTML Only --->
 `r if (!knitr:::is_latex_output()) '
@@ -13,30 +13,28 @@ library(broom)
 ```
 
 
-Analyzing the variance/variation in the data provides information about overall model fit
+In Chapter \@ref(slrinferencebeta) we saw how to conduct inference about the parameters $\beta_0$ and $\beta_1$. That allowed to answer quesitons about the nature of the relationship between $x_i$ and $y_i$. 
 
-* Sum of squares decomposition
-* F-Tests 
-* Coefficient of Determination ($R^2$)
+A related question we might ask is: *Is the model useful overall?* Rather than testing a specific parameter, this questions asks about the overall utility of the entire regression model. In this chapter, we explore how to address this question using F-tests.
 
 
 
+<!-- Analyzing the variance/variation in the data provides information about overall model fit -->
+
+<!-- * Sum of squares decomposition -->
+<!-- * F-Tests  -->
+<!-- * Coefficient of Determination ($R^2$) -->
 
 ## Sum of Squares Decomposition
 
-$SS_{tot} = \displaystyle\sum_{i=1}^n(y_i - \overline{y})^2$ is the *total sum of squares*
+Decomposing the variability in the data provides the pieces necessary to assess overall model performance. The *total* variability in outcome for a specific dataset is given by the sample variance of the $y_i$'s. In regression this quantity is commonly called the **total sum of squares**:
 
-\begin{align*}
-\sum_{i=1}^n (y_i - \overline{y})^2 &= \sum_{i=1}^n \left(y_i - \hat y_i + \hat y_i - \overline{y}\right)^2 \\
-&= \sum_{i=1}^n (y_i - \hat y_i)^2 + 2 \sum_{i=1}^n(y_i - \hat y_i)(\hat y_i - \overline{y}) + \sum_{i=1}^n (\hat y_i - \overline y)^2\\
-&= \sum_{i=1}^n (y_i - \hat y_i)^2 + 2 \sum_{i=1}^n(y_i - \hat y_i)\hat y_i \\
-& \qquad \qquad \qquad - 2 \sum_{i=1}^n(y_i - \hat y_i)\overline{y}+ \sum_{i=1}^n (\hat y_i - \overline y)^2\\
-&= \sum_{i=1}^n (y_i - \hat y_i)^2 +  \sum_{i=1}^n (\hat y_i - \overline y)^2\\
-&= SS_{res} + SS_{reg}
-\end{align*}
+$$SS_{tot} = \displaystyle\sum_{i=1}^n(y_i - \overline{y})^2$$ 
+
+This is the sum of the squared distances between each observation and the overall mean, which can be visually represented by the sum of the squared lengths of the green lines in Figure \@ref(fig:sslines-sstot).
 
 
-```{r}
+```{r include=F}
 x <- 1:6
 beta0 <- 1
 beta1 <- 0.5
@@ -50,38 +48,36 @@ g_base <- ggplot() + theme_bw() +
 ```
 
 
-```{r}
-g_base
-```
-
-
-### Total Sum of Squares ($SS_{tot}$)
-
-$SS_{tot} = \displaystyle\sum_{i=1}^n(y_i - \overline{y})^2$ is total variability in the $y$'s
-
-```{r}
+```{r sslines-sstot, echo=FALSE, fig.cap="Simulated data showing $SS_{tot}$, which is the sum of the squared lengths of the green lines."}
 g_base + geom_segment(aes(x=x, xend=x, y=mean(y), yend=y), col="darkgreen", lwd=2)
 ```
 
+<!-- is the *total sum of squares* -->
 
-### Residual Sum of Squares ($SS_{res}$)
+The total sum of squares can be decomposed into two pieces:
 
-$SS_{res} = \sum_{i=1}^n (y_i - \hat y_i)^2$ is variability "left over" from fitted regression model
+\begin{align}
+\sum_{i=1}^n (y_i - \overline{y})^2 &= \sum_{i=1}^n \left(y_i - \hat y_i + \hat y_i - \overline{y}\right)^2 \notag\\
+&= \sum_{i=1}^n (y_i - \hat y_i)^2 + 2 \sum_{i=1}^n(y_i - \hat y_i)(\hat y_i - \overline{y}) + \sum_{i=1}^n (\hat y_i - \overline y)^2 \notag\\
+&= \sum_{i=1}^n (y_i - \hat y_i)^2 + 2 \sum_{i=1}^n(y_i - \hat y_i)\hat y_i \notag \\
+& \qquad \qquad \qquad - 2 \sum_{i=1}^n(y_i - \hat y_i)\overline{y}+ \sum_{i=1}^n (\hat y_i - \overline y)^2 \notag\\
+&= \sum_{i=1}^n (y_i - \hat y_i)^2 +  \sum_{i=1}^n (\hat y_i - \overline y)^2 (\#eq:ssdecomp)
+\end{align}
+The first term in \@ref(eq:ssdecomp) is called the **residual sum of squares**:
 
-```{r}
+$$SS_{res} = \sum_{i=1}^n (y_i - \hat y_i)^2$$
+This should look familiar--it is the same things as the sum of squared residuals ($\sum_{i=1}^n e_i^2 = (n-2)\hat\sigma^2$). This is  variability "left over" from fitted regression model, and can be visualized as the sum of the squared distances in the following figure:
+```{r echo=F}
 g_base + geom_segment(aes(x=x, xend=x, y=y, yend=muy), col="orange", lwd=2)
-
 ```
 
 
+The other term in \@ref(eq:ssdecomp)  is the **regression sum of squares**:
+$$SS_{reg} = \sum_{i=1}^n (\hat y_i - \overline y)^2$$.
+This is the variability that *is* explained by the regression model:
 
-### Regression Sum of Squares ($SS_{reg}$)
-
-$SS_{reg} = \sum_{i=1}^n (\hat y_i - \overline{y})^2$ is variability explained by the fitted regression model
-
-```{r}
+```{r echo=F}
 g_base + geom_segment(aes(x=x, xend=x, y=mean(y), yend=muy), col="blue", lwd=2)
-
 ```
 
 

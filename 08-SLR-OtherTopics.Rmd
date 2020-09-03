@@ -6,17 +6,14 @@
 
 Two common forms for equation of a line:
 
-\begin{tabular}{lll}
-& Slope-Intercept & Point-Slope \\
-\hline
-Equation & $y=ax + b$ & $y - y_1 = m(x - x_1)$ \\
-Slope & $a$ & $m$ \\
-$y$-intercept & $b$ & $y_1 - mx_1$\\
-\hline
-\end{tabular}
+| |Slope-Intercept | Point-Slope |
+|:--:|:--:|:--:|
+|Equation | $y=ax + b$ | $y - y_1 = m(x - x_1)$ |
+|Slope | $a$ | $m$ |
+|$y$-intercept | $b$ | $y_1 - mx_1$|
 
 
-Similarly, we can write the SLR model in multiple ways
+Similarly, we can write the SLR model in multiple ways.
 
 ### Regression with Centered $x$
 
