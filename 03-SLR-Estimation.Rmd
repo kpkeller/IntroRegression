@@ -246,7 +246,7 @@ In equation \@ref(eq:penguin-sexmale), female penguins were the **reference cate
 We can write the following three interpretations of $\hat\beta_0$,  $\hat\beta_0 + \hat\beta_1$, and $\hat\beta_1$, respectively:
 
 * The estimated average body mass for female penguins is 3,862 grams.
-* The estimated average body mass for female penguins is 4,546 grams.
+* The estimated average body mass for males penguins is 4,546 grams.
 * The estimated difference in average body mass of penguins, comparing males to females, is 683 grams, with males having larger average mass.
 
 
