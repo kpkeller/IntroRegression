@@ -148,7 +148,7 @@ Possible summarizing sentences for $\beta_1$:
 * The average difference in body mass for penguins that have 1 mm longer flippers is $\beta_1$ grams.
 * The difference in average body mass for penguins that differ in flipper length by one millimeter is $\beta_1$ grams.
 
-We will expand upon these sentences in Examples \@ref(exm:peng-lm-intro) and \@ref(peng-lm-intro-inference).
+We will expand upon these sentences in Examples \@ref(exm:peng-lm-intro) and \@ref(exm:peng-lm-intro-inference).
 
 
 ### Interpreting $c\beta_1$

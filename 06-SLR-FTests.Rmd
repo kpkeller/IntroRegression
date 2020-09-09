@@ -1,4 +1,4 @@
-# Inference for the Model in SLR {#slrFtest}
+# Inference for the SLR Model {#slrFtest}
 
 <!--- For HTML Only --->
 `r if (!knitr:::is_latex_output()) '
@@ -82,213 +82,192 @@ g_base + geom_segment(aes(x=x, xend=x, y=mean(y), yend=muy), col="blue", lwd=2)
 
 
 
-## Not regression: F-Test for Two Variances
+<!-- ## Not regression: F-Test for Two Variances -->
 
 
-Recall the F-test for comparing the variance in two populations
+<!-- Recall the F-test for comparing the variance in two populations -->
 
-Setup:
+<!-- Setup: -->
 
-* Sample of size $n_1$ from population 1
-    * $y_{11}, y_{12}, \dots, y_{1n_1}$
-    * Sample variance is $s_1^2$
-* Sample of size $n_2$ from population 2
-    * $y_{21}, y_{22}, \dots, y_{2n_2}$
-    * Sample variance is $s_2^2$
-    
-
-Is the variance of population 1 ($\sigma_1^2$) different from the variance of population 2 ($\sigma_2^2$)?
-
-$$H_0: \frac{\sigma_1^2}{\sigma_2^2} = 1 \quad \text{vs.} \quad H_A: \frac{\sigma_1^2}{\sigma_2^2} \ne 1$$
-
-Test statistic: $f = \dfrac{s_1^2}{s_2^2}$  
-If $H_0$ is true, $f \sim F_{n_1 - 1, n_2 - 1}$
+<!-- * Sample of size $n_1$ from population 1 -->
+<!--     * $y_{11}, y_{12}, \dots, y_{1n_1}$ -->
+<!--     * Sample variance is $s_1^2$ -->
+<!-- * Sample of size $n_2$ from population 2 -->
+<!--     * $y_{21}, y_{22}, \dots, y_{2n_2}$ -->
+<!--     * Sample variance is $s_2^2$ -->
 
 
-Reject $H_0$ is $f$ is too small (ratio near zero) or too big (ratio is large)
+<!-- Is the variance of population 1 ($\sigma_1^2$) different from the variance of population 2 ($\sigma_2^2$)? -->
 
-```{r}
-x <- seq(0, 5, length=200)
-fdx <- df(x, df1=8, df2=16)
-ggplot() + theme_classic() + coord_cartesian(xlim=c(0, 5), ylim=c(0, 1), expand=F) +
-  geom_line(aes(x=x, y=fdx)) + 
-  theme(axis.line.y = element_blank()) + 
-  xlab(expression(F)) + ylab("") + scale_y_continuous(breaks=NULL)+
-  geom_hline(aes(yintercept=0)) 
+<!-- $$H_0: \frac{\sigma_1^2}{\sigma_2^2} = 1 \quad \text{vs.} \quad H_A: \frac{\sigma_1^2}{\sigma_2^2} \ne 1$$ -->
+
+<!-- Test statistic: $f = \dfrac{s_1^2}{s_2^2}$   -->
+<!-- If $H_0$ is true, $f \sim F_{n_1 - 1, n_2 - 1}$ -->
 
 
+<!-- Reject $H_0$ is $f$ is too small (ratio near zero) or too big (ratio is large) -->
+
+<!-- ```{r} -->
+<!-- x <- seq(0, 5, length=200) -->
+<!-- fdx <- df(x, df1=8, df2=16) -->
+<!-- ggplot() + theme_classic() + coord_cartesian(xlim=c(0, 5), ylim=c(0, 1), expand=F) + -->
+<!--   geom_line(aes(x=x, y=fdx)) +  -->
+<!--   theme(axis.line.y = element_blank()) +  -->
+<!--   xlab(expression(F)) + ylab("") + scale_y_continuous(breaks=NULL)+ -->
+<!--   geom_hline(aes(yintercept=0))  -->
+
+
+<!-- ``` -->
+
+## Coefficient of Determination ($R^2$)
+
+One way to determine how "good" a model fit is, is to compute the proportion of variability in the outcome that is accounted for by the regression model. This can be represented by the following ratio:
+
+$$\frac{SS_{reg}}{SS_{tot}} = 1 - \frac{SS_{res}}{SS_{tot}} = R^2$$
+The quantity $R^2$ is commonly called the **coefficient of determination**. 
+The denominator $SS_{tot}$ is a fixed quantity and the numerator $SS_{reg}$ can vary by model (i.e., by the chosen predictor variable). Larger values of $R^2$ mean that greater amounts of variability in the outcome is explained by the model.
+When there are multiple predictor variables in a model, we will need to use an alternative form of $R^2$ (see Section \@ref(adjr2)). 
+
+Since the amount of variation explained by the model cannot be greater than the total variation in the outcome, $R^2$ must lie between 0 and 1. The range of $R^2$ values corresponding to a "good" or "bad" model fit varies by context. In most settings, values above 0.8 represent a "good" model. But in some contexts, $R^2$ as low as 0.3 can be "good". What is "good" for prediction may differ from what is "good" for learning about the underlying science, and vice versa. Making a qualitative judgment about $R^2$ requires familiarity with what is typical for the type of data being analyzed.
+
+R will compute the value of $R^2$ for you in the output from `summary()`:
+
+```{r eval=TRUE, echo=TRUE}
+penguin_lm <- lm(body_mass_g~flipper_length_mm,
+                 data=penguins) 
+summary(penguin_lm)
 ```
+
+The value of $R^2$ is listed as `Multiple R-squared:  0.759` in the second line from the bottom. Adjusted $R^2$ will be discussed in Section \@ref(adjr2).
 
 
 
 ## F-Test for Regression
 
-$H_0 =$ There is no linear relationship between the $x$'s and the average value of $y$  
-$H_A =$ There is a linear relationship between the $x$'s and the average value of $y$
+In regression, we can ask whether there is an overall linear relationship between the predictor variable and the average values of the outcome variable. This is commonly called a **test for significance of regression** or a **global F-test**, and the corresponding null and alternative hypotheses are:
 
-Note: In SLR there is only one $x$ variable, so this is equivalent to testing $H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$  
+* $H_0 =$ There is no linear relationship between the $x$'s and the average value of $y$  
+* $H_A =$ There is a linear relationship between the $x$'s and the average value of $y$
 
-Test statistic:
-$$f = \frac{\text{Signal}}{\text{Noise}} = \frac{MS_{reg}}{MS_{res}} = \frac{SS_{reg}/df_{reg}}{SS_{res}/df_{res}} = \frac{SS_{reg}/1}{SS_{res}/(n-2)}$$
+In SLR there is only one $x$ variable, so this is exactly equivalent to testing $H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$. However, when there are multiple predictor variables in the model, the global F-test and a test for a single $\beta$ parameter are no longer the same (see Section \@ref(mlrftest)).
 
-* This test is one-sided. Reject $H_0$ if $f$ is large enough
-* If $H_0$ is true, $f \sim F_{1, n-2}$
+The test statistic for the test for significance of regression is:
 
+\begin{equation}
+\label{eq:slrfstat}
+f =  \frac{MS_{reg}}{MS_{res}} = \frac{SS_{reg}/df_{reg}}{SS_{res}/df_{res}} = \frac{SS_{reg}/1}{SS_{res}/(n-2)}
+\end{equation}
 
-### Example: Melanoma Data
+In equation \@ref(eq:slrfstat), the statistic can be heuristically thought of as a signal-to-noise ratio. The numerator $SS_{reg}/1$ is the average amount of variabiliy explained by each predictor variable, which is a measure of "signal". The denominator $SS_{res}/(n-2)$ is the average amount of variability left unexplained, which is a measure of "noise". 
 
-In the melanoma example, is there a linear relationship between state latitude and melanoma mortality?
-
-$H_0 =$ There is no linear relationship between state latitude and the average value of melanoma mortality  
-$H_A =$ There is a linear relationship between state latitude and the average value of melanoma mortality  
+When the value of $f$ is large enough, we conclude that the variability explained by the model is sufficiently larger than the variability left unexplained. Thus, we use a *one-sided* test and reject $H_0$ if $f$ is large enough. If the null hypothesis is true and the $\epsilon_i$ are normally distributed,^[In many cases, it is sufficient for sample sizes to be large so that the central limit theorem applies. But care should be taken in small samples.] then $f$ follows an $F$ distribution with 1 and $n-2$ degrees of freedom, i.e., $f \sim F_{1, n-2}$. 
 
 ### F-test in R "by hand"
 
-```{r eval=F, echo=TRUE, size="footnotesize", include=FALSE}
-melanoma <- read_csv(paste0(data_dir, "melanoma.csv"),
-                     col_types=cols())
+```{example}
+In the penguin data from Example \@ref(exm:peng-lm-intro-inference), is there a linear relationship between flipper length and body mass?
 ```
 
-```{r eval=F, echo=TRUE, size="small"}
-mel_lm <- lm(mort~latitude, data=melanoma)
-SSres <- sum(residuals(mel_lm)^2)
+To answer this using a global F-test, we set up the null and alternative hypotheses as:
+
+$H_0 =$ There is no linear relationship between penguin flipper length and average body mass.
+$H_A =$ There is a linear relationship between penguin flipper length and average body mass.  
+We now need to compute $SS_{res}$:
+```{r echo=TRUE}
+SSres <- sum(residuals(penguin_lm)^2)
 SSres
-SSreg <- sum((fitted(mel_lm) - mean(melanoma$mort))^2)
+```
+
+and $SS_{reg}$:
+```{r echo=TRUE}
+SSreg <- sum((fitted(penguin_lm) - mean(penguin_lm$model$body_mass_g))^2)
 SSreg
 ```
+Note that when computing $SS_{reg}$ in this way, we are using `penguin_lm$model$body_mass_g` rather than `penguins$body_mass_g`. This is because the version of body mass stored within the `penguin_lm` object will contain exactly the observations used to fit the model. This can be important if there is missing data that `lm()` drops automatically.
 
-
-```{r eval=F, echo=TRUE, size="small"}
-# Be careful with parenthesis!
-f <- (SSreg/1)/(SSres/(nobs(mel_lm)- 2))
+With both $SS_{res}$ and $SS_{reg}$ calculated, we can compute the F-statistic:
+```{r echo=TRUE}
+f <- (SSreg/1)/(SSres/(nobs(penguin_lm)- 2))
 f
-pf(f, df1=1, df2=nobs(mel_lm)- 2, lower=FALSE)
+```
+and $p$-value (being careful to set `lower=FALSE` to do a one-sided test):
+```{r echo=TRUE}
+pf(f, df1=1, df2=nobs(penguin_lm)- 2, lower=FALSE)
 ```
 
 ### F-test in R
 
-R will compute the value of $f$ and its $p$-value for you:
+Of course, it is faster and simpler to let R compute the F-statistic and $p$-value for you. This information is available at the bottom of the output from `summary()`:
 
-```{r eval=F, echo=TRUE, size="footnotesize", output.lines=9:18}
-summary(mel_lm)
+```{r eval=T, echo=TRUE, output.lines=9:18}
+summary(penguin_lm)
 ```
 
+Regardless of which approach to calculating the test statistic that we use, we can summarize our conclusions by saying:
 
-## Coefficient of Determination
-
-### Model Fit
-
-How can we tell if the model fit is "good"?
-
-\vspace{4in}
+We reject the null hypotheses that there is no linear relationship between penguin flipper length and average body mass ($p < 0.0001$).
 
 
-
-### Coefficient of Determination ($R^2$)
-
-What percentage of the variation in $y$ is explained by the regression model?
-
-$$\frac{SS_{reg}}{SS_{tot}} = 1 - \frac{SS_{res}}{SS_{tot}} = R^2$$
-
-
-
-$R^2$ is the **Coefficient of Determination**.
-
-* In SLR, $R^2$ is a measure of model fit.
-* When we have multiple $x$'s, we will need to use a different version of $R^2$
-
-
-What is a "good" $R^2$?
-
-* Above 0.8 is almost always "good"
-* In some contexts, $R^2$ between 0.6 and 0.8 is good
-* In some contexts, $R^2$ between 0.2 and 0.6 is good
-
-
-Context matters! What is "good" for prediction may differ from what is "good" for learning about the underlying science.
-
-
-### Computing $R^2$ in R
-
-Computing $R^2$ "by hand":
-
-```{r eval=F, echo=TRUE, size="small"}
-SStot <- sum((melanoma$mort - mean(melanoma$mort))^2)
-1 - SSres/SStot
-```
-
-
-R will compute the value of $R^2$ for you:
-
-```{r eval=F, echo=TRUE, size="footnotesize", output.lines=9:18}
-summary(mel_lm)
-```
 
 ## ANOVA Table
 
-$F$-tests are part of Analysis of Variance (ANOVA).
+$F$-tests are widely used in the Analysis of Variance (ANOVA) approach to analyzing data. Information can be summarized in an "ANOVA Table":
 
-Information can be summarized in an "ANOVA Table":
 
-\vspace{1cm}
+|Source of Variation  | Sum of Squares |Degrees of Freedom | MS | F |
+|:--------|:--:|:--:|:--:|:--:|
+|Regression | $SS_{reg}$ | $1$ | $MS_{reg}$ | $MS_{reg}/MS_{res}$ |
+|Residual | $SS_{res}$ | $n-2$ | $MS_{res}$ | -- |
+|Total | $SS_{tot}$ | $n-1$ | -- | -- |
 
-\begin{tabular}{l cccc}
-\hline
-Source of & Sum of & Degrees of \\
-Variation & Squares &   Freedom & MS & F \\
-\hline
-Regression & $SS_{reg}$ & $1$ & $MS_{reg}$ & $MS_{reg}/MS_{res}$ \\
-Residual & $SS_{res}$ & $n-2$ & $MS_{res}$ & -- \\
-Total & $SS_{tot}$ & $n-1$ & -- & -- \\
-\hline
-\end{tabular}
+This format arises most frequently for designed experiments, where there is a rich history of decomposing the variability of data into distinct sources.
 
 
 
-## Example: Colorado Rockies Fly Balls
+<!-- ## Example: Colorado Rockies Fly Balls -->
 
-```{r eval=F}
-flyball <- read_csv(paste0(data_dir, "rockies_flyball_2018.csv"))
-flyball$hit_distance_sc <- as.numeric(flyball$hit_distance_sc)
-# hr <- read_csv(paste0(data_dir, "homeruns2018.csv"))
+<!-- ```{r eval=F} -->
+<!-- flyball <- read_csv(paste0(data_dir, "rockies_flyball_2018.csv")) -->
+<!-- flyball$hit_distance_sc <- as.numeric(flyball$hit_distance_sc) -->
+<!-- # hr <- read_csv(paste0(data_dir, "homeruns2018.csv")) -->
 
-g_rockies <- ggplot(subset(flyball, !is.na(hit_distance_sc))) + 
-    geom_point(aes(x=launch_speed,
-                   y=hit_distance_sc)) +
-    xlab("Launch Speed (mph)") +
-    ylab("Fly Ball Distance (ft)") + 
-    ggtitle("Fly Balls Hit by Colorado Rockies, 2018 Season")
-```
-
-
-```{r eval=F, echo=TRUE, size="footnotesize", output.lines=7:19}
-rockies_lm <- lm(hit_distance_sc~launch_speed, data=flyball)
-summary(rockies_lm)
-```
-
-How much variation in fly ball distance is explained by launch speed?
-
-\vspace{2cm}
+<!-- g_rockies <- ggplot(subset(flyball, !is.na(hit_distance_sc))) +  -->
+<!--     geom_point(aes(x=launch_speed, -->
+<!--                    y=hit_distance_sc)) + -->
+<!--     xlab("Launch Speed (mph)") + -->
+<!--     ylab("Fly Ball Distance (ft)") +  -->
+<!--     ggtitle("Fly Balls Hit by Colorado Rockies, 2018 Season") -->
+<!-- ``` -->
 
 
-Is there evidence of an overall linear relationship between launch speed and average fly ball distance?
+<!-- ```{r eval=F, echo=TRUE, size="footnotesize", output.lines=7:19} -->
+<!-- rockies_lm <- lm(hit_distance_sc~launch_speed, data=flyball) -->
+<!-- summary(rockies_lm) -->
+<!-- ``` -->
+
+<!-- How much variation in fly ball distance is explained by launch speed? -->
+
+<!-- \vspace{2cm} -->
 
 
-\vspace{2cm}
+<!-- Is there evidence of an overall linear relationship between launch speed and average fly ball distance? -->
+
+
+<!-- \vspace{2cm} -->
 
 
 
-## Hypothesis Testing Recap
+<!-- ## Hypothesis Testing Recap -->
 
-We have seen three hypothesis tests:
+<!-- We have seen three hypothesis tests: -->
 
-1. $T$-test for $H_0: \beta_0 = \beta_{00}$ v. $H_A: \beta_0 \ne \beta_{00}$
-    * This is often irrelevant, since intercept is not of interest
-2. $T$-test for $H_A: \beta_1 = \beta_{10}$ v. $H_A: \beta_1 \ne \beta_{10}$
-    * Often $\beta_{10} = 0$
-3. $F$-test for $H_0:$ no linear relationship between the $x$'s and the average value of $y$
-    * Sometimes called test for "significance of regression"
-    
-In SLR, 2 \& 3 are exactly equivalent. They will differ in multiple linear regression (MLR).
+<!-- 1. $T$-test for $H_0: \beta_0 = \beta_{00}$ v. $H_A: \beta_0 \ne \beta_{00}$ -->
+<!--     * This is often irrelevant, since intercept is not of interest -->
+<!-- 2. $T$-test for $H_A: \beta_1 = \beta_{10}$ v. $H_A: \beta_1 \ne \beta_{10}$ -->
+<!--     * Often $\beta_{10} = 0$ -->
+<!-- 3. $F$-test for $H_0:$ no linear relationship between the $x$'s and the average value of $y$ -->
+<!--     * Sometimes called test for "significance of regression" -->
+
+<!-- In SLR, 2 \& 3 are exactly equivalent. They will differ in multiple linear regression (MLR). -->
 
 

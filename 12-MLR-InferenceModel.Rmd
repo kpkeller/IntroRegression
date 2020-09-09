@@ -1,4 +1,4 @@
-# Inference on the Model in MLR
+# Inference on the Model in MLR {#mlrftest}
 
 ## Testing for Significance of Regression
 
@@ -135,7 +135,7 @@ pf(f, df1=3, df2=nobs(ph_lm)-4, lower=F)
 Warning: If doing this "by hand", be careful about missing values.
 
 
-## $R_{Adj}^2$ and Testing for Subsets of Coefficients
+## $R_{Adj}^2$ and Testing for Subsets of Coefficients {#adjr2}
 ### Testing for Subsets of Coefficients
 
 What if we want to test whether adding/removing a group of variables matters?
