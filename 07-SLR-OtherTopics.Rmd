@@ -1,0 +1,155 @@
+# Other Topics in SLR {#slrother}
+
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
+library(knitr)
+```
+
+
+This chapter covers several different variations of the simple linear regression model. The fundamental aspects of the model do not change, but the interpretations of parameters are impacted by transformations to the predictor and outcome variables. 
+
+## Regression with Centered $x$
+
+One common variation of the SLR model is to *center* the predictor variable, which means we use $x_i - \overline{x}$ instead of $x_i$. 
+
+We can re-arrange the SLR model equation as:
+\begin{align*}
+Y_i &= \beta_0 + \beta_1x_i + \epsilon_i \\
+&= \beta_0 + \beta_1x_i  - \beta_1\overline{x} + \beta_1\overline{x} + \epsilon_i \\
+&= {\color{blue}{\beta_0 + \beta_1\overline{x}}}  + \beta_1 (x_i  - \overline{x})  + \epsilon_i \\
+&= {\color{blue}{\beta_0'}}  + \beta_1 (x_i  - \overline{x})  + \epsilon_i 
+\end{align*}
+
+Thus, we still have an SLR model, but with $\beta_0'$ in place of $\beta_0$. From the derivation above, we can see that $\beta_0' = \beta_0 + \beta_1\overline{x}$. In words, this means that $\beta_0'$ is the mean of $Y$ for observations with the average value of the predictor variable. This is the primary reason for centering the $x$ variable, since it has a practical meaning, often unlike the intercept from an uncentered model.
+
+The slope parameter $\beta_1$ is unchanged by this reparameterization. The model inference--hypothesis tests and confidence intrevals--are not changed by centering the $x$ variable.
+
+```{r eval=TRUE, include=FALSE}
+g1 <- ggplot() + theme_test() + 
+   geom_hline(aes(yintercept=0), col="grey") +
+   geom_vline(aes(xintercept=0), col="grey") +
+   geom_abline(aes(slope=0.5,
+                   intercept=1)) +
+   geom_point(aes(x=x, y=y), data=data.frame(x=2, y=2)) +
+   xlab("") + ylab("") + 
+   scale_x_continuous(breaks=c(0, 2), labels=c(0, expression(bar(x))), limits=c(-1, 5)) + 
+   scale_y_continuous(breaks=c(0, 1, 2), labels=c(0, expression(beta[0]), expression(bar(y))), limits=c(-0.5, 4)) + 
+   theme(axis.text=element_text(size=14))
+```
+
+Graphically, centering the predictor variable is equivalent to using the point ($\overline{x}, \overline{y}$) as the origin (see Figure \@ref(fig:g-center-x)). This has no impact on the slope of the regression line, but does affect the intercept.
+
+```{r g-center-x, eval=TRUE, echo=FALSE, fig.cap="Shifting the origin to the average of the data."}
+g1 + 
+   geom_hline(aes(yintercept=2), col="red", lty=2) +
+   geom_vline(aes(xintercept=2), col="red", lty=2)
+```
+
+
+<!-- The main reason for centering the predictor variable is that it results in a more interpretable intercept.  Although we are often not concerned wit -->
+
+<!-- First, it results in a more interpretable intercept, since it now corresponds to an observation with the average value of $x$ instead of $x=0$.  -->
+
+
+<!-- Second, it can be shown that $\hat\beta_0'$ is uncorrelated with $\hat\beta_1$, although this is mostly used only to simplify some calculations.  -->
+
+```{example peng-lm-center}
+What happens to the results from the model for the penguin data when we center flipper length variable?
+```
+
+First, we need to create the centered variable:
+```{r echo=TRUE}
+penguins <- penguins %>%
+   mutate(flipper_length_mm_centered=flipper_length_mm - mean(flipper_length_mm, na.rm=TRUE))
+```
+
+When we fit the SLR model with this centered variable, we get point estimates $\hat\beta_0 = 4201.8$ and $\hat\beta_1 = 49.7$. 
+As expected, thge slope is the same as the uncentered model. 
+The estimated average body mass for penguins with "average" flipper length is 4,202 grams. 
+Since the SLR line passes through ($\overline{x}, \overline{y})$, this is exactly the mean penguin body mass in this data.
+
+
+```{r eval=FALSE, echo=F, output.lines=2:5}
+penguin_lm2 <- lm(body_mass_g ~ flipper_length_mm_centered,
+                  data=penguins)
+tidy(penguin_lm2)
+```
+
+
+## Rescaling Units {#rescaling}
+
+### Rescaling $x$
+
+In addition to centering, another common transformation is to scale a variable. When the predictor variable is scaled by a factor $c$, the value of $\beta_1$ (and thus $\hat\beta_1$) is scaled by $1/c$. This can be verified mathematically by re-arranging the SLR equation:
+\begin{align*}
+Y_i &= \beta_0 + \beta_1 x_i + \epsilon_i \\
+&= \beta_0 + \frac{\beta_1}{c} (cx_i) + \epsilon_i\\
+&= \beta_0 + \tilde{\beta_1} \tilde{x_i} + \epsilon_i
+\end{align*}
+where $\tilde{x}_i = cx_i$ and $\tilde{\beta}_1 = \beta_1/c$.
+
+In principle, predictor variables can be rescaled by any value, but the most common is scaling by its standard deviation. Together with centering the variable, this is known as *standardization* of the predictor variable. This leads to $\beta_1$ representing the difference in the average value of the outcome for a *one-standard deviation* difference in $x$. Other common scaling factors are: factors of 10 or other values that can change units (e.g., going from kilometers to meters) and the interquartile range (IQR) of $x$. 
+
+
+```{example}
+If in addition to centering the flipper length in Example \@ref(exm:peng-lm-center), suppose we also scale the flipper lengths by their standard deviation.  In R, this can be done easily using the `scale()` command:
+```
+
+```{r echo=TRUE}
+penguins <- penguins %>%
+   mutate(flipper_length_mm_standardized=scale(flipper_length_mm))
+```
+
+```{r eval=FALSE, echo=F, output.lines=2:5}
+penguin_lm3 <- lm(body_mass_g ~ flipper_length_mm_standardized,
+                  data=penguins)
+tidy(penguin_lm3, conf.int=T) %>%
+   kable(digits=1,booktabs=T)
+```
+
+If we fit a SLR model with this standardized version of flipper length, we obtain $\hat\beta_0 = 4201.8$ and $\hat\beta_1 = 698.7$. The scaling of $x$ had not impact on the point estimate $\hat\beta_0$, but did change the value of $\hat\beta_1$. From this model, an interpreation statement for $\hat\beta_1$ is: *A one standard deviation difference in flipper length is associated with a difference of 699 grams in average body mass (95\% CI: 657, 741).*
+
+This demonstrates one advantage to scaling by the standard deviation: it can simplify interpretations of the slope parameter, particularly in contexts where the audience may not be familiar with the practical importance of a 1-unit difference in the predictor. For example, someone who is not familiar with the average lengths of penguin flippers may not have a good sense of how large a 1 mm difference in flipper length is. Does it represent a small, but important, amount? Or is it a negligible difference? The same reader could understand that a one-standard deviation difference in flipper length is a meaningfully large difference in flipper length.
+However, when reporting results from a model with a standardized predictor, it is still important to report what the magnitude of the standard deviation is.
+
+Rescaling the predictor variable has no impact on the inferential conclusions about the model. Any multiplicative change in $\hat\beta_1$ due to scaling also impacts $se(\hat\beta_1)$ by the same factor, and so the test statistics for hypothesis tests remain unchanged.
+
+
+\vspace{4cm}
+
+
+
+### Rescaling $Y$
+
+It is also possible to rescale the outcome variable. This is generally only done when changing units; it is uncommon to standardize the outcome variable. The impact on the regression parameters can again be computed by rearranging the SLR model equation:
+\begin{align*}
+Y_i &= \beta_0 + \beta_1x_i + \epsilon_i \\
+cY_i &= c\beta_0 + c\beta_1x_i + c\epsilon_i \\
+\tilde{Y}_i = \tilde{\beta}_0 + \tilde{\beta}_1x_i + \tilde{\epsilon_i}
+\end{align*}
+where $\tilde{Y}_i = cY_i$, $\tilde\beta_0 = c\beta_0$, $\tilde{\beta}_1 = c\beta_1$ and ${\rm Var}(\tilde{\epsilon}_i) = c^2\sigma^2$.
+
+Unlike rescaling $x$, which only impacted $\beta_1$, rescaling the outcome variable affects all three parameters in the SLR model. However, once again the inferential conclusions are not changed since the numerator and denominator in the test statistic are multiplied by the same factor. 
+
+
+```{example }
+In the penguin data, if we rescale the body mass variable to be in kilograms instead of grams (1 kg = 1,000 g), we obtain the point estimates $\hat\beta_0 = -5.78$ and $\hat\beta_1 = 0.0497$. Since we have just changed $y$ by a factor of 1/1000, we see the corresponding shift in these point estimates.
+```
+
+```{r eval=FALSE, echo=F}
+penguin_lm4 <- lm(I(body_mass_g/1000) ~ flipper_length_mm,
+                  data=penguins)
+tidy(penguin_lm4)
+```
+
+
+## Exercises
+
+
+```{exercise}
+Consider the penguin data from Example \@ref(exm:peng-lm-center). What would be the estimate of $\hat\beta_1$ if the model was fit using flipper length *in centimeters* (1 cm = 10 mm)?
+```
+
+
