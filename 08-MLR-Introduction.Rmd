@@ -1,0 +1,247 @@
+# The Multiple Linear Regression (MLR) Model {#mlr}
+
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+'`
+
+```{r include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(broom)
+```
+
+
+## Multiple Linear Regression
+
+Simple linear regression (SLR) gave us a tool to model the relationship between a predictor ($x$) and an outcome ($Y$):
+
+$$Y_i = \beta_0 + \beta_1x_{i1} + \epsilon_i$$
+This has a clear drawback: **most real-world outcomes are impacted by more than one variable.** Multiple linear regression (MLR) extends SLR to include multiple predictors:
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \dots + \beta_kx_{ik} +  \epsilon_i
+(\#eq:mlr)
+\end{equation}
+
+As we will see, the mathematical details of SLR extend readily to having more than one predictor variable. However, the graphical representations are often more difficult to create.
+
+The multiple linear regression model \@ref(eq:mlr) has analogous assumptions to simple linear regression:
+
+* $E[\epsilon_i] = 0$
+* $Var(\epsilon_i) = \sigma^2$
+* $\epsilon_i$ are uncorrelated
+
+In Chapter \@ref(mlrmx), we will see an alternative form of the MLR model that uses matrix algebra to simplify computations and directly use these properties to show properties of the parameter estimates.
+
+But first, in this chapter we explore how the addition of additional predictor variables impacts the effects and interpretations of the coefficient parameters $\beta_j$.
+
+
+<!-- ### MLR -- Outline of upcoming topics -->
+
+<!-- We will cover MLR in the next several lectures: -->
+
+<!-- * Interpretation of model parameters (this lecture) -->
+<!-- * Estimation of parameters (Lecture 11) -->
+<!-- * Inference using MLR (Lectures 12 \& 13) -->
+<!-- * Categorical variables in MLR (Lecture 14) -->
+
+<!-- We will then discuss how we can check model assumptions and modify our model to deal with violations of the assumptions. -->
+
+<!-- *First, a caution: One topic not yet covered is assessing model adequacy and checking model assumptions (Chapter 4 in the textbook). These are very important, but will be easier to cover after discussing MLR.*  -->
+
+
+## MLR Model 1: One continuous and one binary predictor
+
+
+Consider once again the penguin data with body mass as the outcome. 
+But now we will use a model that includes multiple predictor variables.
+From the data plotted in Figure \@ref(fig:g-penguin-flip-mass-bysex), we can see two trends:
+
+* Penguins with longer flippers tend to have greater body mass
+* Male penguins tend to have greater body mass than female penguins
+
+```{r g-penguin-flip-mass-bysex, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset."}
+g_penguin_flip_mass <- penguins %>%
+  rename(Sex=sex) %>%
+  filter(!is.na(Sex)) %>%
+  ggplot(aes(x=flipper_length_mm,
+           y=body_mass_g)) +
+  theme_bw() + 
+  geom_point(aes(col=Sex, shape=Sex)) +
+    xlab("Flipper Length (mm)") +
+    ylab("Body Mass (g)")
+g_penguin_flip_mass
+```
+
+
+In Examples \@ref(exm:peng-lm-intro-inference) and \@ref(exm:penguin-mass-sex-testing), respectively, we showed there was significant evidence for these two trends. But what happens we when include both variables in the model at the same time?
+
+
+
+```{r eval=FALSE, include=FALSE}
+mel_lm2 <- lm(mort~latitude + ocean, data=melanoma)
+g_mel2 <- ggplot(melanoma) + theme_bw() +
+   geom_point(aes(x=latitude, y=mort, col=as.factor(ocean))) +
+   xlab("State Latitude (degrees)") + ylab("Melanoma Mortality Rate (per 10 million)") +
+   scale_color_discrete(name="Borders Ocean", breaks=0:1, labels=c("No", "Yes")) +
+      geom_abline(aes(slope=coef(mel_lm2)[2],
+                   intercept=coef(mel_lm2)[1], col="0"))  +
+      geom_abline(aes(slope=coef(mel_lm2)[2],
+                   intercept=coef(mel_lm2)[1] + coef(mel_lm2)["ocean"],
+                   col="1"))
+g_mel2
+```
+
+
+Let's use the following notation for modeling the penguin data:
+
+* $Y_i =$ Body mass (in grams) for penguin $i$
+* $x_{i1} =$ Flipper length (in mm) for penguin $i$
+* $x_{i2} =$ Indicator of sex for penguin $i$. $0 =$ female, $1=$ male.
+
+Instead of the SLR Model $Y_i = \beta_0 + \beta_1x_{i1} + \epsilon_i$, we can use the model
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \epsilon_i
+(\#eq:mlr2)
+\end{equation}
+
+From equation \@ref(eq:eq:mlr2), we can construct two different regression lines. For female penguins, $x_{i2} = 0$, so \@ref(eq:eq:mlr2) reduces to:
+
+\begin{align*}
+Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(0) + \epsilon_i\\
+&= \beta_0 + \beta_1x_{i1} + \epsilon_i
+\end{align*}
+
+If we take expectations, we can fine the regression line for mean body mass of female penguins is:
+
+\begin{equation}
+\E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0] = \beta_0 + \beta_1x_{i1}
+(\#eq:mlr2_x20)
+\end{equation}
+
+Notice here how we are using the notation $\E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0]$ to denote the expected value of $Y_i$ for observations with $x_{i1} = x_{i1}$ and $x_{i2} = 0$. This is an example of general notation for the expectation of $Y$ *conditional* on specific values of the predictor variables $x_{ij}$.
+
+For male penguins, $x_{i2} = 0$, so \@ref(eq:eq:mlr2) reduces to:
+\begin{align*}
+Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(1) + \epsilon_i\\
+&= (\beta_0 + \beta_2) + \beta_1x_{i1} + \epsilon_i
+\end{align*}
+Taking the expectation of this equation gives:
+\begin{equation}
+\E[Y_i| x_{i1} = x_{i1}, x_{i2} = 1] = (\beta_0 + \beta_2) + \beta_1x_{i1}
+(\#eq:mlr2_x21)
+\end{equation}
+
+The key difference between equations \@ref(eq:mlr2_x20) and \@ref(eq:mlr2_x21) is the addition of $\beta_2$, which changes the intercept. For female penguins, the intercept of the line is $\beta_0$, while for male penguins it is $\beta_0 + \beta_2$. Both lines still have the same slope. Graphically, we can represent this as:
+
+```{r g-penguin-flip-mass-bysex-lm, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset."}
+g_penguin_flip_mass +
+   geom_smooth(aes(col=Sex, lty=Sex), method="lm", se=FALSE)
+```
+
+Consider the following groups of penguins:
+
+* Group A: Female penguins with 200mm flippers
+* Group B: Female penguins with 190mm flippers
+* Group C: Male penguins with 200mm flippers
+* Group D: Male penguins with 190mm flippers
+
+```{example}
+According to the MLR model \@ref(ex:mlr_x2}, what is the difference in average body mass between 
+penguins in Group A and Group B?
+```
+
+To answer this, let's first write out the equation of the mean body mass for each group of penguins:
+
+$$\text{Group A:} \quad \E[Y_i | x_{i1} = 200, x_{i2} = 0 ] = \beta_0 + \beta_1*200$$
+$$\text{Group B:} \quad \E[Y_i | x_{i1} = 190, x_{i2} = 0 ] = \beta_0 + \beta_1*190$$
+The difference between these is:
+\begin{align*}
+\E[Y_i | x_{i1} = 200, x_{i2} = 0 ] - \E[Y_i | x_{i1} = 190, x_{i2} = 0 ] &= \left(\beta_0 + \beta_1*200 \right) - \left(\beta_0 + \beta_1*190\right)\\
+& = 200\beta_1 - 190\beta_1\\
+&= 10\beta_1
+\end{align*}
+So for female penguins that differ in flipper length by 10mm, the difference in their average body mass is $10\beta_1$.
+
+
+```{example}
+According to the MLR model \@ref(ex:mlr_x2}, what is the difference in average body mass between 
+penguins in Group C and Group D?
+```
+
+We follow the same procedure, first finding the equation for the mean body mass in each group and then computing their difference.
+
+$$\text{Group C:} \quad \E[Y_i | x_{i1} = 200, x_{i2} = 1 ] = \beta_0 + \beta_2 + \beta_1*200$$
+$$\text{Group D:} \quad \E[Y_i | x_{i1} = 190, x_{i2} = 1 ] = \beta_0 + \beta_2 + \beta_1*190$$
+
+\begin{align*}
+\E[Y_i | x_{i1} = 200, x_{i2} = 1 ] - \E[Y_i | x_{i1} = 190, x_{i2} = 1 ] &= \left(\beta_0 + \beta_2 + \beta_1*200 \right) - \left(\beta_0 + \beta_2 + \beta_1*190\right)\\
+& = 200\beta_1 - 190\beta_1\\
+&= 10\beta_1
+\end{align*}
+So for male penguins that differ in flipper length by 10mm, the difference in their average body mass is $10\beta_1$.
+
+```{example}
+According to the MLR model \@ref(ex:mlr_x2}, what is the difference in average body mass between 
+penguins in Group C and Group A?
+```
+
+
+\begin{align*}
+\E[Y_i | x_{i1} = 200, x_{i2} = 1 ] - \E[Y_i | x_{i1} = 200, x_{i2} = 0 ] &= \left(\beta_0 + \beta_2 + \beta_1*200 \right) - \left(\beta_0 + \beta_2 + \beta_1*200\right)\\
+& = \beta_2
+\end{align*}
+We would obtain the same difference if we compared Group D to Group B. So for penguins *with the same flipper length*, the difference in body mass between male penguins and female penguins is $\beta_2$.
+
+
+
+
+## MLR Model 2: Two continuous predictors
+
+Instead of modelling body mass using flipper length and sex, we could instead model body mass using flipper length and bill length. Mathematically, this means considering a model with two continuous predictor variables.
+
+First, we can graphically see that there appears to be a positive correlation between bill depth, flipper length, and body mass.
+
+```{r g-penguin-flip-mass-bill-pairs, echo=FALSE, message=F, warning=F }
+library(GGally)
+ggpairs(penguins, columns=c(3, 5, 6))
+```
+
+We can again use equation \@ref(eq:mlr2) as our model, but now with 
+
+* $Y_i =$ Body mass (in grams) for penguin $i$
+* $x_{i1} =$ Flipper length (in mm) for penguin $i$
+* $x_{i2} =$ Bill length (in mm) for penguin $i$
+
+```{example}
+What is the difference in average body mass for penguins with the same flipper length and that differ in bill length by 1 mm?
+```
+
+In this example, we don't know the specific flipper length of the penguins, but we are told that they have the same length. So when computing their mean body mass, we can use a variable ($x_1$) to represent this value. We also don't know what their bill depths are, except that they differ by one unit. We can use $x_2 + 1$ and $x_2$ to denote these two quantities. The difference in average body mass between the specified groups of penguins is:
+
+\begin{align*}
+\E[Y_i | x_{i1} = x_1, x_{i2} = x_2 + 1 ] - \E[Y_i | x_{i1} = x_1, x_{i2} = x_2 ] &= \left(\beta_0 + \beta_1*x_1  + \beta_2(x_2 + 1)\right) - \left(\beta_0 + \beta_1*x_1 + \beta_2x_2\right)\\
+& = (x_2 + 1)\beta_2 - x_2\beta_2\\
+&= \beta_2
+\end{align*}
+
+By the same procedure, we could find that the difference in average body mass for penguins with the same bill length that differ in flipper length by 1mm is $\beta_1$.
+
+
+## Interpreting $\beta_j$ in the general MLR model
+
+For the MLR model with two predictor variables, the coefficient parameters can be interpreted as:
+
+* $\beta_0 =$ Average value of $Y_i$ for observations with $x_{i1}=0$ and $x_{i2}=0$
+* $\beta_1 =$ Difference in average value of $Y_i$ for a 1-unit difference in $x_{i1}$ **among observations with the same value of $x_{i2}$**
+* $\beta_2 =$ Difference in average value of $Y_i$ for a 1-unit difference in $x_{i2}$ **among observations with the same value of $x_{i1}$**
+
+These can be generalized to an MLR model with $p-1$ different predictor variables:
+
+* $\beta_0 =$ Average value of $Y_i$ when **all the $x$'s are zero**
+* $\beta_j =$ Average difference in $Y_i$ for a 1-unit difference in $x_{ij}$ **among observations with the same value of all other $x$'s**
+

@@ -298,7 +298,7 @@ $$
 Var\left[\hat\beta_0\right] = \sigma^2\left(\frac{1}{n} + \frac{\overline{x}^2}{S_{xx}}\right).
 $$
 Both $\hat\beta_0$ and $\hat\beta_1$ are *linear* estimators, because they are linear combinations of the data $y_i$:
-$$\hat\beta_1 = \frac{S_{xy}}{S_{xx}} = \sum_{i=1}^n \frac{ (x_i - \overline{x})^2}{S_{xx}}y_i = \sum_{i=1}^n c_iy_i$$
+$$\hat\beta_1 = \frac{S_{xy}}{S_{xx}} = \sum_{i=1}^n \frac{ (x_i - \overline{x})}{S_{xx}}y_i = \sum_{i=1}^n c_iy_i$$
 
 The  **Gauss-Markov Theorem** states that the OLS estimator has the smallest variance among linear unbiased estimators. It is the 
 BLUE -- Best Linear Unbiased Estimator.

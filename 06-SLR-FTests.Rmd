@@ -205,7 +205,7 @@ summary(penguin_lm)
 
 Regardless of which approach to calculating the test statistic that we use, we can summarize our conclusions by saying:
 
-We reject the null hypotheses that there is no linear relationship between penguin flipper length and average body mass ($p < 0.0001$).
+We reject the null hypothesis that there is no linear relationship between penguin flipper length and average body mass ($p < 0.0001$).
 
 
 

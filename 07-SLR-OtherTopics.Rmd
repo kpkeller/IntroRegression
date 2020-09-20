@@ -127,7 +127,7 @@ It is also possible to rescale the outcome variable. This is generally only done
 \begin{align*}
 Y_i &= \beta_0 + \beta_1x_i + \epsilon_i \\
 cY_i &= c\beta_0 + c\beta_1x_i + c\epsilon_i \\
-\tilde{Y}_i = \tilde{\beta}_0 + \tilde{\beta}_1x_i + \tilde{\epsilon_i}
+\tilde{Y}_i &= \tilde{\beta}_0 + \tilde{\beta}_1x_i + \tilde{\epsilon_i}
 \end{align*}
 where $\tilde{Y}_i = cY_i$, $\tilde\beta_0 = c\beta_0$, $\tilde{\beta}_1 = c\beta_1$ and ${\rm Var}(\tilde{\epsilon}_i) = c^2\sigma^2$.
 

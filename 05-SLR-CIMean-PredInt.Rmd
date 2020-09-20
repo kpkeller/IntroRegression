@@ -264,7 +264,7 @@ The variance is:
 (\#eq:varyhat)
 \end{align}
 
-Thus, the uncertainty in the new observation is the uncertainty in the estimated mean $\hat y_0  = \hat\mu_{y|x_0]}$ *and* the uncertainty in a new observation ($\sigma^2$).
+Thus, the uncertainty in the new observation is the uncertainty in the estimated mean $\hat y_0  = \hat\mu_{y|x_0}$ *and* the uncertainty in a new observation ($\sigma^2$).
 
 Using equation \@ref(eq:varyhat), we can compute a $(1-\alpha)100\%$ **prediction interval** for a new observation with $x=x_0$ as:
 
