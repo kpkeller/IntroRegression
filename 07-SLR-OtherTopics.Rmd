@@ -24,7 +24,7 @@ Y_i &= \beta_0 + \beta_1x_i + \epsilon_i \\
 
 Thus, we still have an SLR model, but with $\beta_0'$ in place of $\beta_0$. From the derivation above, we can see that $\beta_0' = \beta_0 + \beta_1\overline{x}$. In words, this means that $\beta_0'$ is the mean of $Y$ for observations with the average value of the predictor variable. This is the primary reason for centering the $x$ variable, since it has a practical meaning, often unlike the intercept from an uncentered model.
 
-The slope parameter $\beta_1$ is unchanged by this reparameterization. The model inference--hypothesis tests and confidence intrevals--are not changed by centering the $x$ variable.
+The slope parameter $\beta_1$ is unchanged by this reparameterization. The model inference--hypothesis tests and confidence intervals--are not changed by centering the $x$ variable.
 
 ```{r eval=TRUE, include=FALSE}
 g1 <- ggplot() + theme_test() + 
@@ -66,7 +66,7 @@ penguins <- penguins %>%
 ```
 
 When we fit the SLR model with this centered variable, we get point estimates $\hat\beta_0 = 4201.8$ and $\hat\beta_1 = 49.7$. 
-As expected, thge slope is the same as the uncentered model. 
+As expected, the slope is the same as the uncentered model. 
 The estimated average body mass for penguins with "average" flipper length is 4,202 grams. 
 Since the SLR line passes through ($\overline{x}, \overline{y})$, this is exactly the mean penguin body mass in this data.
 

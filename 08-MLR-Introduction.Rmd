@@ -109,23 +109,23 @@ Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \epsilon_i
 (\#eq:mlr2)
 \end{equation}
 
-From equation \@ref(eq:eq:mlr2), we can construct two different regression lines. For female penguins, $x_{i2} = 0$, so \@ref(eq:eq:mlr2) reduces to:
+From equation \@ref(eq:mlr2), we can construct two different regression lines. For female penguins, $x_{i2} = 0$, so \@ref(eq:mlr2) reduces to:
 
 \begin{align*}
 Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(0) + \epsilon_i\\
 &= \beta_0 + \beta_1x_{i1} + \epsilon_i
 \end{align*}
 
-If we take expectations, we can fine the regression line for mean body mass of female penguins is:
+If we take expectations, we can find the regression line for mean body mass of female penguins is:
 
 \begin{equation}
 \E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0] = \beta_0 + \beta_1x_{i1}
-(\#eq:mlr2_x20)
+(\#eq:mlr2x20)
 \end{equation}
 
 Notice here how we are using the notation $\E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0]$ to denote the expected value of $Y_i$ for observations with $x_{i1} = x_{i1}$ and $x_{i2} = 0$. This is an example of general notation for the expectation of $Y$ *conditional* on specific values of the predictor variables $x_{ij}$.
 
-For male penguins, $x_{i2} = 0$, so \@ref(eq:eq:mlr2) reduces to:
+For male penguins, $x_{i2} = 0$, so \@ref(eq:mlr2) reduces to:
 \begin{align*}
 Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(1) + \epsilon_i\\
 &= (\beta_0 + \beta_2) + \beta_1x_{i1} + \epsilon_i
@@ -133,12 +133,12 @@ Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(1) + \epsilon_i\\
 Taking the expectation of this equation gives:
 \begin{equation}
 \E[Y_i| x_{i1} = x_{i1}, x_{i2} = 1] = (\beta_0 + \beta_2) + \beta_1x_{i1}
-(\#eq:mlr2_x21)
+(\#eq:mlr2x21)
 \end{equation}
 
-The key difference between equations \@ref(eq:mlr2_x20) and \@ref(eq:mlr2_x21) is the addition of $\beta_2$, which changes the intercept. For female penguins, the intercept of the line is $\beta_0$, while for male penguins it is $\beta_0 + \beta_2$. Both lines still have the same slope. Graphically, we can represent this as:
+The key difference between equations \@ref(eq:mlr2x20) and \@ref(eq:mlr2x21) is the addition of $\beta_2$, which changes the intercept. For female penguins, the intercept of the line is $\beta_0$, while for male penguins it is $\beta_0 + \beta_2$. Both lines still have the same slope. Graphically, we can represent this as:
 
-```{r g-penguin-flip-mass-bysex-lm, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset."}
+```{r g-penguin-flip-mass-bysex-lm, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset.", message=FALSE}
 g_penguin_flip_mass +
    geom_smooth(aes(col=Sex, lty=Sex), method="lm", se=FALSE)
 ```
@@ -151,7 +151,7 @@ Consider the following groups of penguins:
 * Group D: Male penguins with 190mm flippers
 
 ```{example}
-According to the MLR model \@ref(ex:mlr_x2}, what is the difference in average body mass between 
+According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between 
 penguins in Group A and Group B?
 ```
 
@@ -169,7 +169,7 @@ So for female penguins that differ in flipper length by 10mm, the difference in 
 
 
 ```{example}
-According to the MLR model \@ref(ex:mlr_x2}, what is the difference in average body mass between 
+According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between 
 penguins in Group C and Group D?
 ```
 
@@ -186,7 +186,7 @@ $$\text{Group D:} \quad \E[Y_i | x_{i1} = 190, x_{i2} = 1 ] = \beta_0 + \beta_2 
 So for male penguins that differ in flipper length by 10mm, the difference in their average body mass is $10\beta_1$.
 
 ```{example}
-According to the MLR model \@ref(ex:mlr_x2}, what is the difference in average body mass between 
+According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between 
 penguins in Group C and Group A?
 ```
 

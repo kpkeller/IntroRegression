@@ -1,0 +1,370 @@
+# Parameter Estimation in MLR
+
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\bmSigma}{\\boldsymbol{\\Sigma}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+
+## Estimation of $\beta$ in MLR
+The equation for the multiple linear regression (MLR) model is: 
+
+$$Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \dots + \beta_kx_{ik} +  \epsilon_i$$
+
+<!-- * $E[\epsilon_i] = 0$ -->
+<!-- * $Var(\epsilon_i) = \sigma^2$ -->
+<!-- * $\epsilon_i$ are uncorrelated -->
+
+To estimate the $\beta_j$ parameters, we follow the same strategy as in SLR: minimizing the sum of squared residuals $\sum_{i=1}^n e_i^2$. 
+
+Graphically, this yields the *hyperplane* (the $p$-dimensional analogue of a plane) that best fits the data, by minimizing the distance between each point and the hyperplane. However, unlike SLR for which we can draw a scatterplot and regression line, visualizing this hyperplane is difficult. Instead, we are primarily limited to algebraic representations of the model.
+
+Minimizing the sum of squared residuals means minimizing the function
+\begin{align}
+S(\beta_0, \beta_1, \dots, \beta_k) & = \sum_{i=1}^n \left(y_i - (\beta_0 + \beta_1x_{i1} + \dots + \beta_kx_{ik})\right)^2
+(\#eq:MLRsquared-resid)
+\end{align}
+This is a higher-dimension analogue to \@ref(eq:squared-resid). To find the values $\hat\beta_0, \hat\beta_1, \dots, \hat\beta_k$ that minimize \@ref(eq:MLRsquared-resid), we differentiate $S(\beta_0, \beta_1, \dots, \beta_k)$ with respect to all $(k+1)$ $\beta_j$'s and solve a system of $p=k+1$ equations. However, solving this system of $(k+1)$ equations gets tedious, so we will not go into the details of that approach here. A simpler and more scalable approach is to use a matrix representation of the model.
+
+## Matrix form of the MLR model {#mlrmx}
+
+
+### Random Vectors
+
+<!-- Covariance Matrix -->
+
+Before introducing the matrix form of the MLR model, we first briefly review notation for random vectors. 
+
+```{definition}
+An $n$-dimensional **random vector** is a vector, each component of which is a random variable. \[\bmY = \begin{bmatrix} Y_1 \\ \vdots \\ Y_n\end{bmatrix}\]
+```
+
+```{definition}
+The **mean vector** is a vector whose elements are the element-wise mean of a random vector, assuming those means exist. 
+\[\bmmu = \bmmu_{\bmY} = \E[\bmY] = \begin{bmatrix} \E[Y_1]\\\vdots \\\E[Y_n]\end{bmatrix}\]
+```
+
+```{definition}
+The **covariance matrix** (or **variance-covariance matrix**) is a matrix containing the variances and covariances of the elements in a random vector (assuming $\E[Y_i^2] <\infty$).
+\begin{align*}
+\bmSigma = \bmSigma_{\bmY} &= \Var(\bmY) \\
+&= \E\left[(\bmY - \bmmu_{\bmY})(\bmY - \bmmu_{\bmY})^\mT\right]\\
+&= \begin{bmatrix} \E[(Y_1 - \mu_1)(Y_1 - \mu_1)] & \E[(Y_1 - \mu_1)(Y_2 - \mu_2)] & \dots & \E[(Y_1 - \mu_1)(Y_n - \mu_n)] \\ \E[(Y_2 - \mu_2)(Y_1 - \mu_1)] & \E[(Y_2 - \mu_2)(Y_2 - \mu_2)] & \dots & \E[(Y_2 - \mu_2)(Y_n - \mu_n)]\\ \vdots & \vdots & & \vdots \\  \E[(Y_n - \mu_n)(Y_1 - \mu_1)] & \E[(Y_n - \mu_n)(Y_2 - \mu_2)] & \dots & \E[(Y_n - \mu_n)(Y_n - \mu_n)]\end{bmatrix}\\
+&= \begin{bmatrix} \Var(Y_1) & \mathrm{Cov}(Y_1, Y_2) & \cdots & \cdots & \mathrm{Cov}(Y_1, Y_n)\\ \mathrm{Cov}(Y_2, Y_1) & \Var(Y_2) & &  & \vdots \\
+\vdots & & \ddots & &  \vdots\\
+\vdots & & &  \ddots & \mathrm{Cov}(Y_{n-1}, Y_n) \\
+\mathrm{Cov}(Y_n, x_1) & \cdots & \cdots & \mathrm{Cov}(Y_n, Y_{n-1}) & \Var(Y_n) \end{bmatrix}
+\end{align*}
+```
+
+
+<!-- # &= \begin{bmatrix} \sigma_{1}^2 & \sigma_{12} & \dots & \sigma_{1n} \\ \sigma_{21} & \sigma_{2}^2 & \dots & \sigma_{2n} \\ \vdots & \vdots & & \vdots \\ \sigma_{n1} & \sigma_{n2} & \dots & \sigma{n}^2\end{bmatrix} -->
+
+<!-- The variance of a random variable is $\Var(X) = \E[(X - \E[X])^2]$ -->
+
+<!-- The variance of a vector of random variables $x$ is the matrix analogue: -->
+
+<!-- \small  -->
+<!-- \begin{align*} -->
+<!-- \Var(\bmx) &= \E[(\bmx - \E[\bmx])(\bmx - \E[\bmx])^\mT]\\ -->
+<!-- &= \begin{bmatrix} \Var(x_1) & \mathrm{Cov}(x_1, x_2) & \cdots & \cdots & \mathrm{Cov}(x_1, x_n)\\ \mathrm{Cov}(x_2, x_1) & \Var(x_2) & &  & \vdots \\ -->
+<!-- \vdots & & \ddots & &  \vdots\\ -->
+<!-- \vdots & & &  \ddots & \mathrm{Cov}(x_{n-1}, x_n) \\ -->
+<!-- \mathrm{Cov}(x_n, x_1) & \cdots & \cdots & \mathrm{Cov}(x_n, x_{n-1}) & \Var(x_n) \end{bmatrix} -->
+<!-- \end{align*} -->
+
+
+An important property of the covariance matrix is that if $\mathbf{A}$ is a $q \times n$ matrix and $\bmy$ is an $n$-vector,  $\Var\left[\mathbf{A}\bmy\right] = \mathbf{A}\Var\left[\bmy\right]\mathbf{A}^\mT$ (a $q \times q$ matrix).
+
+
+### Matrix form of the MLR model
+To write the MLR model in matrix form, we translate each component into a vector or matrix. For the predictor variables $x_{ij}$, we create an $(n \times p)$ covariate matrix:\footnote{$p=k+1$} $\mathbf{X} = \begin{bmatrix} 1 & x_{11} & x_{12} & \cdots & x_{1k} \\ 1 & x_{21} & & & \vdots \\ \vdots & \vdots & & & \vdots \\ 1& x_{n1} & \cdots & \cdots & x_{nk} \end{bmatrix}$
+
+The $i$th row in $\bmX$ corresponds to the $i$th observation, and the $j$th column corresponds to the $j$th predictor variable (where $j=1$ corresponds to the intercept). When needed, we can let $\bmx_j$ denote the $j$th column of $\bmX$. Note that $p=k + 1$.
+
+We then write the $\beta's$ as a $(p \times 1)$ vector: $\bmbeta = \begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_k \end{bmatrix}$.
+
+<!-- By multiplying $\bmX$ and $\bmbeta$ together, we can represent the mean vector for the MLR regression line: -->
+<!-- \begin{align*} -->
+<!-- \bmX\bmbeta &= \begin{bmatrix} 1 & x_{11} & x_{12} & \cdots & x_{1k} \\ 1 & x_{21} & & & \vdots \\ \vdots & \vdots & & & \vdots \\ 1& x_{n1} & \cdots & \cdots & x_{nk} \end{bmatrix}\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_k \end{bmatrix}\\ -->
+<!-- &= \begin{bmatrix} \beta_0 + x_{11}\beta_1 + \dots + x_{1k}\beta_k \\\beta_0 + x_{21}\beta_1 + \dots + x_{2k}\beta_k \\ \vdots \\ \beta_0 + x_{n1}\beta_1 + \dots + x_{nk}\beta_k \end{bmatrix} -->
+<!-- \end{align*} -->
+
+We write the $Y_i$'s as an $(n \times 1)$ vector: $\mathbf{Y} = \begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix}$
+and write the $\epsilon_i$'s as an $(n \times 1)$ vector: $\boldsymbol{\epsilon} = \begin{bmatrix} \epsilon_1 \\ \epsilon_2 \\ \vdots \\ \epsilon_n \end{bmatrix}$.
+
+Together, these pieces give the MLR model in matrix form:
+
+\[\mathbf{Y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon}\]
+
+
+To see the connection to the non-matrix form, we can multiply out the pieces to get:
+\begin{align*}
+\begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix} &= \begin{bmatrix} 1 & x_{11} & x_{12} & \cdots & x_{1k} \\ 1 & x_{21} & & & \vdots \\ \vdots & \vdots & & & \vdots \\ 1& x_{n1} & \cdots & \cdots & x_{nk} \end{bmatrix}\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_k \end{bmatrix} + \begin{bmatrix} \epsilon_1 \\ \epsilon_2 \\ \vdots \\ \epsilon_n \end{bmatrix}\\
+&= \begin{bmatrix} \beta_0 + x_{11}\beta_1 + \dots + x_{1k}\beta_k + \epsilon_1 \\\beta_0 + x_{21}\beta_1 + \dots + x_{2k}\beta_k + \epsilon_2\\ \vdots \\ \beta_0 + x_{n1}\beta_1 + \dots + x_{nk}\beta_k + \epsilon_n\end{bmatrix}
+\end{align*}
+
+<!-- Notation:  -->
+
+<!-- * Vectors are denoted bY lower-case letters that are bold when typed ($\mathbf{v}$) or underlined when handwritten.   -->
+<!-- * Matrices are denoted by upper-case letters that are bold when typed ($\mathbf{X}$) or underline when handwritten.  -->
+<!-- * $y_i$ is the $i$th element of y -->
+<!-- * $x_{ij}$ is the element in the $i$th row and $j$th column of $\mathbf{X}$. -->
+<!-- * $\mathbf{x}^\mT$ transposes the vector $\mathbf{x}$ -->
+<!-- * $\bmI$ is an identity matrix (1's on diagonal, zeros everywhere else) -->
+
+
+### Assumptions of MLR model
+
+The MLR model assumptions are:
+
+
+1. $\E[\bmepsilon] = \mathbf{0}$
+2. $Var[\bmepsilon] = \sigma^2\bmI$
+3. $\bmX$ is "full-rank"
+
+Assumption 1 is the same as the $\E[\epsilon_i] = 0$ assumption from SLR. Assumption 2 implies constant variance ($\Var(\epsilon_i) = \sigma^2$) and no correlation between the $\epsilon_i$'s ($Cov(\epsilon_i, \epsilon_j) = 0$). Assumption 3 is discussed in detail below (Section \@ref(fullrank)).
+
+
+## Estimation of $\beta$ in MLR (Matrix form)
+
+In the matrix form of the MLR model, we can write the vector of residuals as $\mathbf{e} = \bmy - \bmX\hat\bmbeta$. Minimizing the sum of square residuals becomes minimizing 
+$S(\hat\bmbeta) =\mathbf{e}^\mT\mathbf{e}$.
+This criterion can be re-written:
+\begin{align*}
+S(\hat\bmbeta) = \sum_{i=1}^n e_i^2 &=\mathbf{e}^\mT\mathbf{e}\\
+&=\left(\bmy - \bmX\hat\bmbeta\right)^\mT\left(\bmy - \bmX\hat\bmbeta\right)\\
+&=\bmy^T\bmy - (\bmX\hat\bmbeta)^\mT\bmy - \bmy^\mT\bmX\hat\bmbeta + (\bmX\hat\bmbeta)^\mT\bmX\hat\bmbeta\\
+& =\bmy^T\bmy  - 2\hat\bmbeta^\mT\bmX^\mT\bmy + \hat\bmbeta^\mT\bmX^\mT\bmX\hat\bmbeta
+\end{align*}
+
+We minimize this by differentiating with respect to $\bmbeta$: $$\frac{S(\boldsymbol\beta)}{\partial\bmbeta} = -2\bmX^\mT\bmy + 2\bmX^\mT\bmX\bmbeta$$
+and then setting the derivative to zero: 
+$$0 = -2\bmX^\mT\bmy + 2\bmX^\mT\bmX\hat\bmbeta$$
+This gives the "normal equations" for MLR:
+$$\bmX^\mT\bmX\hat\bmbeta = \bmX^\mT\bmy$$
+And by multiplying each side by the inverse of $\bmX^\mT\bmX$, we obtain the equation for the least-squares estimator of $\bmbeta$:
+$$\hat\bmbeta  = \left(\XtX\right)^{-1}\bmX^\mT\bmy$$
+
+
+
+### Relationship to SLR
+
+What if $k=1$? In that case, we expect our formulas for MLR to reduce to the quantities we found fro SLR. 
+To see this, let $\bmX = \begin{bmatrix} 1 & x_1 \\ \vdots & \vdots \\ 1 & x_n \end{bmatrix}$. Then:
+<!-- and  $\hat\bmbeta$ reduces to the $(\hat\beta_0, \hat\beta_1)$ from SLR: -->
+\begin{align*}
+\hat\bmbeta & = \left(\XtX\right)^{-1}\bmX^\mT\bmy\\
+& = \left(\begin{bmatrix} 1 & \cdots & 1 \\ x_{1} & \cdots &  x_{n}\end{bmatrix}\begin{bmatrix} 1 & x_{1} \\ \vdots & \vdots \\ 1 & x_{n} \end{bmatrix}\right)^{-1} \begin{bmatrix} 1 & \cdots & 1 \\ x_{1} & \cdots &  x_{n}\end{bmatrix}\begin{bmatrix} y_{1} \\ \vdots \\ y_{n} \end{bmatrix}\\
+&= \left(\begin{bmatrix} n & \displaystyle\sum_{i=1}^n {x_i} \\ \displaystyle\sum_{i=1}^n {x_i} & \displaystyle \sum_{i=1}^n {x_i}^2 \end{bmatrix}\right)^{-1} \begin{bmatrix} \displaystyle\sum_{i=1}^n y_i \\ \displaystyle\sum_{i=1}^n x_iy_i  \end{bmatrix}\\
+&=\frac{1}{\displaystyle n\sum_{i=1}^n {x_i}^2  - \left(\sum_{i=1}^n {x_i}\right)^2} \left(\begin{bmatrix} \displaystyle \sum_{i=1}^n {x_i}^2  &\displaystyle  -\sum_{i=1}^n {x_i} \\ \displaystyle -\sum_{i=1}^n {x_i} & n \end{bmatrix}\right) \begin{bmatrix} \sum_{i=1}^n y_i \\ \displaystyle \sum_{i=1}^n x_iy_i  \end{bmatrix}\\
+&=\frac{1}{\displaystyle n\sum_{i=1}^n {x_i}^2  -
+\left(\sum_{i=1}^n {x_i}\right)^2} \left(\begin{bmatrix} \displaystyle \sum_{i=1}^n {x_i}^2 \sum_{i=1}^n y_i  -\sum_{i=1}^n {x_i} \sum_{i=1} y_i  \\ \displaystyle -\sum_{i=1}^n {x_i}\sum_{i=1}^n y_i  +  n\sum_{i=1}^n x_iy_i \end{bmatrix}\right)\\
+\Rightarrow \hat\beta_1 &= \frac{\displaystyle n\sum_{i=1}^n x_iy_i -\sum_{i=1}^n {x_i}\sum_{i=1}^n y_i }{\displaystyle n\sum_{i=1}^n {x_i}^2  - \left(\sum_{i=1}^n {x_i}\right)^2} = \frac{S_{xy}}{S_{xx}}
+\end{align*}
+As expected, this gives us exactly the form of $\hat\beta_1$ from SLR.
+
+
+## Why must X be full-rank? {#fullrank}
+
+In the assumptions above, we said that $\bmX$ must be full-rank. Conceptually, this means that each column of $\bmX$ is providing different information; no information is duplicated in the chosen predictor variables. For example, including both speed in miles per hour and kilometers per hour in an MLR model is redundant.
+
+Mathematically, this assumption means that the columns of $\bmX$ are linearly independent, so the dimension of the column space of $\bmX$ is equal to the number of columns in $\bmX$. For example, if $\bmx_3 = \bmx_1 + \bmx_2$, then the matrix $\bmX = \begin{bmatrix} \mathbf{1} & \bmx_1 & \bmx_2 & \bmx_3 \end{bmatrix}$ is not full rank (it has rank = 3) because the column $\bmx_3$ can be written as a linear combination of columns $\bmx_1$ and $\bmx_2$.
+
+The underlying reason for this assumption is because we need to be able to find the inverse of  $\bmX^\mT\bmX$ to compute $\hat\bmbeta$. If $\bmX$ is less than full rank, then $(\XtX)^{-1}$ does not exist.
+
+<!-- Practical implications: -->
+<!-- * Each variable in the model should provide new information (i.e. no duplicates) -->
+<!-- * R will usually drop variables it identifies as redundant. -->
+
+## Fitting MLR in `R`
+To fit a MLR model in `R`, we again use the `lm()` command. To include multiple predictor variables in the model, separate them by `+`: `y ~ x1 + x2 + x3`.
+As with SLR, the intercept is automatically included.
+
+```{r include=FALSE}
+library(palmerpenguins)
+library(broom)
+```
+
+```{r eval=T, echo=TRUE}
+penguins_mlr <- lm(body_mass_g ~ flipper_length_mm + bill_length_mm + sex,
+             data=penguins)
+```
+
+Detailed output can be obtained from either `tidy()`
+
+```{r echo=TRUE}
+tidy(penguins_mlr)
+```
+
+
+or `summary()`:
+
+```{r echo=T}
+summary(penguins_mlr)
+```
+
+
+
+
+<!-- ### Fitting MLR in \texttt{R} -- Duplicated variable -->
+
+
+```{r eval=FALSE, echo=FALSE, include=FALSE}
+# Create fttogo, which duplicates ydstogo
+nfl_den$fttogo <- 3*nfl_den$ydstogo
+# Fit model with fttogo
+nfl_lm2 <- lm(yards_gained ~ yardline_100 + ydstogo + 
+                play_type + fttogo, data=nfl_den)
+summary(nfl_lm2)
+```
+
+## Properties of OLS Estimators
+
+As with SLR, it is useful to understand the distributional properties of $\hat\bmbeta$. 
+It is straightforward to show that $\hat\bmbeta$ is unbiased:
+\begin{align*}
+\E[\hat\bmbeta] &= \E\left[(\XtX)^{-1}\bmX^\mT\bmy\right]\\
+& = (\XtX)^{-1}\bmX^\mT\E\left[\bmy\right]\\
+&= (\XtX)^{-1}\bmX^\mT\left(\bmX\bmbeta + \E[\boldsymbol\epsilon]\right)\\
+&= (\XtX)^{-1}\bmX^\mT\bmX\bmbeta\\
+&= \bmbeta
+\end{align*}
+This tell us that assuming the model is correct, on average $\hat\bmbeta$ will be equal to $\bmbeta$. 
+This doesn't mean it will be true for any particular dataset, but in repeated experiments it would be right on average.
+
+
+
+<!-- ## Properties of OLS Estimators -->
+<!-- We want to know the mean and variance of $\hat\bmbeta$.  Why? -->
+
+<!-- * Mean: We want that, on average, $\hat\bmbeta$ is providing the correct value.  -->
+<!--     * We want $\hat\bmbeta$ to be unbiased, so $\E[\hat\bmbeta] = \bmbeta$. -->
+<!-- * Variance: WE will use $We want to know how variable (across repeated datasets) $\hat\bmbeta$ is. Suppose we obtain $\hat\bmbeta = 1$. Is this meaningfully different from $0$? If $\Var(\hat\bmbeta) = 100$, then no. If $\Var(\hat\bmbeta) = 0.0001$, then yes. -->
+
+
+<!-- ### Variance of $\hat\bmbeta$ -->
+
+What about the variance of $\hat\bmbeta$?  
+
+Recall that if $\mathbf{A}$ is a $q \times n$ matrix and $\bmy$ is an $n$-vector,  $\Var\left[\mathbf{A}\bmy\right] = \mathbf{A}\Var\left[\bmy\right]\mathbf{A}^\mT$ (a $q \times q$ matrix).
+
+To find the covariance matrix for $\hat\bmbeta$, we use the property $\Var\left[\mathbf{A}\bmy\right] = \mathbf{A}\Var\left[\bmy\right]\mathbf{A}^\mT$. This allows us to compute the variance matrix as:
+\begin{align*}
+\Var(\hat\bmbeta) &= \Var\left((\XtX)^{-1}\bmX^\mT\bmy\right)\\
+&= (\XtX)^{-1}\bmX^\mT\Var(\bmy)\left((\XtX)^{-1}\bmX^\mT\right)^\mT\\
+&= (\XtX)^{-1}\bmX^\mT\sigma^2\bmI\bmX(\XtX)^{-1}\\
+&= \sigma^2(\XtX)^{-1}\bmX^\mT\bmX(\XtX)^{-1}\\
+&= \sigma^2(\XtX)^{-1}
+\end{align*}
+
+
+Some important facts about the matrix $\sigma^2(\XtX)^{-1}$:
+
+* The diagonal elements of $\Var(\hat\bmbeta)$ are the variances of each $\beta_j$.
+* The off-diagonal elements provide the *co*variances of the elements of $\beta_j$. 
+
+
+The form of $\Var(\hat\bmbeta0)$ is a multivariate extension of $Var(\hat\beta_1) = \sigma^2/S_{xx}$ from SLR. Now, instead of just considering the spread of $x_{ij}$ on the variance of $\hat\beta_j$, the variability is also impacted by other variables. This means that the correlation between two predictor variables can impact the uncertainty (and thus confidence intervals) of both point estimates. This will be important when we return to multicollinearity in Section \@ref(multicolshrinkage).
+
+
+
+
+## Fitted values for MLR 
+
+Fitted values for the MLR model are $\hat y_i = \hat\beta_0 + \hat\beta_1x_{i1} + \dots \hat\beta_kx_{ik}$.In matrix form, this is:
+\begin{align*}
+\hat\bmy &= \bmX\hat\bmbeta\\
+&= \bmX(\XtX)^{-1}\bmX^\mT\bmy\\
+&= \left[\bmX(\XtX)^{-1}\bmX^\mT\right]\bmy\\
+&= \bmH \bmy
+\end{align*}
+
+Similarly, we can write the residuals as: 
+\begin{align*}
+\mathbf{e} &= \bmy - \bmX\hat\bmbeta
+&= \bmy - \bmH\bmy \\
+&= (\mathbf{I} - \bmH)\bmy
+\end{align*}
+
+## Hat Matrix $\mathbf{H}$
+
+The matrix $\bmH = \bmX(\XtX)^{-1}\bmX^\mT$ is called the `hat' matrix. The name comes from its use in calculating fitted values  (putting the "hat" on the $y$'s).
+
+$\bmH$ is important because it captures the relationships between the predictor variables ($x$'s). The diagonal elements of $\bmH$ are especially useful in quantifying leverage and influence (Section \@ref(unusualobs)).
+
+Mathematically, $\bmH$ is a symmetric, idempotent matrix that projects onto the column space of $\bmX$. These attributes make $\bmH$ foundational to the theory of linear models, although most of the details are outside the scope of this text.
+
+
+
+<!-- * Conceptual Interpretation of $\bmH$ -->
+<!--     * Uses predictor variables ($x$'s) to transform observations ($y$'s) to fitted values ($\hat y$'s). -->
+<!--     * Elements of $\bmH$ relate to *leverage* and *influence*, which we will discuss in later lecture  (Ch 4 in book). -->
+<!-- * Mathematical Properties of $\bmH$ -->
+<!--     * Symmetric ($\bmH^\mT=\bmH$) -->
+<!--     * A projection matrix into the column space of $\bmX$ -->
+<!--     * Idempotent ($\bmH\bmH = \bmH$) -->
+<!--     * $\bmH(\bmI - \bmH) = (\bmI - \bmH)\bmH = \mathbf{0}$ (this follows from $\bmH$ being idempotent) -->
+
+
+
+
+
+
+## Estimating $\sigma^2$
+Like in SLR, the parameter $\sigma^2= \text{Var}(\epsilon_i)$ represents the variance of the error above and below the "line" (actually a hyperplane) in MLR. Once again, we can estimate $\sigma^2$ using $SS_{Res}$:
+\begin{align*}
+SS_{Res} & = \sum_{i=1}^n (y_i - \hat y_i)^2\\
+&= \sum_{i=1}^n e_i^2\\
+&= \mathbf{e}^\mT\mathbf{e}\\
+&= [(\mathbf{I} - \bmH)\bmy]^\mT(\mathbf{I} - \bmH)\bmy\\
+&= \bmy^\mT(\mathbf{I} - \bmH)^\mT(\mathbf{I} - \bmH)\bmy\\
+&= \bmy^\mT(\mathbf{I} - \bmH)\bmy
+\end{align*}
+
+There are $n-p$ degrees of freedom associated with $\hat\sigma^2$, since there are $p$ estimated $\beta$'s ($\hat\beta_0, \hat\beta_1, \dots, \hat\beta_k$). For those who are interested in additional theory, the rank of $\bmI - \bmH$ is $n-p$, which is how this degrees of freedom is derived.
+
+
+Our estimator for $\sigma^2$ is then:
+
+$$\hat\sigma^2 = \frac{SS_{Res}}{n-p}$$
+
+
+## Estimating Var$(\hat{\boldsymbol{\beta}})$
+
+To estimate $\Var(\hat\bmbeta)$, we just plug in $\hat\sigma^2$ in for $\sigma^2$ in the formula for $\Var(\hat\bmbeta)$. 
+The square-root of the diagonal elements of $\widehat{\Var}(\hat\bmbeta)$ are the standard errors of $\hat\beta_j$.
+
+
+<!-- * $(\XtX)^{-1}$ is a function of $\bmX$, which is fixed and known -->
+<!-- * Need an estimate of $\sigma^2$: use $MS_{Res}$. -->
+<!-- $$\widehat{\Var}(\hat\bmbeta) = MS_{Res}(\XtX)^{-1}$$ -->
+
+In R, the `vcov` function will compute $\widehat{\Var}(\hat\bmbeta)$:
+
+```{r eval=TRUE, echo=TRUE}
+vcov(penguins_mlr)
+```
+
+
+You can compute standard errors from $\widehat{\Var}(\hat\bmbeta)$:
+
+```{r eval=TRUE, echo=TRUE}
+sqrt(diag(vcov(penguins_mlr)))
+tidy(penguins_mlr)
+```
