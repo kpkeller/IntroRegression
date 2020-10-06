@@ -15,40 +15,51 @@ $\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
 
 ## Hypothesis Testing in MLR
 
-Questions we can ask about our model:
+In multiple linear regression, there are three types of questions we could ask about the importance of the predictor variables. They differ by whether they involve one predictor, all predictors, or a subset of predictors.
 
-1. What is the importance of a specific predictor? (T-test)
-2. What is the overall importance of the model? (F-test)
-3. Which subsets of predictors are important? (Partial F-tests)
 
-Question 1 Examples: 
+**Single Variable:**  What is the importance of a specific predictor?  
+This question can be addressed with a T-test. Examples:
 
 * What is the relationship, if any, between average air pollution levels and cardiovascular mortality rates, after controlling for temperature?
 * What is the relationship, if any, between gender and salary, controlling for years of experience and position title?
 * What is the relationship, if any, between marijuana use and opioid overdoses, controlling for socioeconomic status?
 * What is the relationship, if any, between hours spent on homework and final exam score, controlling for class level and department?
 
-Question 2 Examples:
+
+**All Variables:** What is the overall importance of the model?   
+This question can be addressed with a global F-test. Examples:
 
 * How well do temperature and air pollution explain variation in cardiovascular mortality rates?
 * Do gender, years of experience, and position title explain differences in salary?
 * Can rates of opioid overdoses be explained by rates of marijuana use and socioeconomic status?
 * Can we predict final exam score using time spent on homework, class level, and department?
 
-
-We will first consider Question 1 (specific predictors), and then turn to Question 2 (overall significance) and Question 3 (groups of predictors).
-
-## Hypothesis Tests for $\beta_j$
+**Subset of Variables:** Which subsets of predictors are important?
+This question can be addressed with a partial F-test. Examples:
 
 
-### Example: Modeling Photosynthesis Output
+* How well do temperature and air pollution explain variation in cardiovascular mortality rates?
+* Do gender, years of experience, and position title explain differences in salary?
+* Can rates of opioid overdoses be explained by rates of marijuana use and socioeconomic status?
+* Can we predict final exam score using time spent on homework, class level, and department?
 
-What factors impact photosynthesis output of trees?
+<!-- Questions we can ask about our model: -->
 
-* Data from Reich \textit{et al.}, \textit{Nature}, 2018 (\texttt{photo.csv} on Canvas). 
-* They measured photosynthesis output under different conditions (e.g., warmed vs. ambient air)
+<!-- 1. What is the importance of a specific predictor? (T-test) -->
+<!-- 2. What is the overall importance of the model? (F-test) -->
+<!-- 3. Which subsets of predictors are important? (Partial F-tests) -->
 
-Fit a multiple linear regression model that adjusts for soil moisture content, warming treatment (tree was warmed or not) and leaf temperature.
+<!-- Question 1 Examples:  -->
+<!-- Question 2 Examples: -->
+<!-- We will first consider Question 1 (specific predictors), and then turn to Question 2 (overall significance) and Question 3 (groups of predictors). -->
+
+
+## Photosynthesis Data
+
+To motivate hypothesis testing for $\beta_j$, let's look at data on photosynthesis output in trees from Reich \textit{et al.}, \textit{Nature}, 2018. They measured photosynthesis output under different amounts of water in the soil and temperature in the surrounding air.
+
+We can fit a multiple linear regression model that adjusts for soil moisture content, warming treatment (tree was warmed or not) and leaf temperature.
 \small
 \begin{align*}
 Y &= \text{ Photosynthesis output (variable \texttt{photosyn})}\\
@@ -57,9 +68,6 @@ x_2 &= \text{ Tree Warmed Indicator (variable \texttt{warming\_treatment};}\\
 & \qquad \qquad \text{1 = \texttt{warmed}, 0 = \texttt{ambient})}\\
 x_3 &= \text{ Leaf Temperature in Degrees Celsius (variable \texttt{tleaf})}
 \end{align*}
-
-
-### Photosynthesis Data
 
 ```{r eval=FALSE, echo=TRUE, message="hide", size="footnotesize"}
 photo <- read_csv("../../Data/photo.csv", col_types = cols())
@@ -81,49 +89,53 @@ legend_b <- get_legend(g1 + theme(legend.position="bottom",legend.justification=
 plot_grid( g12, legend_b, nrow = 2, rel_heights = c(1, .2), align="hv")
 ```
 
-### Modeling the Photosynthesis Data
+If we fit an MLR model to this data, we obtain the fitted model:
 
-```{r eval=FALSE, echo=TRUE, size="footnotesize", output.lines=-1:-9}
+\begin{equation}
+\hat y = 3.89 + 40.5x_{1} + 1.4x_{2} -0.022x_3
+(\#eq:photofitted)
+\end{equation}
+
+
+```{r eval=FALSE, echo=FALSE}
 ph_lm <- lm(photosyn~soil_water + warming_treatment  + tleaf,
             data=photo)
 summary(ph_lm)
 ```
 
-The fitted model is:
 
-$$\hat y = 3.89 + 40.5x_{1} + 1.4x_{2} -0.022x_3$$
-
-\small
-\begin{align*}
-Y &= \text{ Photosynthesis output (variable \texttt{photosyn})}\\
-x_1 &= \text{ Soil Water Content Ratio (variable \texttt{soil\_water})} \\
-x_2 &= \text{ Tree Warmed Indicator (variable \texttt{warming\_treatment};}\\
-& \qquad \qquad \text{1 = \texttt{warmed}, 0 = \texttt{ambient})}\\
-x_3 &= \text{ Leaf Temperature in Degrees Celsius (variable \texttt{tleaf})}
-\end{align*}
+<!-- ### Hypothesis Tests for $\beta_1$ in Photosynthesis data -->
 
 
-### Hypothesis Tests for $\beta_1$ in Photosynthesis data
-
-Scientific question: Is there a relationship between soil water content ratio and photosynthesis output, *after adjusting for leaf temperature and warming treatment*?
-
-Statistical question: Is $\beta_{1}\ne 0$ in this model?
+## Hypothesis Tests for $\beta_j$
 
 
-### Hypothesis Tests for $\beta_j$
 
-General form of hypothesis test:
-$H_0: \beta_j = \beta_{j0}$ vs. $H_A: \beta_j \ne \beta_{j0}$
+Using this model \@ref(eq:photofitted),  we could ask the **scientific question:**
 
-Use the same form of test statistic:
-$$t = \frac{\hat\beta_j - \beta_{j0}}{se(\hat\beta_j)}$$
+Is there a relationship between soil water content ratio and photosynthesis output, *after adjusting for leaf temperature and warming treatment*?
 
-* $se(\hat\beta_j) = \sqrt{\hat\sigma^2C_{jj}}$, where $\mathbf{C} = (\XtX)^{-1}$
-  * Depends on $x_j$ AND the other $x$'s
-*  Under the null hypothesis, $t$ follows a T-distribution with $n-p$ degrees of freedom
-*   The $T$ statistic R provides by default corresponds to $\beta_{j0}=0$.
+
+To translate this into a statistical question, we need to isolate what represents the relationship between soil water content ratio and photosynthesis output. This is precisely $\beta_1$, since it represents the slope of the relationship between soil water content ($x_1)$ and average photosynethesis outtput ($E[Y]$), for trees with the same value of leaf temperature and warming treatment.
+Thus, our corresponding **statistical question** is:
+
+Is $\beta_{1}\ne 0$ in this model?
+
+
+The general form of the hypothesis test for a single parameter in MLR is:
+
+$$H_0: \beta_j = \beta_{j0} \text{ vs. } H_A: \beta_j \ne \beta_{j0}$$
+
+To test this hypothesis, we use the $t$-statistic that has the same form as the one from SLR:
+
+$$t = \frac{\hat\beta_j - \beta_{j0}}{\widehat{se}(\hat\beta_j)}$$
+However, unlike in SLR, the standard error in the denominator ( $se(\hat\beta_j) = \sqrt{\hat\sigma^2(\XtX)^{-1}_{jj}}$) depends on $x_j$ and all of the other $x$'s. This means that the correlation between predictor variables can impact the results of the hypothesis test (and the width of confidence intervals).
+
+When $H_0$ is true, $t$ follows a T-distribution with $n-p$ degrees of freedom. The corresponding $p$-value is computed in the usual way: $p = P(T> |t|)$. The $t$ statistic and $p$-value provided by R in standard output correspond to $\beta_{j0}=0$.
 
 ### Hypothesis Tests for $\beta_1$ in Photosynthesis data
+
+
 
 Scientific question: Is there a relationship between soil water content ratio and photosynthesis output, *after adjusting for leaf temperature and warming treatment*?
 

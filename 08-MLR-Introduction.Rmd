@@ -234,7 +234,8 @@ By the same procedure, we could find that the difference in average body mass fo
 
 ## Interpreting $\beta_j$ in the general MLR model
 
-For the MLR model with two predictor variables, the coefficient parameters can be interpreted as:
+
+The examples above show us that for the MLR model with two predictor variables, the coefficient parameters can be interpreted as:
 
 * $\beta_0 =$ Average value of $Y_i$ for observations with $x_{i1}=0$ and $x_{i2}=0$
 * $\beta_1 =$ Difference in average value of $Y_i$ for a 1-unit difference in $x_{i1}$ **among observations with the same value of $x_{i2}$**
@@ -245,3 +246,69 @@ These can be generalized to an MLR model with $p-1$ different predictor variable
 * $\beta_0 =$ Average value of $Y_i$ when **all the $x$'s are zero**
 * $\beta_j =$ Average difference in $Y_i$ for a 1-unit difference in $x_{ij}$ **among observations with the same value of all other $x$'s**
 
+
+## Linear Combinations of $\beta_j$'s
+
+In multiple linear regression, it is common to compare observations that differ in more than one predictor variable and to compute the mean value of the outcome for a specified combination of predictor variables. Both of these use a linear combination of the $\beta$'s to calculate means and compare values.
+
+
+
+### Computing Mean Values
+
+To compute the mean value for a combination of predictor variables, we simply plug those values into the MLR equation: 
+\[\E[Y_i | x_{i1}=a_1, \dots, x_{ik} = a_k ]] = \beta_0 +a_1\beta_1 + \dots + a_k\beta_k\]
+Since we are computing the mean value, the equation on the right-hand side includes the intercept $\beta_0$.
+
+```{example penguin-mlr3}
+Consider an MLR model for penguin body mass that includes three predictors: flipper length ($x_1$), bill length ($x_2$), and sex ($x_3$ is indicator of being male).  What is the mean body mass for male penguins with flipper lengths of 200 mm, bill lengths of 45 mm?
+```
+To answer this, we plug in $x_1 = 200$, $x_2 = 45$, and $x_3 = 1$ to get the mean value
+$$E[Y] = \beta_0 + 200\beta_1 + 45\beta_2 + \beta_3$$
+
+### Computing Differences
+
+To find the difference in mean value of the outcome between two observations, we can compute the mean for each and subtract. 
+
+```{example peng-mlr3comp}
+Use the MLR model from Example \@ref(exm:penguin-mlr3) to find the difference in mean body mass between female penguins  with 150 mm flippers and 45 mm bills and male penguins with 200 mm flippers and 38 mm bills.
+```
+
+```{solution}
+We start with finding the mean for each:
+$$E[Y | x_1 = 150, x_2 = 45, x_3 = 0] = \beta_0 + 150\beta_1  + 45\beta_2$$
+$$E[Y | x_1 = 200, x_2 = 38, x_3 = 1] = \beta_0 + 200\beta_1  + 38\beta_2 + \beta_3$$
+Taking the difference, we find:
+$$E[Y | x_1 = 150, x_2 = 45, x_3 = 0]  -   E[Y | x_1 = 200, x_2 = 38, x_3 = 1] = -50\beta_1 + 9 \beta_2 - \beta_3$$
+```
+
+
+Generalizing the result from Example \@ref(exm:peng-mlr3comp), we can interpret the value of 
+$$a_1\beta_1 + a_2\beta_2 +  \dots + a_k\beta_k$$
+as the difference in the expected value of the outcome between observations that differ by $a_1$ in $x_1$, $a_2$ in $x_2$,$\dots$, and $a_k$ in $x_k$.
+
+
+
+
+## Exercises
+
+```{exercise football-mlr-interp}
+Suppose we have data on several football teams. We fit an MLR model with:
+```
+
+* $Y_i$ = Points scored
+* $x_{i1}$ = Rushing yards 
+* $x_{i2}$ = Passing yards
+* $x_{i3}$ = Number of turnovers
+
+for all of the teams in the league. In the context of this model, provide an interpretation for each of the following:
+
+  a. $150\beta_1$ 
+  b. $200\beta_2 + 3\beta_3$
+  c. $-\beta_3$
+  d. $\beta_0 + 100\beta_1 + 150\beta_2$
+  e. $\beta_0$
+
+
+```{exercise}
+Using the model from Exercise \@ref(exr:football-mlr-interp), what is the mean number of point scored for a team that had 130 rushing yards, 75 passing yards, and 2 turnovers?
+```
