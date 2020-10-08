@@ -68,7 +68,7 @@ The **covariance matrix** (or **variance-covariance matrix**) is a matrix contai
 &= \begin{bmatrix} \Var(Y_1) & \mathrm{Cov}(Y_1, Y_2) & \cdots & \cdots & \mathrm{Cov}(Y_1, Y_n)\\ \mathrm{Cov}(Y_2, Y_1) & \Var(Y_2) & &  & \vdots \\
 \vdots & & \ddots & &  \vdots\\
 \vdots & & &  \ddots & \mathrm{Cov}(Y_{n-1}, Y_n) \\
-\mathrm{Cov}(Y_n, x_1) & \cdots & \cdots & \mathrm{Cov}(Y_n, Y_{n-1}) & \Var(Y_n) \end{bmatrix}
+\mathrm{Cov}(Y_n, Y_1) & \cdots & \cdots & \mathrm{Cov}(Y_n, Y_{n-1}) & \Var(Y_n) \end{bmatrix}
 \end{align*}
 ```
 
