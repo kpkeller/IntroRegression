@@ -29,7 +29,7 @@ In multiple linear regression, there are three types of questions we could ask a
 **Single Variable**  
 
 * What is the importance of a specific predictor?  
-* This question can be addressed with a T-test (Section \@ref(mlrttest).
+* This question can be addressed with a T-test (Section \@ref(mlrttest)).
 * Examples 
   * What is the relationship, if any, between average air pollution levels and cardiovascular mortality rates, after controlling for temperature?
   * What is the relationship, if any, between gender and salary, controlling for years of experience and position title?
@@ -40,7 +40,7 @@ In multiple linear regression, there are three types of questions we could ask a
 **All Variables** 
 
 * What is the overall importance of the model?   
-* This question can be addressed with a global F-test (Section \@ref(mlrftest).
+* This question can be addressed with a global F-test (Section \@ref(mlrftest)).
 * Examples:
   * How well do temperature and air pollution explain variation in cardiovascular mortality rates?
   * Do gender, years of experience, and position title explain differences in salary?
@@ -50,7 +50,7 @@ In multiple linear regression, there are three types of questions we could ask a
 **Subset of Variables** 
 
 * Which subsets of predictors are important?
-* This question can be addressed with a partial F-test  (Section \@ref(mlrpartialftest). 
+* This question can be addressed with a partial F-test  (Section \@ref(mlrpartialftest)). 
 * Examples:
     * How well do temperature and air pollution explain variation in cardiovascular mortality rates?
     * Do gender, years of experience, and position title explain differences in salary?
@@ -213,101 +213,67 @@ tidy(ph_lm, conf.int=TRUE, conf.level=0.95)
 ```
 
 
-## Testing for Significance of Regression {#mlrftest}
+## Testing for Significance of Regression (Global F-Test) {#mlrftest}
 
-### Testing for Significance of Regression (Global F-Test)
 
-**Question:** Is there any linear relationship between the predictor variables and photosynthesis output?
+### Scientific vs. Statistical Question
+A different **scientific question** we could ask about model \@ref(eq:photofitted) is:
 
-This is a "**Global F-test**":
-\begin{align*}
-H_0:& \beta_1 = \beta_2 = \beta_3 = 0 \\
-H_A:& \beta_1 \ne 0 \text{ and/or }\beta_2 \ne 0 \text{ and/or } \beta_3 \ne 0
-\end{align*}
+Is there any linear relationship between all of these predictor variables (soil water content ratio, tree warming status, and leaf temperature) and photosynthesis output?
+
+Our corresponding **statistical question** is:
+
+Is $\beta_1 \ne 0 \text{ and/or }\beta_2 \ne 0 \text{ and/or } \beta_3 \ne 0$?
+
+
+In words, this corresponds to:
 
 $H_0$: There is no linear relationship between average photosynthesis output and soil water content ratio, tree warming status, and leaf temperature.  
 $H_A$: There is a linear relationship between average photosynthesis output and soil water content ratio, tree warming status, and leaf temperature.
 
+### Global F-test
+<!-- This question is a **global F-test**. We can formalize this as the null and alternative hypotheses: -->
+<!-- \begin{align*} -->
+<!-- H_0:& \beta_1 = \beta_2 = \beta_3 = 0 \\ -->
+<!-- H_A:& \beta_1 \ne 0 \text{ and/or }\beta_2 \ne 0 \text{ and/or } \beta_3 \ne 0 -->
+<!-- \end{align*} -->
 
-The general form of the Global F-Test is:
+The general form of this set of hypotheses, called a **Global F-Test**, is:
 \begin{align*}
 H_0:& \beta_1 = \beta_2 = \cdots = \beta_k = 0 \\
 H_A:& \beta_j \ne 0 \text{ for at least one \textit{j}}
 \end{align*}
 
 
-**Note:** $H_A$ does not specify *which* coefficient is non-zero, only that *at least 1* is non-zero.
+An important limitation to the Global F-test is that $H_A$ does not specify *which* coefficient is non-zero, only that *at least 1* is non-zero. In many cases, we might follow-up a Global F-test with an additional t-test for a specific parameter.^[However, this leads to issues of multiple comparisons that need to be addressed.]
 
-
-How do we test this hypothesis?  
-
-In SLR:
-
-* Sum of squares decomposition: $SS_{Tot} = SS_{Reg} + SS_{Res}$
-* $f = MS_{Reg}/MS_{Res} = \dfrac{SS_{Reg}/df_{Reg}}{SS_{Res}/df_{res}}$
-  * $MS_{Res}$ is average residual variation ($\hat\sigma^2$)
-  * $MS_{Reg}$ is average amount of variability explained by each predictor (SLR had only 1).
-
-We will use the same approach for MLR.
-
-Sum of squares decomposition is the same:
+In MLR, we use the same approach to testing $H_0$ that we used in SLR (Section \@ref(slrftest)). The F statistic is 
+$$f = \frac{SS_{Reg} / df_{Reg}}{SS_{Res}/ df_{Res}}.$$
+As with SLR, the sum of squares decomposition is the same:
 \begin{align*}
 SS_{Tot} &= \sum_{i=1}^n (y_i - \overline{y})^2\\
 SS_{Reg} &= \sum_{i=1}^n (\hat y_i - \overline{y})^2\\
 SS_{Res} &= \sum_{i=1}^n (y_i - \hat y_i)^2\\
 SS_{Tot} &= SS_{Reg} + SS_{Res}
 \end{align*}
-
-### F-statistic
-
-The F statistic is 
-$$f = \frac{SS_{Reg} / df_{Reg}}{SS_{Res}/ df_{Res}} \approx \frac{\text{Signal}}{\text{Noise}}.$$
-
-What about degrees of freedom?
-
-* $df_{Reg} = k$ (**not $p$!**). This is the number of predictors, not counting intercept
-* $df_{Res} = n - p = n - (k + 1) = n - k - 1$.
+The degrees of freedom scale up and down according to the number of predictor variables. With $k$ predictor variables, $df_{Reg} = k$. Note that this is not $p=k+1$, since we do not account for the intercept here. The denominator degrees of freedom is  $df_{Res} = n - p = n - (k + 1) = n - k - 1$. When $H_0$ is true (and assuming approximate normality), $f$ follows an $F_{df_{Reg}, df_{Res}}$ distribution. We reject $H_0$ is $f$ is large enough (using the test level $\alpha$).
 
 
-When $H_0$ is true (and assuming approximate normality), $f$ follows a $F_{df_{Reg}, df_{Res}}$ distribution. Reject if $f$ is large enough.
 
+```{example}
+In the photosynthesis data, is there evidence of a linear relationship between any of the predictor variables and the average photosynthesis output? To answer this, we compute the $f$ statistic:
+```
 
-### Testing for Significance of Regression (Global F-Test)
+$$f = \frac{5863/3}{36803/(1315 - 4)} = 69.6$$
+The corresponding $p$-value if $P(F_{3,1311} > 69.6) < 0.0001$. We reject the null hypothesis that there is no linear relationship between average photosynthesis output and the soil water content ratio, tree warming status, and leaf temperature.
 
-
-We summarize this in an ANOVA table:
-
-\begin{tabular}{l cccc}
-\hline
-Source of & Sum of & Degrees of \\
-Variation & Squares &   Freedom & MS & F \\
-\hline
-Regression & $SS_{reg}$ & $k$ & $MS_{reg}$ & $MS_{reg}/MS_{res}$ \\
-Residual & $SS_{res}$ & $n-(k+1) = n- p$ & $MS_{res}$ & -- \\
-Total & $SS_{tot}$ & $n-1$ & -- & -- \\
-\hline
-\end{tabular}
-
-
-\vspace{0.8cm}
-
-R provides the $F$ statistic and $p$-value for a test of significance of regression. This is provided at the bottom of \texttt{summary()} output.
-
-
-## Example: Photosynthesis Data
-
-
-```{r echo=TRUE, size="footnotesize", output.lines=-1:-9}
+R provides the $F$ statistic and $p$-value for a test of significance of regression. This is provided at the bottom of `summary()` output:
+```{r echo=TRUE}
 summary(ph_lm)
 ```
 
-Conclusion:
 
-\vspace{5cm}
-
-### Photosynthesis Example -- F-test "by hand"
-
-```{r echo=TRUE}
+```{r echo=FALSE, eval=F}
 SSres <- sum(residuals(ph_lm)^2)
 SStot <- sum((photo$photosyn- mean(photo$photosyn))^2)
 SSreg <- SStot - SSres
@@ -316,153 +282,128 @@ f
 pf(f, df1=3, df2=nobs(ph_lm)-4, lower=F)
 ```
 
-\vspace{0.5cm}
-Warning: If doing this "by hand", be careful about missing values.
 
 
-## $R_{Adj}^2$ and Testing for Subsets of Coefficients {#adjr2}
-### Testing for Subsets of Coefficients
+### ANOVA Table
 
-What if we want to test whether adding/removing a group of variables matters?
+The information for the global F-test can be summarized in an ANOVA table:
 
-\begin{align*}
-\text{Photosyn. Output} &= \text{Soil WC}\\
-\text{Photosyn. Output} &= \text{Soil WC + Warming Treatment + Leaf Temp.}
-\end{align*}
-
-Can we use $R^2$ to compare the two models?  
-
-* $R^2 = \dfrac{SS_{Reg}}{SS_{Tot}} = 1 -\dfrac{SS_{Res}}{SS_{Tot}}$ 
-* The percent of variability explained by the model.
+| Source of Variation | Sum of Squares | Degrees of  Freedom | MS | F |
+|:-----|:------|:--:|:--:|:--:|
+|Regression | $SS_{reg}$ | $k$ | $MS_{reg}$ | $MS_{reg}/MS_{res}$|
+|Residual | $SS_{res}$ | $n-(k+1) = n- p$ | $MS_{res}$ | -- |
+|Total | $SS_{tot}$ | $n-1$ | -- | -- |
 
 
-### Adjusted $R^2$
-
-**Problem:** $R^2$ will always go up when you add a variable.  
-
-*  Adding a variable with true value $\beta =0$ will still have $\hat\beta \ne 0$ (although maybe very close). 
-* This means that $SS_{Res}$ will be (slightly) smaller, meaning $SS_{Reg}$ goes up.
-* So the ratio $SS_{Reg}/SS_{Tot}$ will increase $\Rightarrow$ higher $R^2$
-
-\vspace{0.8cm}
-
-**$R^2$ should not be used to compare models**.  
-
-Adjusted $R^2$ is one solution:
-
-\begin{align*}
-R^2 &= 1 - \frac{SS_{Res}}{SS_{Tot}}\\
-R^2_{Adj} &= 1 - \frac{SS_{Res}/(n - p)}{SS_{Tot}/(n-1)}
-\end{align*}
-
-* This provides a penalty as $p$ (or $k$) increases
-* If a variable is added that does not reduce $SS_{Res}$ much, then $R^2_{Adj}$ goes down
-* As $n \to \infty$, $R^2_{Adj} \to R^2$
-
-### Testing for Subsets of Coefficients {#mlrpartialftest}
 
 
-Let's now do a formal statistical test to compare:
-
-\begin{align*}
-\text{Photosyn. Output} &= \text{Soil WC}\\
-\text{Photosyn. Output} &= \text{Soil WC + Warming Treatment + Leaf Temp.}
-\end{align*}
 
 
-### Testing for Subsets of Coefficients
 
 
+## Testing for Subsets of Coefficients {#mlrpartialftest}
+
+### Scientific vs. Statistical Question
+A different **scientific question** we could ask about model \@ref(eq:photofitted) is:
+
+Is there any linear relationship between average photosynthesis output and warming treatment and leaf temperature  in a model that already contains soil water content?
+
+Our corresponding **statistical question** is:
+
+Is $\beta_1 \ne 0 \text{ and/or }\beta_2 \ne 0$?
+
+Compared to the question for the Global F-test, we are now posing a question about a *subset* of the predictor variables. This is the same as comparing the "full" model:
 $$Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i3} + \epsilon_i$$
+and the "reduced" model
+$$Y_i = \beta_0 + \beta_1x_{i1} + \epsilon_i.$$
 
-\small
-\begin{align*}
-Y &= \text{ Photosynthesis output (variable \texttt{photosyn})}\\
-x_1 &= \text{ Soil Water Content Ratio (variable \texttt{soil\_water})} \\
-x_2 &= \text{ Tree Warmed Indicator (variable \texttt{warming\_treatment};}\\
-& \qquad \qquad \text{1 = \texttt{warmed}, 0 = \texttt{ambient})}\\
-x_3 &= \text{ Leaf Temperature in Degrees Celsius (variable \texttt{tleaf})}
-\end{align*}
-
-\begin{align*}
+This corresponds to the following null and alternative hypotheses:
+\begin{align}
 H_0:& \beta_2 = \beta_3 = 0\\
 H_A:& \beta_2 \ne 0 \text{ and/or } \beta_3 \ne 0
-\end{align*}
-
-### Partial F-Test
-
-Test this null hypothesis using a **partial F-Test**
-
-* Fit the "full" model and "reduced" model
-  * Full model corresponds to $H_A$
-  * Reduced model corresponds to $H_0$
-* Use difference in $SS_{Reg}$ between full and reduced model to compute $f$ statistic
+(\#eq:mlrpartialftest23)
+\end{align}
 
 
-Full model:
-$$Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i3} + \epsilon_i$$
-Reduced model:
-$$Y_i = \beta_0 + \beta_1x_{i1} + \epsilon_i$$
+<!-- In words, this corresponds to: -->
 
-* $SS_{reg}^{Full}$ = Variation in outcome explained by full model
-* $SS_{reg}^{Red}$ = Variation in outcome explained by reduced model
-* Note that $SS_{reg}^{Full} > SS_{reg}^{Red}$
-* $SS_{reg}^{Full} - SS_{reg}^{Red}$ is the "extra sum of squares" explained by the full model compared to the reduced model
-* Number of parameters set to zero in reduced model: $r = 2$
+<!-- $H_0$: There is no linear relationship between average photosynthesis output and soil water content ratio, tree warming status, and leaf temperature.   -->
+<!-- $H_A$: There is a linear relationship between average photosynthesis output and soil water content ratio, tree warming status, and leaf temperature. -->
 
 
-Test statistic is:
-
-$$f = \dfrac{\left(SS_{reg}^{Full} - SS_{reg}^{Red}\right)/ r}{SS_{Res}/(n - p)}$$
-
-* $SS_{Res}$ is calculated from full model
-* $r$ is number of parameters set to 0 in reduced model
-* Compare to $F_{r, n-p}$ distribution to obtain $p$-value.
 
 
-### Partial F-Test -- Matrix form
+
+<!-- Let's now do a formal statistical test to compare: -->
+
+<!-- \begin{align*} -->
+<!-- \text{Photosyn. Output} &= \text{Soil WC}\\ -->
+<!-- \text{Photosyn. Output} &= \text{Soil WC + Warming Treatment + Leaf Temp.} -->
+<!-- \end{align*} -->
 
 
-Setup: Partition the $\bmbeta$ vector into two parts $A$ and $B$:
-$$\bmbeta = \begin{bmatrix} \beta_1 \\ \beta_2 \\ \vdots \\ \beta_{k-r} \\ \beta_{k-r+1} \\ \vdots \\ \beta_k\end{bmatrix} = \begin{bmatrix} \bmbeta_A \\ \bmbeta_B \end{bmatrix}$$
 
-<!-- ### Partial F-Test -- Matrix form -->
 
+### Partial F-test
+
+The hypotheses in \@ref(eq:mlrpartialftest23) can be tested using a **Partial F-test**, which calculates an $f$ statistic comparing a "full" model with all predictor variables to the "reduced" model with a subset of parameters.
+
+<!-- The general form of this set of hypotheses, called a **Partial F-Test**, is: -->
+<!-- \begin{align*} -->
+<!-- H_0:& \beta_2 = \beta_3 = 0\\ -->
+<!-- H_A:& \beta_2 \ne 0 \text{ and/or } \beta_3 \ne 0 -->
+<!-- \end{align*} -->
+
+The corresponding test statistic is:
+\begin{equation}
+f = \dfrac{\left(SS_{reg}^{Full} - SS_{reg}^{Reduced}\right)/ r}{SS_{Res}/(n - p)}
+(\#eq:mlrpartialf)
+\end{equation}
+The numerator of $f$ is the difference in variation explained by the full model ($SS_{reg}^{Full}$) and the variation explained by the reduced model ($SS_{reg}^{Reduced}$).
+This difference is scaled by the number of variables ($r$) that are being set to zero in reduced model. The denominator is, like with the Global F-test, the average amount of variability unexplained by the full model.  The $f$ statistic in \@ref(eq:mlrpartialf) is compared against an $F_{r, n-p}$ distribution to obtain the $p$-value.
+
+
+
+Sometimes it is convenient to represent the full and reduced models compactly using vector and matrix notation. First, partition the full vector of coefficients $\boldsymbol\beta$ into two subvectors: $$\boldsymbol\beta = \begin{bmatrix} \beta_1 \\ \beta_2 \\ \vdots \\ \beta_{k-r} \\ \beta_{k-r+1} \\ \vdots \\ \beta_k\end{bmatrix} = \begin{bmatrix} \boldsymbol\beta_A \\ \boldsymbol\beta_B \end{bmatrix}$$
 Similarly, partition $\bmX$ into two parts:
 $$\bmX = \begin{bmatrix} 1 & x_{11} & \cdots & x_{1,k-r} & x_{1, k-r + 1} & \cdots & x_{1k} \\ \vdots & \vdots & & \vdots & \vdots & & \vdots \\ 1 & x_{n1} & \cdots & x_{n,k-r} & x_{n, k-r + 1} & \cdots & x_{nk} \end{bmatrix} = \begin{bmatrix} \bmX_A & \bmX_B \end{bmatrix}$$
 
-The Full Model is: $\bmy = \bmX\bmbeta + \bmepsilon$  
-The Reduced Model is: $\bmy = \bmX_A\bmbeta_A + \bmepsilon$
+Without loss of generality, we assume that the reduced model corresponds to setting $\boldsymbol\beta_B = \mathbf{0}$.^[If we want to set a different subset equal to zero, just rearrange the vector.] The Full Model is: 
+$$\bmy = \bmX\boldsymbol\beta + \boldsymbol\epsilon = \bmX_A\boldsymbol\beta_A + \bmX_B\boldsymbol\beta_B + \boldsymbol\epsilon$$  
+The Reduced Model is: 
+$$\bmy = \bmX_A\boldsymbol\beta_A + \boldsymbol\epsilon$$
+This gives us the general form of the null and alternative hypotheses for a partial F-test:
+$$H_0: \boldsymbol\beta_B = \mathbf{0} \text{ vs. } H_A: \boldsymbol\beta_B \ne \mathbf{0}$$
+Let $SS_{Reg}(\boldsymbol\beta)$ denote the ususal regression sum of squares from the full model and $SS_{Reg}(\boldsymbol\beta_A)$ denote the regression sum of squares from the reduced model. Then $SS_{Reg}(\boldsymbol\beta) - SS_{Reg}(\boldsymbol\beta_A)$ is the "extra sum of squares" due to $\boldsymbol\beta_B$ and we can write the $f$ statistic from \@ref(eq:mlrpartialf) as
+$$f = \dfrac{(SS_{Reg}(\boldsymbol\beta) - SS_{Reg}(\boldsymbol\beta_A)) / r}{SS_{Res}/(n - p)}$$
+Again, we complete the one-sided test by comparing to an $F_{r, n-p}$ distribution to obtain the $p$-value.
 
-\vspace{0.5cm}
-\footnotesize
-\begin{tabular}{l  c c}
-\hline
- & Full Model & Reduced Model \\
- \hline
-Model & $\bmy = \bmX\bmbeta + \bmepsilon$ & $\bmy = \bmX_A\bmbeta_A + \bmepsilon$ \\
-$\hat\bmbeta$ & $\hat\bmbeta = (\bmX^\mT\bmX)^{-1}\bmX^\mT\bmy$ & $\hat\bmbeta_A = (\bmX_A^\mT\bmX_A)^{-1}\bmX_A^\mT\bmy$ \\
-$SS_{Res}$ & $SS_{Res}(\bmbeta) = (\bmy - \bmX\hat\bmbeta)^\mT(\bmy - \bmX\hat\bmbeta)$ & $SS_{Res}(\bmbeta_A) = (\bmy - \bmX_A\hat\bmbeta_A)^\mT(\bmy - \bmX_A\hat\bmbeta_A)$ \\
-$SS_{Reg}$ & $SS_{Reg}(\bmbeta) = SS_{Tot} - SS_{Res}(\bmbeta)$ & $SS_{Reg}(\bmbeta_A) = SS_{Tot} - SS_{Res}(\bmbeta_A)$\\
-\hline
-\end{tabular}
-\vspace{0.5cm}
-
-\normalsize
-
-$SS_{Reg}(\bmbeta_B | \bmbeta_A) = SS_{Reg}(\bmbeta) - SS_{Reg}(\bmbeta_A)$ is the "extra sum of squares" due to $\bmbeta_B$.
-
-### Partial F-Test -- Matrix form
-
-$$H_0: \bmbeta_B = \mathbf{0} \text{ vs. } H_A: \bmbeta_B \ne \mathbf{0}$$
-
-$$f = \dfrac{SS_{reg}(\bmbeta_B | \bmbeta_A) / r}{SS_{Res}/(n - p)}$$
-
-* If $H_0$ is true ($\bmbeta_B = \mathbf{0}$), then $f \sim F_{r,n-p}$. 
-* Reject $H_0$ if $f$ is too large.
+<!-- ### Partial F-Test -- Matrix form -->
 
 
-## Partial F-Test in R
+
+
+<!-- \vspace{0.5cm} -->
+<!-- \footnotesize -->
+<!-- \begin{tabular}{l  c c} -->
+<!-- \hline -->
+<!--  & Full Model & Reduced Model \\ -->
+<!--  \hline -->
+<!-- Model & $\bmy = \bmX\boldsymbol\beta + \boldsymbol\epsilon$ & $\bmy = \bmX_A\boldsymbol\beta_A + \boldsymbol\epsilon$ \\ -->
+<!-- $\hat{\boldsymbol\beta}$ & $\hat{\boldsymbol\beta} = (\bmX^\mT\bmX)^{-1}\bmX^\mT\bmy$ & $\hat{\boldsymbol\beta}_A = (\bmX_A^\mT\bmX_A)^{-1}\bmX_A^\mT\bmy$ \\ -->
+<!-- $SS_{Res}$ & $SS_{Res}(\boldsymbol\beta) = (\bmy - \bmX\hat{\boldsymbol\beta})^\mT(\bmy - \bmX\hat{\boldsymbol\beta})$ & $SS_{Res}(\boldsymbol\beta_A) = (\bmy - \bmX_A\hat{\boldsymbol\beta}_A)^\mT(\bmy - \bmX_A\hat{\boldsymbol\beta}_A)$ \\ -->
+<!-- $SS_{Reg}$ & $SS_{Reg}(\boldsymbol\beta) = SS_{Tot} - SS_{Res}(\boldsymbol\beta)$ & $SS_{Reg}(\boldsymbol\beta_A) = SS_{Tot} - SS_{Res}(\boldsymbol\beta_A)$\\ -->
+<!-- \hline -->
+<!-- \end{tabular} -->
+<!-- \vspace{0.5cm} -->
+
+<!-- \normalsize -->
+
+
+
+<!-- * If $H_0$ is true ($\boldsymbol\beta_B = \mathbf{0}$), then $f \sim F_{r,n-p}$.  -->
+<!-- * Reject $H_0$ if $f$ is too large. -->
+
 
 To perform partial F-test in R:
 
@@ -470,156 +411,144 @@ To perform partial F-test in R:
 * Fit the reduced model
 * Use `anova(reduced_mod, full_mod)`
 
-```{r echo=TRUE, size="footnotesize"}
+
+
+```{example}
+Is there any linear relationship between average photosynthesis output and warming treatment and leaf temperature  in a model that already contains soil water content?
+```
+
+We first fit the full model:
+```{r echo=TRUE}
 ph_lm <- lm(photosyn~soil_water + warming_treatment  + tleaf,
             data=photo)
+```
+and then the reduced model:
+```{r echo=TRUE}
 ph_lm_reduced <- lm(photosyn~soil_water,
             data=photo)
 ```
 
-
-
-```{r echo=TRUE, size="footnotesize"}
+For comparing the models, we use the `anova()` command:
+```{r echo=TRUE}
 anova(ph_lm_reduced, ph_lm)
 ```
-\vspace{0.5cm}
+The column `RSS` gives $SS_{res}^{Red}$ and $SS_{res}^{Full}$. Since $SS_{res}^{Red} - SS_{res}^{Full} = SS_{reg}^{Full} - SS_{reg}^{Red}$, we can use these values to get the 
+extra sum of squares, which is provided in the `Sum of Sq` column. The right two columns provide the value of $f$ and the $p$-value.
 
-* The column `RSS` gives $SS_{res}^{Red}$ and $SS_{res}^{Full}$
-* $SS_{res}^{Red} - SS_{res}^{Full} = SS_{reg}^{Full} - SS_{reg}^{Red}$
+We reject $H_0$ and conclude that there is a linear relationship between average photosynthesis output and warming treatment and leaf temperature  in a model that already contains soil water content ($p < 0.0001$).
 
 
-### Photosynthesis Example
 
-Conclusion:  
+```{example}
+Is there any linear relationship between average photosynthesis output and leaf temperature  in a model that already contains soil water content and an indicator of warming treatment?
+```
 
-We reject $H_0$ and conclude that there is a linear relationship between average photosynthesis output and warming treatment and leaf temperature  in a model that already contains soil water content.
-
-### Photosynthesis Example II
-
-$$Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i3} + \epsilon_i$$
-
-\small
-\begin{align*}
-Y &= \text{ Photosynthesis output (variable \texttt{photosyn})}\\
-x_1 &= \text{ Soil Water Content Ratio (variable \texttt{soil\_water})} \\
-x_2 &= \text{ Tree Warmed Indicator (variable \texttt{warming\_treatment};}\\
-& \qquad \qquad \text{1 = \texttt{warmed}, 0 = \texttt{ambient})}\\
-x_3 &= \text{ Leaf Temperature in Degrees Celsius (variable \texttt{tleaf})}
-\end{align*}
-
-\begin{align*}
-H_0:& \beta_3 = 0\\
-H_A:& \beta_3 \ne 0
-\end{align*}
-
-Partial F-test with one variable is equivalent to t-test  
+For this example, our null hypothesis is $H_0: \beta_3 = 0$. If we use the partial F-test for this hypothesis, we obtain:
 
 ```{r echo=TRUE, size="footnotesize", output.lines=-1:-2}
 ph_lm_reduced2 <- lm(photosyn~soil_water + warming_treatment, data=photo)
 anova(ph_lm_reduced2, ph_lm)
 ```
+We would thus fail to reject the null hypothesis. This is the exact same result we would have obtained if we had used a $t$-test. In fact, we once again have the relationship $f = t^2$, when the partial $f$-test is for setting *one* (and only one) coefficient equal to zero.
 
 
-```{r echo=TRUE, size="footnotesize"}
-tidy(ph_lm)
-```
 
+## Adjusted $R^2$ {#adjr2}
 
-## Confidence Intervals for Mean
+In Section \@ref(r2), we introduced the coefficient of determination, $R^2$, as measure of model fit. It might be nice to use $R^2$ as a way to compare different models, but it suffers from one important drawback: adding a variable to a model  cannot decrease $R^2$.  In fact, $R^2$ will almost always go up when a variable is added. This is a mathematical fact, and it doesn't matter if the new variable is unrelated to the outcome or not.
 
-### Confidence Intervals for Mean
-
-Suppose we want to estimate the mean photosynthesis output for a tree with predictor variables
-$$\bmx_0 = \begin{bmatrix} 1 \\ 0.15 \\ 0 \\ 22 \end{bmatrix}$$ 
-
-
-What do these values mean?
-
-\vspace{2cm}
-
-
-Our best estimate of the mean is given by: 
-
-$$\hat\mu_0 = \bmx_0^\mT\hat \bmbeta = 1\times\hat\beta_0 + 0.15\times\hat\beta_1 + 0 \times \hat\beta_2 + 22\times\hat\beta_3$$
-
-Use a confidence interval to represent uncertainty.
-
-Need to know the standard error (or variance) of $\hat\mu_0$.
-
+To get around this, we can compare model using **adjusted $R^2$**:
 \begin{align*}
-\Var(\hat \mu_0) & = \Var(\bmx_0^\mT\hat\bmbeta) \\
-&= \bmx_0^\mT \Var(\hat\bmbeta)\bmx_0 \\
+R^2_{Adj} &= 1 - \frac{SS_{Res}/(n - p)}{SS_{Tot}/(n-1)}
+\end{align*}
+To identify the differences, it helps to compare $R^2_{Adj}$ to the regular version of $R^2$:
+\begin{align*}
+R^2 &= 1 - \frac{SS_{Res}}{SS_{Tot}}\\
+\end{align*}
+In $R^2_{Adj}$, the value of $SS_{Res}$ is divided by the residual degrees of freedom and $SS_{tot}$ is divided by the total degrees of freedom (minus one). If we were to add a variable that did not help explain the outcome variable, then $SS_{Res}$ would stay the same but $SS_{Res}/(n- p)$ would increase slightly. This results in a smaller value of $R^2_{Adj}$. As the sample size gets larger (i.e., as $n \to \infty$), then $R^2_{Adj}$ approaches the value of $R^2$.
+
+It's important to note that while we can use $R_{Adj}^2$ for model comparison, it no longer represents the percentage of variability in the outcome explained by variation in the predictors. That interpretation still belongs to $R^2$.
+
+
+
+## Estimation and Prediction of the Mean
+
+To complete our description of inference for the MLR model, we now turn to estimation and prediction of the mean. 
+
+Let $\bmx_0^\mT = \begin{bmatrix} 1 & x_{01} & x_{02} & \cdots & x_{0k}\end{bmatrix}$ denote a specific set of predictor variables.  
+The estimated mean corresponding to these values is 
+$$\hat\mu_{0} = \bmx_0^\mT\hat{\boldsymbol\beta} = \hat\beta_0 + x_{01}\hat\beta_1  + \dots + x_{0k}\hat\beta_k$$
+As with SLR, this is the same value as a predicted observation, $\hat y_0 = \bmx_0^\mT\boldsymbol\beta$.
+
+
+### Confidence Intervals for the Mean
+To represent uncertainty, we use a confidence interval for the mean.  This requires calculating the standard error of $\hat\mu_0$. Using matrix notation, calculating the variance of $\hat\mu_0$ is straightforward:
+\begin{align*}
+\Var(\hat \mu_0) & = \Var(\bmx_0^\mT\hat{\boldsymbol\beta}) \\
+&= \bmx_0^\mT \Var(\hat{\boldsymbol\beta})\bmx_0 \\
 &= \bmx_0^\mT\left(\sigma^2 (\bmX^\mT\bmX)^{-1}\right)\bmx_0 \\
 \end{align*}
-
-
 We estimate $\Var(\hat \mu_0)$ with: 
 $$\widehat{\Var}(\hat \mu_0) = \bmx_0^\mT\left(\hat\sigma^2 (\bmX^\mT\bmX)^{-1}\right)\bmx_0.$$
-
-Standard error is the square-root: 
+and so the standard error is:
 $$\hat{se}(\hat\mu_0) = \sqrt{\bmx_0^\mT\left(\hat\sigma^2 (\bmX^\mT\bmX)^{-1}\right)\bmx_0.}$$
+This gives us the following form for the CI for the mean:
+$$(\hat\mu_0 - t_{1-\alpha/2}\hat{se}(\hat\mu_0), \hat\mu_0 + t_{1-\alpha/2}\hat{se}(\hat\mu_0))$$
+As before, the degrees of freedom used to calculate $t_{1 - \alpha/2}$ is $n-p$.
 
 
-The CI is:
-$$(\hat\mu_0 - t_{\alpha/2}\hat{se}(\hat\mu_0), \hat\mu_0 + t_{\alpha/2}\hat{se}(\hat\mu_0))$$
 
+In `R`, we again use the `predict()` command to calculate the mean (or a prediction) and associated intervals. For the `newdata=` argument, we must now provide a data frame with the complete set of predictor variable values. Setting `interval="confidence"` will give the CI as output.
 
-* $df$ for $t_{\alpha/2}$ is $n-p$
+```{example photo-estmean1}
+What is the estimated mean photosynthesis output for trees that had a soil water content ratio of 0.15, was not warmed (so `warming_treatment="ambient"`) and had a leaf temperature of 22 degrees?
+```
 
-### Confidence Intervals for Mean in R
-
-* Create a new data frame with specified values of $\bmx_0$
-* Use \texttt{predict()} to compute $\hat\mu$ and CI
-
+We can find this easily using R:
 ```{r echo=TRUE}
 pred_data <- data.frame(soil_water=0.15,
                         warming_treatment="ambient",
                         tleaf=22)
-pred_data
-```
-
-<!-- ### Confidence Intervals for Mean in R -->
-
-
-```{r echo=TRUE}
 predict(ph_lm, newdata=pred_data,
         interval="confidence")
 ```
+The estimated mean photosynthesis output for trees with  a soil water content ratio of 0.15, that are not warmed, and have a leaf temperature of 22 degrees is 9.48 (95\% CI 9.00, 9.96).
 
 
+
+```{example}
+What is the estimated mean photosynthesis output for trees that had a soil water content ratio of 0.20, were warmed (so `warming_treatment="warmed"`) and had a leaf temperature of 19 degrees?
+```
+
+We can follow the same procedure as Example \@ref(exm:photo-estmean1), and in fact compute both answers at the same time by passing a data frame with multiple rows to `newdata`:
 ```{r echo=TRUE}
 pred_data2 <- data.frame(soil_water=c(0.15, 0.2),
                         warming_treatment=c("ambient",
                                             "warmed"),
                         tleaf=c(22, 19))
-pred_data2
 predict(ph_lm, newdata=pred_data2,
         interval="confidence")
 ```
 
-## Prediction Intervals for New Observations
+### Prediction Intervals for New Observations
+To make a prediction intervals, we extend the CI for the mean in the same way as SLR (Section \@ref(slrPI)).
+The prediction interval is:
+$$(\hat y_0 - t_{1-\alpha/2}\sqrt{\sigma^2 \left[\bmx_0^\mT\left( (\bmX^\mT\bmX)^{-1}\right)\bmx_0 + 1\right]}, \hat y_0 + t_{1-\alpha/2}\sqrt{\sigma^2 \left[\bmx_0^\mT\left( (\bmX^\mT\bmX)^{-1}\right)\bmx_0 + 1\right]})$$
+The additional uncertainty in predicting a new observation, compared to a mean, can lead to quite wide prediction intervals, depending on the value of $\hat\sigma^2$.
 
-Suppose we want to predict the photosynthesis output for a new **observation** of a tree with predictor variables 
-$$\bmx_0 = \begin{bmatrix} 1 \\ 0.15 \\ 0 \\ 22 \end{bmatrix}$$
+In `R`, these can be computed by setting `interval="prediction"` inside `predict()`.
 
-Our best prediction is the same: 
-$$\hat y_0 = \bmx_0^\mT\hat\bmbeta$$
-
-The variance of the difference between this value and the true observation ($y$) is: $$\Var(\hat y_0 - y_0) = \bmx_0^\mT\left(\sigma^2 (\bmX^\mT\bmX)^{-1}\right)\bmx_0 + \sigma^2 = \sigma^2 \left[\bmx_0^\mT\left( (\bmX^\mT\bmX)^{-1}\right)\bmx_0 + 1\right].$$
-
-
-
-Uncertainty is quantified using a prediction interval:
-$$(\hat y_0 - t_{\alpha/2}\sqrt{\sigma^2 \left[\bmx_0^\mT\left( (\bmX^\mT\bmX)^{-1}\right)\bmx_0 + 1\right]}, \hat y_0 + t_{\alpha/2}\sqrt{\sigma^2 \left[\bmx_0^\mT\left( (\bmX^\mT\bmX)^{-1}\right)\bmx_0 + 1\right]})$$
-
-
-### Prediction Intervals in R
-
-```{r echo=TRUE}
-predict(ph_lm, newdata=pred_data, interval="prediction")
-predict(ph_lm, newdata=pred_data2, interval="prediction")
+```{example photo-predmean1}
+What is the predicted photosynthesis output for a tree that had a soil water content ratio of 0.15, was not warmed (so `warming_treatment="ambient"`) and had a leaf temperature of 22 degrees?
 ```
 
+
+```{r echo=TRUE}
+predict(ph_lm, newdata=pred_data,
+        interval="prediction")
+```
+
+The predicted photosynthesis output for a tree with  a soil water content ratio of 0.15, that was not warmed, and had a leaf temperature of 22 degrees is 9.48 (95\% PI -0.92, 19.89).
 
 
 ## Exercises

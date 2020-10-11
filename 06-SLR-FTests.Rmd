@@ -119,7 +119,7 @@ g_base + geom_segment(aes(x=x, xend=x, y=mean(y), yend=muy), col="blue", lwd=2)
 
 <!-- ``` -->
 
-## Coefficient of Determination ($R^2$)
+## Coefficient of Determination ($R^2$) {#r2}
 
 One way to determine how "good" a model fit is, is to compute the proportion of variability in the outcome that is accounted for by the regression model. This can be represented by the following ratio:
 
@@ -142,7 +142,7 @@ The value of $R^2$ is listed as `Multiple R-squared:  0.759` in the second line 
 
 
 
-## F-Test for Regression
+## F-Test for Regression {#slrftest}
 
 In regression, we can ask whether there is an overall linear relationship between the predictor variable and the average values of the outcome variable. This is commonly called a **test for significance of regression** or a **global F-test**, and the corresponding null and alternative hypotheses are:
 
