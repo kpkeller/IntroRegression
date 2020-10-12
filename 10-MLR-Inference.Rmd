@@ -52,10 +52,10 @@ In multiple linear regression, there are three types of questions we could ask a
 * Which subsets of predictors are important?
 * This question can be addressed with a partial F-test  (Section \@ref(mlrpartialftest)). 
 * Examples:
-    * How well do temperature and air pollution explain variation in cardiovascular mortality rates?
-    * Do gender, years of experience, and position title explain differences in salary?
-    * Can rates of opioid overdoses be explained by rates of marijuana use and socioeconomic status?
-    * Can we predict final exam score using time spent on homework, class level, and department?
+    * How well do temperature and air pollution explain variation in cardiovascular mortality rates, when accounting for underlying health status?
+    * Do gender and years of experience explain differences in salary after adjusting for position title?
+    * Can rates of opioid overdoses be explained by rates of marijuana use and socioeconomic status, when accounting for healthcare provider networks?
+    * Can we predict final exam score using time spent on homework and year in school, when accounting for subject area?
 
 <!-- Questions we can ask about our model: -->
 
