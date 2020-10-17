@@ -1,0 +1,516 @@
+# Indicators and Interactions {#indinter}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\bm{\\beta}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+
+```{r include=F}
+library(knitr)
+```
+
+
+## Categorical Variables
+
+So far, we have focused on predictor variables that were either continuous variables or binary variables. There is one other important variable type that can be used as a predictor variable: categorical variables. 
+
+**Categorical variables** are variables that can take discrete, unordered,  values. Examples include plant species, blood type, or  position on a sports team. Binary variables are a special case of categorical variables that have only two possible values. 
+
+
+## Indicator Variables
+
+
+ Categorical variables aren't inherently numeric, and so we must come up with a way to code them numerically to include in a regression model. The standard method for doing this is to create a series of $K-1$ binary indicator variables to represent $K$ different categories.
+ 
+Suppose we have a variable, $z_i$, that takes three values: $A$, $B$, or $C$. We can define two binary indicators $x_{iB}$, and $x_{iC}$ that take values:
+
+\begin{align*}
+x_B = \begin{cases} 1 & \text{ if observation $i$ is in category $B$}\\ 0 & \text{ if observation $i$ is not in category $B$}\end{cases}
+\end{align*}
+
+\begin{align*}
+x_C = \begin{cases} 1 & \text{ if observation $i$ is in category $C$}\\ 0 & \text{ if observation $i$ is not in category $C$}\end{cases}
+\end{align*}
+
+Together these two variables can represent three categories. The different combinations are summarized in Table \@ref(tab:catdftable). Observations that have $z_i = A$ have $(x_{iB}, x_{iC}) = (0, 0)$. Observations that have $z_i = B$ have $(x_{iB}, x_{iC}) = (1, 0)$. Observations that have $z_i = C$ have $(x_{iB}, x_{iC}) = (0, 1)$. 
+
+
+```{r catdftable, echo=F}
+z <- c("A", "B", "C")
+xB <- c(0, 1, 0)
+xC <- c(0, 0, 1)
+cat_df <- data.frame(z= z,
+                     xB=xB,
+                     xC=xC)
+kable(cat_df,
+      col.names = c("$z$", "$x_B$", 
+                    "$x_C$"),
+      caption="Indicator variable values corresponding to the categorical variable $z$.")
+```
+
+In this setup, the category A is known as the **reference category**. The other groups (B and C) are coded as differences from the A group, which corresponds to a value of 0 for all of the indicators. The overall model fit does not depend on which category is chosen as reference. However, interpretations of the indicator coefficients change depending on which variable is chosen as the reference category.
+
+Suppose we create an MLR model with three predictor variables: a continuous variable $x_{i1}$ and the two indicator variables $x_{iB}$ and $x_{iC}$.
+The equation for the full model:
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{iB} + \beta_3x_{iC} + \epsilon_i
+(\#eq:mlrind)
+\end{equation}
+
+Using \@ref(eq:mlrind), we can write three different models for $Y_i$, one for each value of $z_i$:
+
+* Observations with $z_i = A$ have the equation
+$$Y_i = \beta_0 + \beta_1x_{i1} + \epsilon_i$$
+* Observations with $z_i = B$ have the equation
+$$Y_i = \beta_0 + \beta_1x_{i1} + \beta_2 + \epsilon_i$$
+* Observations with $z_i = A$ have the equation
+$$Y_i = \beta_0 + \beta_1x_{i1} + \beta_3 + \epsilon_i$$
+
+
+The indicators allow for different intercepts for each model. Observations with $z = A$ have intercept $\beta_0$. Observations with $z = B$ have intercept $\beta_0 + \beta_2$.  Observations with $z = C$ have intercept $\beta_0 + \beta_3$.  This means that we can interpret the coefficient for an indicator for category "k" as the difference in the average value of the outcome, comparing observations in category "k" to observations in the reference category that have the same values for the other variables in the model.
+
+
+
+Indicator variables can be used for an arbitrary number of categories. There is always one less indicator variable than number of categories. For a categorical variable with $K$ different categories:
+\begin{align*}
+x_1 &= \begin{cases} 1 & \text{ if category 2} \\ 0 & \text{if not category 2} \end{cases}\\
+x_2 &= \begin{cases} 1 & \text{ if category 3} \\ 0 & \text{if not category 3} \end{cases}\\
+&\vdots\\
+x_{K-1} &= \begin{cases} 1 & \text{ if category K} \\ 0 & \text{if not category K} \end{cases}
+\end{align*}
+
+There is an important restriction on the indicator variable values: **only one** of them can be non-zero at a time. This preserves the interpretation of each coefficient as the difference in the average value of the outcome, comparing the indicator category to the reference category.
+
+
+The approach described here for indicator variables is sometimes called "dummy coding" of a categorical variable, since there is a separate indicator for each comparison. An alternative, which we will not discuss further here, is "effect coding".
+
+
+```{example photo-ind-intro}
+Using the photosynthesis data introduced in Section \@ref(mlrinference), we can fit a model that adjusts for soil water content and tree species. For the time being, let's restrict to three species: balsam fir (coded as `"abiba"`), Jack Pine (codede as `"pinba"`), and Red Oak (coded as `"queru"`). 
+```
+
+```{r include=FALSE} 
+library(tidyverse)
+library(broom)
+```
+
+
+```{r echo=F, out.width="75%"}
+photo <- read_csv("data/photo.csv", col_types=cols())
+photo <- subset(photo, !is.na(soil_water))
+photo_small <- subset(photo, species %in% c("abiba", "pinba", "queru"))
+```
+
+
+We can plot the data separately by species:
+
+```{r echo=FALSE}
+# Plot the data
+g_photo_small_panel <- ggplot(photo_small) + theme_bw() + geom_point(aes(x=soil_water, y=photosyn, col=species)) +xlab("Soil Water Content") + ylab("Photosynthesis Output") + facet_wrap(~species, nrow=2) + scale_color_discrete(name="Species")
+g_photo_small_panel
+```
+
+Or in a single plot, but color points by species:
+```{r echo=FALSE}
+# Plot the data
+g_photo_small <- ggplot(photo_small) + theme_bw() + geom_point(aes(x=soil_water, y=photosyn, col=species, shape=species)) +xlab("Soil Water Content") + ylab("Photosynthesis Output")  + scale_color_discrete(name="Species") +
+   scale_shape_discrete(name="Species")
+g_photo_small
+```
+
+
+We can write the MLR model for this data as 
+\begin{equation}
+Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i3} + \epsilon_i
+(\#eq:mlrphotoind)
+\end{equation}
+where the variables are:
+\begin{align*}
+x_1 &= \begin{cases} 1 & \text{ if `species` is `pinba`} \\ 0 & \text{ if `species` is not `pinba`}\end{cases}\\
+x_2 &= \begin{cases} 1 & \text{ if `species` is `queru`} \\ 0 & \text{ if `species` is not `queru`}\end{cases}\\
+x_3 &= \text{Soil Water Content}
+\end{align*}
+We can interpret the model parameters as:
+
+* $\beta_0$ -- The average photosynthesis output for Balsam Fir trees with a soil water content ratio of zero.
+* $\beta_1$ -- The difference in average photosynthesis output comparing Jack Pine trees to Balsam Fir trees with the same soil water content ratio.
+* $\beta_2$ -- The difference in average photosynthesis output comparing Red Oak trees to Balsam Fir trees with the same soil water content ratio.
+* $\beta_3$ -- The difference in average photosynthesis output for a 1-unit difference in soil water content ratio, among trees of the same species.
+
+
+## Indicators in R
+For a categorical variable (class is `character` or `factor`), R will automatically create the indicator variables. The category that comes first alphabetically is chosen as the reference category (unless a different reference is explicitly set for a `factor` variable.) The variables are given a name that is a combination of the variable name and the category label.
+
+The following code output shows the model matrix ($\bmX$) that `R` creates for a model that adjusts for soil water content and species.
+
+```{r echo=TRUE}
+X <- model.matrix(~species + soil_water, data=photo_small)
+head(X)
+```
+
+
+
+## Testing Categorical Variables
+
+To test whether there is a relationship between the average value of the outcome variable and a categorical variable, we should conduct a Partial F-Test that compares a reduced model without any of the indicator variables to a full model that contains all of them. 
+
+Since the indicator variables each individually only compare a single category level to the reference, testing one individually does not account for the role of the other indicator variables in the model. We want to test all of them at once, not a variable one-by-one.
+
+
+
+
+```{example}
+We can fit the model described in Example \@ref(exm:photo-ind-intro). Is there evidence of a difference in photosynthesis output by species?
+```
+
+We first fit the model \@ref(eq:mlrphotoind) by running the  code:
+```{r echo=TRUE}
+photo_lm <- lm(photosyn~species + soil_water, data=photo_small)
+```
+We can view each of the coefficient estimates using `tidy()`:
+```{r echo=TRUE}
+tidy(photo_lm, conf.int=T)
+```
+Our question of interest corresponds to the null and alternative hypothesis:
+
+* $H_0$: There is no relationship between average photosynthesis output and species, among trees with the same soil water content ratio.
+* $H_A$: There is a relationship between average photosynthesis output and species, among trees with the same soil water content ratio.
+
+
+We fit the reduced model and compare to the full model:
+```{r echo=TRUE}
+photo_lm_reduced <- lm(photosyn~soil_water, data=photo_small)
+anova(photo_lm_reduced, photo_lm)
+```
+
+We reject the null hypothesis that there is no relationship between average photosynthesis output and species, among trees with the same soil water content ratio ($f=37.3, p<0.0001$).
+
+
+
+
+
+
+<!-- ### Example: Miles per Gallon -->
+
+
+<!-- \texttt{mpg} dataset contains data on vehicle efficiency -->
+
+
+<!-- ```{r echo=TRUE, size="footnotesize"} -->
+<!-- head(mpg) -->
+<!-- ``` -->
+
+
+<!-- #### MPG by Drive Type -->
+
+
+<!-- ```{r} -->
+<!-- ggplot(mpg) + theme_bw() +  -->
+<!--    geom_point(aes(x=displ, y=hwy, col=drv)) + -->
+<!--    xlab("Engine Displacement (Liters)") + -->
+<!--    ylab("Highway miles per gallon") +  -->
+<!--    scale_color_discrete(name="Drive Type") -->
+<!-- ``` -->
+
+<!-- ```{r echo=TRUE, size="footnotesize", output.lines=-1:-9} -->
+<!-- mpglm1 <- lm(hwy~displ + drv, data=mpg) -->
+<!-- summary(mpglm1) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- ggplot(mpg) + theme_bw() +  -->
+<!--    geom_point(aes(x=displ, y=hwy, col=drv)) + -->
+<!--    xlab("Engine Displacement (Liters)") + -->
+<!--    ylab("Highway miles per gallon") +  -->
+<!--    scale_color_discrete(name="Drive Type") +  -->
+<!--    geom_abline(aes(slope=coef(mpglm1)[2], -->
+<!--                    intercept=coef(mpglm1)[1], -->
+<!--                    col="4")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm1)[2], -->
+<!--                    intercept=coef(mpglm1)[1] + coef(mpglm1)[3], -->
+<!--                    col="f")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm1)[2], -->
+<!--                    intercept=coef(mpglm1)[1] + coef(mpglm1)[4], -->
+<!--                    col="r")) -->
+<!-- ``` -->
+
+
+
+
+<!-- #### MPG by Vehicle Type -->
+
+<!-- ```{r} -->
+<!-- ggplot(mpg) + theme_bw() +  -->
+<!--    geom_point(aes(x=displ, y=hwy, col=stringr::str_to_title(class))) + -->
+<!--    xlab("Engine Displacement (Liters)") + -->
+<!--    ylab("Highway miles per gallon") +  -->
+<!--    scale_color_discrete(name="Vehicle Type") -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=TRUE, size="footnotesize", output.lines=-1:-9} -->
+<!-- mpglm2 <- lm(hwy~displ + class, data=mpg) -->
+<!-- summary(mpglm2) -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- ggplot(mpg) + theme_bw() +  -->
+<!--    geom_point(aes(x=displ, y=hwy, col=stringr::str_to_title(class))) + -->
+<!--    xlab("Engine Displacement (Liters)") + -->
+<!--    ylab("Highway miles per gallon") +  -->
+<!--    scale_color_discrete(name="Vehicle Type") +  -->
+<!--    geom_abline(aes(slope=coef(mpglm2)[2], -->
+<!--                    intercept=coef(mpglm2)[1], -->
+<!--                    col="2seater")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm2)[2], -->
+<!--                    intercept=coef(mpglm2)[1] + coef(mpglm2)[3], -->
+<!--                    col="Compact")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm2)[2], -->
+<!--                    intercept=coef(mpglm2)[1] + coef(mpglm2)[4], -->
+<!--                    col="Midsize")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm2)[2], -->
+<!--                    intercept=coef(mpglm2)[1] + coef(mpglm2)[5], -->
+<!--                    col="Minivan")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm2)[2], -->
+<!--                    intercept=coef(mpglm2)[1] + coef(mpglm2)[6], -->
+<!--                    col="Pickup")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm2)[2], -->
+<!--                    intercept=coef(mpglm2)[1] + coef(mpglm2)[7], -->
+<!--                    col="Subcompact")) +  -->
+<!--    geom_abline(aes(slope=coef(mpglm2)[2], -->
+<!--                    intercept=coef(mpglm2)[1] + coef(mpglm2)[8], -->
+<!--                    col="Suv")) -->
+<!-- ``` -->
+
+<!-- Is there a relationship between vehicle class and highway mpg, after adjusting for engine size? -->
+
+<!-- ```{r echo=TRUE, size="footnotesize"} -->
+<!-- mpglm0 <- lm(hwy~displ, data=mpg) -->
+<!-- anova(mpglm0, mpglm2) -->
+<!-- ``` -->
+
+<!-- \vspace{2cm} -->
+
+<!-- #### MPG by Vehicle Type and Drive Type -->
+
+<!-- Models can include indicators for different types of variables -->
+<!-- \begin{align*} -->
+<!-- \E[Y_i] &= \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i3} +\\ -->
+<!-- &\qquad  \beta_4x_{i4} + \beta_5x_{i5} + \beta_6x_{i6} + \beta_7x_{i7} +   \beta_8x_{i8} + \beta_9x_{i9} -->
+<!-- \end{align*} -->
+<!-- \footnotesize -->
+<!-- \begin{align*} -->
+<!-- x_1 &= \text{Engine Displacement (liters)} & & \\ -->
+<!-- x_2 &= \begin{cases} 1 & \text{ if \texttt{drv} = "f"} \\ 0 & \text{ if \texttt{drv} $\ne$ "f"}\end{cases} & x_3 &= \begin{cases} 1 & \text{ if \texttt{drv} = "r"} \\ 0 & \text{ if \texttt{drv} $\ne$ "r"}\end{cases} \\ -->
+<!--  x_4 &= \begin{cases} 1 & \text{ if \texttt{class} = "compact"} \\ 0 & \text{ if \texttt{class} $\ne$ "compact"}\end{cases} & x_5 &= \begin{cases} 1 & \text{ if \texttt{class} = "midsize"} \\ 0 & \text{ if \texttt{class} $\ne$ "midsize"}\end{cases}\\ -->
+<!--  x_6 &= \begin{cases} 1 & \text{ if \texttt{class} = "minivan"} \\ 0 & \text{ if \texttt{class} $\ne$ "minivan"}\end{cases} & x_7 &= \begin{cases} 1 & \text{ if \texttt{class} = "pickup"} \\ 0 & \text{ if \texttt{class} $\ne$ "pickup"}\end{cases}\\ x_8 &= \begin{cases} 1 & \text{ if \texttt{class} = "subcompact"} \\ 0 & \text{ if \texttt{class} $\ne$ "subcompact"}\end{cases} &  x_9 &= \begin{cases} 1 & \text{ if \texttt{class} = "suv"} \\ 0 & \text{ if \texttt{class} $\ne$ "suv"}\end{cases} & & -->
+<!-- \end{align*} -->
+
+
+<!-- ```{r echo=TRUE, size="footnotesize", output.lines=-1:-9} -->
+<!-- mpglm3 <- lm(hwy~displ +drv +  class, data=mpg) -->
+<!-- summary(mpglm3) -->
+<!-- ``` -->
+
+<!-- What is the interpretation of $\hat\beta_2 = 3.17$? -->
+
+<!-- \vspace{2cm} -->
+
+<!-- What is the interpretation of $\hat\beta_5 = -6.12$? -->
+
+<!-- \vspace{2cm} -->
+
+
+<!-- ## Indicator Variables Summary -->
+
+<!-- * Categorical variable with $q$ different values is represented with $q-1$ indicator variables -->
+
+<!-- * Each indicator variable has the value 0 or 1 -->
+<!-- * For assessing a relationship between categorical variable and outcome, test the set of $q-1$ indicators as a group (Partial F-Test) -->
+<!-- * Interpretation of $\beta$'s depends on choice of reference category; fitted values and residuals do not -->
+
+
+
+
+## Interactions in Regression
+
+
+Indicator variables allow for the *intercept* in the model to vary by different categories. But what if we want to allow the *slopes* to vary among different groups? To do this, we can include an **interaction term** in the model.
+
+```{example}
+One factor that affects fuel economy in passenger vehicles is the size of the engine. Figure \@ref(fig:mpg-engine) shows the highway miles per gallon for vehicles, as a function of their engine size.
+```
+
+```{r include=FALSE}
+mpg$cyl8 <- ifelse(mpg$cyl==8, "yes", "no")
+```
+
+```{r mpg-engine, echo=F, fig.cap="Fuel efficiency and engine size in a sample of vehicles."}
+g_mpg_8cyl <- ggplot(mpg) + theme_bw() + 
+   geom_point(aes(x=displ, y=hwy, col=str_to_title(cyl8))) +
+   xlab("Engine Displacement (Liters)") +
+   ylab("Highway miles per gallon") + 
+   scale_color_discrete(name="8-cylinder\nEngine") 
+g_mpg_8cyl
+```
+
+In Figure \@ref(fig:mpg-engine), it seems evident that the relationship between fuel efficiency and engine size differs between engines with 8 cylinders and those with fewer cylinders. To do this, we can construct an MLR model  with an interaction between engine size and an indicator of having 8 cylinders.
+
+Define the variables to be:
+
+* $Y_i =$ Highway MPG
+* $x_{i1} =$ Engine Displacement
+* $x_{i2} =$ Indicator of 8-cylinder engine (0=no, 1=yes)
+
+The model we can fit is:
+\begin{equation}
+Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i1}x_{i2} + \epsilon_i
+(\#eq:mlrinteraction2)
+\end{equation}
+For vehicles with <8 cylinders ($x_{i2}=0$), the model becomes:
+$$\E[Y_i] = \beta_0 + \beta_1x_{i1}$$
+For vehicles with 8 cylinders ($x_{i2}=1$), the model becomes:
+$$\E[Y_i] = (\beta_0 + \beta_2) + (\beta_1 + \beta_3)x_{i1} $$
+The parameter $\beta_3$ allows the slope to differ between the two groups defined by $x_{i2}$.
+
+Graphically, we can represent this by having separate regression lines in the scatterplot:
+```{r echo=FALSE}
+g_mpg_8cyl  + geom_smooth(aes(x=displ, y=hwy, col=str_to_title(cyl8), group=str_to_title(cyl8)), method="lm", se=FALSE)
+```
+
+## Interpreting Parameters in Interactions
+
+
+For model with continuous $x_1$ and binary $x_2$, and an interaction between these terms, the MLR model is given above in \@ref(eq:mlrinteraction2).
+It's important that any time an interaction term is added to a model, both variables are also included by themselves. This is called including the "main effects" for any variables that have "interaction effects". 
+
+In the model \@ref(eq:mlrinteraction2), the "slope" for $x_1$ depends on the value  of $x_2$
+   
+* $\beta_1$ is the  difference in the average value of $Y$ for a 1-unit difference in $x_1$, among observations with $x_2 = 0$.
+* $\beta_1 + \beta_3$ is the  difference in the average value of $Y$ for a 1-unit difference in $x_1$, among observations with $x_2 = 1$.
+* $\beta_3$ is the difference between observations with $x_2= 1$ and $x_2 = 0$ in the difference in the average value of $Y$ for a 1-unit difference in $x_1$.
+   
+The "intercept" for the model also depends on the value of $x_2$
+   
+* $\beta_0$ is the average value of $Y$ for observations with $x_1 = 0$ and $x_2=0$
+* $\beta_0 + \beta_2$ is the average value of $Y$ for observations with $x_1=0$ and $x_2=1$
+* $\beta_2$ is the difference of the average value of $Y$ when $x_1=0$ between observations with $x_2=1$ and $x_2=0$
+   
+## Interactions in R
+
+In `R`, interactions can be created using `*` in the formula. For example:
+
+```{r echo=TRUE}
+mpg_lm_interact <- lm(hwy~displ*cyl8, data=mpg)
+```
+
+This code fits a model with  the following variables:
+
+* `displ`
+* `cyl8yes`
+   * Has value 1 if `cyl8` is `"yes"`
+   * Has value 0 if `cyl8` is `"no"`
+* `displ:cyl8yes`
+   * Has the value of `displ` if `cyl8` is `"yes"`
+   * Has the value of 0 if `cyl8` is `"no"`
+
+It is possible to use the R formula `displ + cyl8 + displ:cyl8`, but using `displ*cyl8` is shorter and almost always better.
+
+
+```{r include=F}
+mpg[c(1:2, 22:24),c("model", "displ", "year", "cyl", "cyl8")]
+X <- model.matrix(hwy~displ*cyl8, data=mpg)
+X[c(1:2, 22:24),]
+```
+
+
+```{example}
+Is there a difference in the relationship between average highway MPG and engine size, comparing vehicles witht 8-cylinder engines compared to those without?
+```
+
+This corresponds to testing $H_0: \beta_3 = 0$ versus $H_A: \beta_3 \ne 0$ in Model \@ref(eq:mlrinteraction2). From the following model output,
+```{r echo=TRUE}
+tidy(mpg_lm_interact)
+```
+we can see that the corresponding $t$ statistic is 7.9 and the $p$-value is less than 0.0001. Thus, we would reject $H_0$.
+
+
+<!-- What is our conclusion for testing $H_0: \beta_3 = 0$ vs. $H_A: \beta_3 \ne 0$? -->
+
+<!-- \vspace{2in} -->
+
+
+<!-- ```{r echo=TRUE} -->
+<!-- mpg_lm_displ <- lm(hwy~displ, data=mpg) -->
+<!-- anova(mpg_lm_displ, mpg_lm_interact) -->
+<!-- ``` -->
+
+
+<!-- What is our conclusion for testing $H_0: \beta_2 = \beta_3 = 0$ vs. $H_A: \beta_2 \ne 0$ and/or $\beta_3 \ne 0$? -->
+
+<!-- \vspace{2in} -->
+
+<!-- ```{r echo=TRUE} -->
+<!-- mpg_lm_cyl8 <- lm(hwy~cyl8, data=mpg) -->
+<!-- anova(mpg_lm_cyl8, mpg_lm_interact) -->
+<!-- ``` -->
+
+
+<!-- What is our conclusion for testing $H_0: \beta_1 = \beta_3 = 0$ vs. $H_A: \beta_1 \ne 0$ and/or $\beta_3 \ne 0$? -->
+
+<!-- \vspace{2in} -->
+
+
+
+
+## Interactions with 2 Continuous Variables
+
+In addition to interactions between a continuous variable and a binary variable, interactions between two continuous variables can also be created. 
+
+For example, in the photosynthesis data, we could fit the model
+$$Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \beta_3x_{i1}x_{i2} + \epsilon_i$$
+
+where:
+
+* $Y =$  photosynthesis output
+* $x_1 =$ soil water content  
+* $x_2 =$ leaf temperature
+
+For model with continuous $x_1$ and continuous $x_2$, the "slope" for $x_1$ depends on the value of $x_2$. $\beta_1 + \beta_3x_2$ is the  difference in the average value of $Y$ for a 1-unit difference in $x_1$. Analogously, the "slope" for $x_2$ depends on the value of $x_1$. $\beta_2 + \beta_3x_1$ is the  difference in the average value of $Y$ for a 1-unit difference in $x_2$   
+<!-- ### Photosynthesis Example -->
+
+<!-- ```{r echo=TRUE, size="footnotesize"} -->
+<!-- photo_lm_interact <- lm(photosyn ~ soil_water*tleaf, data=photo) -->
+<!-- tidy(photo_lm_interact) -->
+<!-- ``` -->
+
+<!-- \vspace{0.5cm} -->
+<!-- Estimated difference in photosynthesis output for a 1-unit difference in soil-water content ratio is -->
+
+<!-- * 3.771 when leaf temperature is 0 degrees -->
+<!-- * 3.771 + 1.136*10 = 15.13 when leaf temperature is 10 degrees -->
+<!-- * 3.771 + 1.136*20 = 26.49 when leaf temperature is 20 degrees -->
+
+## More Complicated Interactions
+
+More complicated forms for interactions are possible. Interactions can include categorical variables with more than 2 levels (e.g. species in the photosynthesis data). Interactions can also be created between three (or more) different variables, although it can be cumbersome to interpret the results.
+
+
+<!-- * Interactions can be done using categorical variables with more than 2 categories (e.g. species in photosynthesis data) -->
+<!-- * Interactions can be done using two categorical variables -->
+<!-- * Three-way interactions can be made using 3 different $x$'s -->
+<!-- * Four-way interactions... -->
