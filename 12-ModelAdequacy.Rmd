@@ -1,0 +1,300 @@
+# Assessing Model Assumptions {#sec:modadequacy}
+
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bme}{\\mathbf{e}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\bmSigma}{\\boldsymbol{\\Sigma}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(cowplot)
+```
+
+
+## Residuals
+
+
+The residuals for a model are the difference between the predicted value and the true observation. Each residual gives an estimate of the error $\epsilon_i$. Collectively, the residuals can be used to assess violations of the model assumptions, as we will see below.
+
+There are four types of residuals: raw, scaled, standardized, and studentized.
+
+
+<!-- * Deviation from observed point $y$ to the fitted value $\hat y$ -->
+<!-- * Each residuals $e_i$ gives an estimate of the error $\epsilon_i$ -->
+<!-- * Sum of residuals is always zero ($\sum_{i=1}^n e_i = 0$) -->
+
+### Raw Residuals
+
+Raw residuals are the "regular" residuals:
+$$e_i = y_i - \hat y_i$$
+These provide a direct measure of the difference between the fitted values and the observations.
+
+In `R`, these can be obtained using the function `residuals()`.
+
+
+
+<!-- ### MPG Example -->
+<!-- ```{r} -->
+<!-- ggplot(mpg) +  theme_bw() +  -->
+<!--    geom_point(aes(x=displ, -->
+<!--                   y=hwy)) + -->
+<!--    geom_smooth(aes(x=displ, y=hwy), method="lm", se=F) -->
+<!-- ``` -->
+
+<!-- ```{r echo=TRUE, size="footnotesize"} -->
+<!-- mpg_lm <- lm(hwy~displ,data=mpg) -->
+<!-- ggplot() + theme_bw() +  -->
+<!--    geom_histogram(aes(x=residuals(mpg_lm)), bins=25) -->
+<!-- ``` -->
+
+
+### Scaled Residuals
+
+The magnitude of the raw residuals depends on $\sigma^2$, which can make them difficult to compare across models. Dividing by the estimated residual variance ($\sqrt{\hat\sigma^2}$) puts residuals on a comparable scale and yields **scaled residuals**:
+
+$$d_i = \frac{e_i}{\sqrt{\hat\sigma^2}}$$
+
+### Standardized Residuals
+
+But we can do better scaling than this. The residual standard error $\hat\sigma^2$ is a global estimate of $\sigma^2$, but not the best estimate of the variance of the $i$th residual ($\Var(e_j)$). 
+
+To find $\Var(e_i)$, we first find $\Var(\bme)$:
+\begin{align*}
+\Var(\mathbf{e}) &= \Var((\bmI - \bmH)\bmy)\\
+&= (\bmI - \bmH) \Var(\bmy)(\bmI - \bmH)^\mT\\
+&= (\bmI - \bmH) \sigma^2(\bmI - \bmH)^\mT\\
+&= \sigma^2 (\bmI - \bmH)(\bmI - \bmH)\quad \{(\bmI - \bmH) = (\bmI - \bmH)^\mT\}\\
+&= \sigma^2 (\bmI\bmI - \bmH\bmI - \bmI\bmH + \bmH\bmH)\\
+&= \sigma^2 (\bmI - \bmH) \quad \text{\{since $\bmH$ is idempotent\}}
+\end{align*}
+It immediately follows that $\Var(e_i) = \sigma^2 (1-h_{ii})$.
+
+The value of $h_{ii}$, the $i$th diagonal element of the hat matrix (Section \@ref(hatmatrix)), is larger for points that are more remote in predictor space. 
+Remote points have *smaller* residual variance, since they "pull" the regression line more towards themselves. This idea, which we will revisit in the discussion of leverage in Section \@ref(unusualobs), is illustrated in Figure \@ref(fig:fit-without-point). Since 
+
+```{r fit-without-point, echo=FALSE, message=FALSE}
+simple_df <- data.frame(x=seq(0, 10))
+n <- nrow(simple_df)
+simple_df$id <- 1:n
+simple_df_beta0 <- -3
+simple_df_beta1 <- 0.8
+# simple_df_beta0_plot1 <- simple_df_beta0 +  2
+# simple_df_beta1_plot1 <- simple_df_beta1*0.5
+simple_df$mu <- simple_df_beta0 + simple_df_beta1*simple_df$x
+set.seed(11)
+simple_df$y <- simple_df$mu +  rnorm(n)
+
+ggplot() + theme_bw() + 
+   geom_point(aes(x=c(simple_df$x, 12),
+                  y=c(simple_df$y, 0)),
+              col=c(rep("black", 11), "red")) +
+   geom_smooth(aes(x=c(simple_df$x, 12),
+                  y=c(simple_df$y, 0),
+                  col="with"),
+               method="lm",
+               se=FALSE) +
+      geom_smooth(aes(x=c(simple_df$x),
+                  y=c(simple_df$y),
+                  col="without"),
+               method="lm",
+               se=FALSE) +
+   ylab("Y") + xlab("X") +
+   scale_color_manual(values=c("red", "blue"),
+                      breaks=c("with", "without"),
+                      labels=c("With Extra Point", "Without\nExtra Point"),
+                      name="Dataset")
+
+```
+
+Dividing $e_i$ by its estimated variance yields the **standardized residuals**:
+
+$$r_i = \frac{e_i}{\sqrt{\hat\sigma^2(1 - h_{ii})}}$$
+
+One advantage of standardized residuals is that they have variance equal to 1. This makes them simple to compare across model fits.
+
+### Studentized Residuals
+
+The last type of residual, the studentized residual, provides a better way for detecting an outlier. Standardized residuals include the current observation when computing $\hat\sigma^2$ (which is used in the estimated value of $\Var(e_i)$). To better detect outliers, we can compute $\hat\sigma_{(i)}^2$, which is the estimated residual variance when *leaving out* observation $i$.
+
+This gives the **studentized residuals**:
+
+$$t_i = \frac{e_i}{\sqrt{\hat\sigma^2_{(i)}(1 - h_{ii})}}$$
+
+Studentized residuals follow a $T_{n - p - 1}$ distribution.
+
+
+### Types of Residuals 
+
+| Type of Residual  |  Value  | R Command |
+--------+-------+-----
+| (Raw) residual  | $e_i = y_i - \hat y_i$ | `residuals()` |
+| Scaled residual | $d_i = \dfrac{e_i}{\sqrt{\hat\sigma^2}}$ | (none) |
+| Standardized residual | $r_i = \dfrac{e_i}{\sqrt{\hat\sigma^2(1 - h_{ii})}}$ | `rstandard()`
+| Studentized residual | $t_i = \dfrac{e_i}{\sqrt{\hat\sigma^2_{(i)}(1 - h_{ii})}}$ | `rstudent()`
+
+
+
+
+## MLR Model Assumptions
+
+In Section \@ref(mlrmx), we introduced the matrix form for the multiple linear regression model:
+\begin{align}
+\mathbf{y} &= \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon}\\
+\E[\bmepsilon] &= \mathbf{0} \\
+\Var[\bmepsilon] &= \sigma^2\bmI \\
+\bmX & \text{ is `full-rank'}
+\end{align}
+
+So far, we have focused on how to interpret, estimate, and test the model parameters and paid little attention to the model assumptions. Now we will take a closer look at each of these assumptions and how to evaluate if they hold in our data.
+
+### **Assumption 1**: $\E[\bmepsilon] = \mathbf{0}$  
+This assumption has two consequences. The first is that the errors $\epsilon_i$ have mean zero. This is ensured by the inclusion of the intercept in the model. The second consequence is that the relationship between the mean of the repsonse and the predictors is (approximately) linear. That is, that $\E[\bmy] =  \bmX\bmbeta$. Violations of this assumption can lead to results that are misleading and incorrect, since the trend being modeled does not match the trend in the data.
+
+We can assess this assumption by plotting standardized residuals ($s_i$) against fitted values ($\hat y_i$). While a violation of the linearity assumption can take different forms, the most common is a curved or "bow" pattern. The bow pattern (right side of Figure \@ref(fig:resplot-bow)) arises when there is a quadratic or exponential-type shape (left side of Figure \@ref(fig:resplot-bow)).
+
+```{r resplot-bow, echo=F,  message=FALSE, out.width="95%", fig.width=5, fig.height=3, fig.cap="Data (left) and residual-fitted plot (right) that violates the linearity assumption."}
+n <- 100
+x <- runif(n, min=-0.5, max=2)
+y <- x^2 + rnorm(n, sd=0.1)
+lmfit1 <- lm(y~x)
+g1 <- ggplot() +  theme_bw() + geom_point(aes(x=x, y=y))  + geom_smooth(aes(x=x, y=y), method="lm", col="red", se=F) # + ggtitle("Synthetic Data 1: Fitted Line")
+g2 <- ggplot() + theme_bw() +  geom_point(aes(x=fitted(lmfit1), y=rstandard(lmfit1))) + xlab("Fitted Values") + ylab("Standardized Residuals") # + ggtitle("Synthetic Data 1: Residuals v. Fitted")
+plot_grid(g1, g2)
+```
+
+### **Assumption 2**: $\Var(\epsilon_i) = \sigma^2 \text{ for } i=1, \dots, n$
+This assumption means that the errors $\epsilon_i$ have constant variance. Violations of this assumption don't impact the regression line itself, but can have major effects on the estimated variance $\hat\sigma^2$. This can lead to improper inference and incorrect confidence intervals.
+
+A plot of  standardized residuals ($s_i$) against fitted values ($\hat y_i$) can be used to address this assumption as well. Violations of this assumption are most often evident as a "cone" pattern in the residuals, wherein the spread of residuals differs by fitted value (Figure \@ref(fig:resplot-cone)).
+
+```{r resplot-cone, echo=F, message=FALSE, out.width="95%", fig.width=5, fig.height=3, fig.cap="Data (left) and residual-fitted plot (right) that violates the constant variance assumption."}
+n <- 200
+x <- runif(n, min=0, max=2)
+y <- -1 + 3*x + rnorm(n, sd=0.1 + x)
+lmfit2 <- lm(y~x)
+g1 <- ggplot()+ theme_bw() + geom_point(aes(x=x, y=y))  + geom_smooth(aes(x=x, y=y), method="lm", col="red", se=F) # + ggtitle("Synthetic Data 2: Fitted Line")
+g2 <- ggplot() + theme_bw() + geom_point(aes(x=fitted(lmfit2), y=rstandard(lmfit2))) + xlab("Fitted Values") + ylab("Standardized Residuals") # + ggtitle("Synthetic Data 2: Residuals v. Fitted")
+plot_grid(g1, g2)
+```
+
+
+
+### **Assumption 3**: $Cov(\epsilon_i, \epsilon_j) = 0  \text{ for } i\ne j$
+This assumption, which is a consequence of $\Var(\bmepsilon) = \sigma^2\bmI$, means that the observations are uncorrelated. If the observations are correlated, then the estimated variances will be incorrect. This can lead to improper inference and incorrect confidence intervals.
+
+Unfortunately, this assumption can not be easily assessed using residual plots. In some special cases, such as with time series or spatial data, this can be diagnosed. But in many cases, this assumption relies on understanding how the data were collected.
+
+### **Assumption 4**: $\bmX$   is full-rank.  
+As discussed in Section \@ref(fullrank), this is a mathematical requirement for estimating $\hat\beta$.^[In fact, there are methods to get around this constraint, but those are beyond the scope of this text.] Practically, `R` will drop collinear columns so that this is not an issue. But it is good practice to not intentionally set up a model that has linear dependent predictor variables. This is perhaps most common in models with extensive interactions and indicator variables, since they lead to many derived variables.
+
+
+
+### **Assumption 5:** $\epsilon_i$ are approximately normally distributed.  
+This assumption is necessary for the correct distributions of the test statistics under the null hypothesis. In Section \@ref(ttest), we explained how the Central Limit Theorem assures us of approximate normalty in large samples, although it's always a good idea to check this assumption. If violated, the results from hypothesis tests and confidence intervals can be incorrect, although the regression coefficients $\hat\bmbeta$ are still valid.
+
+To assess the normality of residuals, we can use a **QQ plot**, which plots the quantiles of the sample distribution against quantiles of the standard normal distribution. If the sample is from an approximately normal distribution, then the points will line up on the 1-1 line (Figure \@ref(fig:sim-qq1)). Deviation from the 1-1 line indicates lack of normality (Figure \@ref(fig:sim-qq2)).
+
+
+```{r sim-qq1, echo=F, fig.cap="QQ plot for a sample from the Normal distribution."}
+set.seed(10)
+qqnorm(rnorm(500), asp=1)
+abline(0, 1)
+```
+
+```{r sim-qq2, echo=F, fig.cap="QQ plot for a sample a distribution that is not normal."}
+set.seed(10)
+tsamp <- rt(500, df=3)
+qqnorm(tsamp, asp=1)
+abline(0, 1)
+```
+
+
+
+
+
+### Examples
+
+<!-- To illustrate the use of residual plots to assess model assumptions, we will use a dataset of stock prices from the S\&P 500 on February 8, 2018. The variables include: -->
+
+<!-- * `price` -- Stock price (\$) -->
+<!-- * `market_cap` -- Market capitalization (\$) -->
+<!-- * `ebitda` -- Earnings before interest, tax, depreciation and amortization (EBITDA) (\$) -->
+<!-- * `sector` -- Company Sector: Consumer Discretionary, Consumer Staples, Energy, Financials, Health Care, Industrials, Information Technology, Materials, Real Estate, Telecommunication Services, Utilities -->
+
+```{r eval=TRUE, include=FALSE}
+sp500 <- read_csv("data/sp500.csv")
+sp500$sector[sp500$sector=="Telecommunication Services"] <- "Telecommunication"
+```
+
+
+```{example}
+We have data on stock prices from the S\&P 500 on February 8, 2018, including the stock price and market capitalization. Consider an SLR model with market capitalization as the predictor variable and stock price as the outcome. Is there evidence of violation of any of the model assumptions?
+```
+
+To answer this, let's first plot the data with the regression line. Figure \@ref(fig:sp500-price-cap) shows the data, and it is clearly evident that the values of both variables are skewed. (In Section \@ref(), we'll revisit this data to see how a transformation can fix this).
+
+```{r include=F, echo=FALSE}
+sp_lm1 <- lm(price~market_cap, data=sp500)
+summary(sp_lm1)
+```
+
+```{r sp500-price-cap, eval=T, echo=F, message=FALSE, fig.cap="Scatter plot of stock prices and market capitalization."}
+g_sp1 <- ggplot(sp500) + theme_bw() + 
+   geom_point(aes(x=market_cap,
+                  y=price),
+              data=sp500) + 
+   xlab("Market Capitalization ($)") + 
+   ylab("Stock Price ($)")
+g_sp1  + 
+   geom_smooth(aes(x=market_cap,
+                   y=price),
+               data=sp500,
+               method="lm",
+               se=FALSE)
+```
+
+
+
+
+
+The residual-fitted plot is shown in Figure \@ref(sp500-price-cap-residplot). There is a clear downward trend in the residuals, which is evidence of violation of the linearity assumption. It is difficult to determine if there is violation of the constant variance assumption, given the small number of data points  with large fitted values.
+
+
+```{r sp500-price-cap-residplot, eval=T, echo=F, fig.cap="Residuals versus fitted values in regression model for stock price data."}
+ggplot() + theme_bw() + 
+   geom_point(aes(x=fitted(sp_lm1),
+                  y=rstandard(sp_lm1))) +
+   geom_hline(aes(yintercept=0), col="red") +
+   ylab("Standardized Residuals") +
+   xlab("Fitted Values")
+```
+
+
+
+Figure\@ref(fig:sp500-price-cap-qq) shows evidence of non-normality in the residuals. Since we are already planning on using model transformations to fix the other violated assumptions, we can wait to re-evaluate this one again in those models.
+
+```{r sp500-price-cap-qq, echo=F, out.width="75%", fig.cap="QQ plot for residuals in regression model for stock price data."}
+qqnorm(rstandard(sp_lm1))
+abline(0, 1)
+```
+
+
+
+

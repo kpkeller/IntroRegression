@@ -302,7 +302,7 @@ Similarly, we can write the residuals as:
 &= (\mathbf{I} - \bmH)\bmy
 \end{align*}
 
-## Hat Matrix $\mathbf{H}$
+## Hat Matrix $\mathbf{H}$ {#hatmatrix}
 
 The matrix $\bmH = \bmX(\XtX)^{-1}\bmX^\mT$ is called the `hat' matrix. The name comes from its use in calculating fitted values  (putting the "hat" on the $y$'s).
 
