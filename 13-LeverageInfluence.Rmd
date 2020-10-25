@@ -1,0 +1,278 @@
+# Unusual Observations {#unusualobs}
+
+
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bme}{\\mathbf{e}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\bmSigma}{\\boldsymbol{\\Sigma}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+
+```{r include=FALSE}
+library(tidyverse)
+```
+
+The previous chapter focused on how to identify violations of overall model assumptions. But even when there is no evidence of violations of the model assumptions for the full dataset, there can still be individual observations that are atypical. 
+
+An observation might be an **outlier**, in which is notably different from the vast majority of the rest of the data.  An outlier observation is not necessarily a problem--but it should be investigated to confirm that it is a plausible value and assess the magnitude of impact it has on the model fit. It's important o remember that an outlier is not necessarily a problem--but is something that should be investigated.
+
+Leverage and influence are two ways for quantifying how "unusual" an observation is.
+
+## Leverage
+
+A **high leverage** point is a point that has an unusual combination of predictor variable values. In simple linear regression, this means simply that its value of $x_i$ is much larger or much smaller than the rest of the data. In multiple linear regression, it might be that one or more of the predictor variables has an extreme value. However, a point can also have high leverage if the *combination* of predictor variables is unusual.
+
+
+Figure \@ref(fig:high-leverage-slr1) shows a high leverage point in the upper right quadrant. Its $x$ value of 6 is well outside the range of the other points, which are between 0 and 3.  
+
+
+```{r high-leverage-slr1, eval=TRUE, echo=FALSE,  fig.width=5, fig.height=4, fig.cap="The triangle point in the upper left has high leverage, due to its extreme value of $x$ relative to the other points. The dashed blue line shows the SLR line with this point, the red line is the SLR line with the point included.", message=FALSE}
+set.seed(3)
+d1 <- data.frame(x=c(runif(10, max=3), 6))
+b0 <- 1
+b1 <- 2
+d1$y <- b0 + b1*d1$x + rnorm(length(d1$x)) 
+
+ggplot(d1) + theme_bw() +
+   geom_smooth(aes(x=x, y=y, col="subset"), data=d1[-nrow(d1),],
+               method="lm", se=F) +
+   geom_smooth(aes(x=x, y=y, col="full"), data=d1,
+               method="lm", se=F,
+               lty=2) +
+      geom_point(aes(x=x, y=y), data=d1, size=2,
+              pch=c(rep(16, 10), 17)) +
+   scale_color_manual(name="Regression Line:",
+                      values=c("blue", "red"),
+                      breaks=c("subset", "full"),
+                      labels=c("Without Triangle Point", "With Triangle Point")) +
+   theme(legend.position="bottom")
+```
+
+### Impact of high leverage points
+
+High leverage points can dramatically impact standard errors and measures of model fit (e.g., $R^2$). High leverage points can, but do not necessarily, have a large effect on the values of $\hat\bmbeta$--that impact is quantified by influence (Section \@ref(influence) below).
+
+Because of their extreme $x$ values, high leverage points can increase the value of $S_{xx}$ (in SLR) and $\bmX^\mT\bmX$ (in MLR) by expanding the amount of variation in the predictor variables. This can lead to smaller values of $1/S_{xx}$ and $(\bmX^\mT\bmX)^{-1}$, which would result in smaller standard errors. 
+
+In situations like Figure \@ref(fig:high-leverage-slr1), a high leverage point can inflate $R^2$. The triangle point does not dramatically affect the estimated regression line, but it does result in a much larger value of $SS_{tot}$ and $SS_{reg}$. 
+
+```{example}
+In the data in Figure \@ref(fig:high-leverage-slr1), when the high leverage point is not included, $R^2 = 0.82$ and $\widehat{se}(\hat\beta_1) = 0.41$. When the high leverage point is included, $R^2 = 0.94$ and $\widehat{se}(\hat\beta_1) = 0.18$.  
+```
+
+
+### Quantifying Leverage
+
+Leverage can be quantified by the diagonal elements in the hat matrix ($\bmH = \bmX(\bmX^\mT\bmX)^{-1}\bmX^\mT$). Recall that the hat matrix controls how much each observation impacts fitted values:
+
+$$\hat\bmy = \bmH\bmy \quad \Rightarrow \quad \hat y_1 = h_{11}y_1 + h_{12}y_2 + \dots h_{1n}y_n$$
+
+The value of $h_{ij}$ is the amount of weight applied to the $j$th observation when predicting the $i$th response. The larger the value of $h_{ii}$ is, the more weight that observation has on its own prediction. 
+Points near the edge of "$x$-space" will have large $h_{ii}$ values, and so the value of $h_{ii}$ can be used to quantify the leverage of a point.
+
+
+### Calculating leverage in `R`
+
+In `R`, the values of $h_{ii}$ can be calculated using the `hatvalues()` command.
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize"}
+hatvalues(deliv1)
+2*length(coef(deliv1))/nrow(delivery)
+```
+
+
+
+
+<!-- ### Example: Delivery Data 2 -->
+
+
+```{r eval=FALSE, echo=FALSE, out.width="48%", fig.width=4, fig.heigh=4}
+g_deliv1
+g_deliv2 <- ggplot(delivery) + theme_bw() + 
+   xlab("Number of Cases") +
+   ylab("Restocking Time (min)") + 
+   geom_text(aes(x=ncases[9],
+                  y=time[9],
+                  label=9),
+               vjust = 1.5, hjust = 1.5,position = position_dodge(2.9))+ 
+   geom_text(aes(x=ncases[22],
+                  y=time[22],
+                  label=22),
+               vjust = 1.5, hjust = 1.5,position = position_dodge(2.9)) + 
+   geom_point(aes(x=ncases,
+                  y=time))
+g_deliv2
+```
+
+
+```{r eval=FALSE, echo=FALSE, size="scriptsize", output.lines=c(10:13, 16:18)}
+deliv3 <- lm(time~distance + ncases, data=delivery)
+summary(deliv3)
+```
+
+```{r eval=FALSE, echo=FALSE, size="scriptsize", output.lines=c(10:13, 16:18)}
+deliv4 <- lm(time~distance + ncases, data=delivery[-9,])
+summary(deliv4)
+```
+
+
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize"}
+hatvalues(deliv3)
+2*length(coef(deliv3))/nrow(delivery)
+```
+
+
+## Influence {#influence}
+
+An **influential** point is a point that substantially impacts the regression coefficients. this means the point needs to have an unusually value of the *response* variable. Influential points can be high leverage points, but points that do not have high leverage can still be influential.
+
+
+
+Figure \@ref(high-influence-slr1) shows the impact an influential point can have. When the triangle point is included, the regression line is somewhat flat (red dashed line). But when point is excluded, the regression line is much steeper (blue solid line).
+
+
+```{r high-influence-slr1, eval=TRUE, echo=F, fig.width=6, fig.height=4, fig.cap="Illustration of an influential point (represented by triangle).", message=FALSE}
+## set.seed(3)
+## d1 <- data.frame(x=c(runif(10, max=3), 6))
+## b0 <- 1
+## b1 <- 2
+## d1$y <- b0 + b1*d1$x + rnorm(length(d1$x)) 
+d1$y2 <- d1$y
+d1$y2[11] <- d1$y[11] - 10
+
+ggplot(d1) + theme_bw() +
+   geom_smooth(aes(x=x, y=y2, col="subset"), data=d1[-nrow(d1),],
+               method="lm", se=F) +
+   geom_smooth(aes(x=x, y=y2, col="full"), data=d1,
+               method="lm", se=F,
+               lty=2) +
+      geom_point(aes(x=x, y=y2), data=d1, size=2,
+              pch=c(rep(16, 10), 17)) +
+   scale_color_manual(name="Dataset:",
+                      values=c("blue", "red"),
+                      breaks=c("subset", "full"),
+                      labels=c("Without Triangle Point", "With Triangle Point")) +
+   theme(legend.position="bottom")
+```
+
+
+### Quantifying Influence
+
+Influence can be quantified by comparing how much the model changes when you leave out a data point. These statistics are commonly called "deletion diagnostics".
+
+Let  $\hat\bmbeta_{(i)}$ denote the OLS estimator when the $i$th observation is removed. Let $\hat\bmy_{(i)}$ denote fitted values using $\hat\bmbeta_{(i)}$. Deletion diagnostics quantify (i) how  $\hat\bmbeta_{(i)}$ compares to $\hat\bmbeta$ or (ii) how $\hat\bmy$ compares to $\hat\bmy_{(i)}$.
+
+### Cook's D
+
+**Cook's D** measures the squared difference between $\hat\bmbeta$ and $\hat\bmbeta_{(i)}$, scaled by the locations in `X-space'. This is equivalent to the squared distance that the vector of fitted values changes when you calculate $\hat\beta$ without the $i$th observation. Cook's D is calculated for each observation.
+
+\begin{align*}
+D_i & =  \frac{(\hat\bmbeta_{(i)} - \hat\bmbeta)^\mT(\bmX^\mT\bmX)(\hat\bmbeta_{(i)} - \hat\bmbeta)}{p\hat\sigma^2}\\
+& = \frac{(\hat\bmy_{(i)} - \hat\bmy)^\mT(\hat\bmy_{(i)} - \hat\bmy)}{p\hat\sigma^2}
+\end{align*}
+
+In `R`, Cook's D can be calculated using the function `cooks.distance()`.
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize"}
+round(cooks.distance(deliv3), 3)
+```
+
+### $DFBETAS$
+
+A similar statistic is the 'DF-Beta', which measures how much $\hat\beta_j$ changes when the $i$th observation is removed. This is commonly calculated on a standardized scale (hence the $S$ in $DFBETAS$).
+
+$$DFBETAS_{j,i} = \frac{\hat\beta_j - \hat\beta_{j(i)}}{\sqrt{\hat\sigma^2_{(i)}((\bmX^\mT\bmX)^{-1})_{jj}}}$$
+
+
+Unlike Cook's D, $DFBETAS$ are calculated for each parameter-observation combination (which is why it is indexed by $i$ and $j$). $DFBETAS$ tells you which coefficients are most impacted by which observations. This provides an additional level of detail to narrow down *how* a point is influential.
+
+
+In `R`, use the function `dfbetas()` (note this is not `dfbeta()`).
+
+```{r eval=FALSE, echo=FALSE, output.lines=1:8, size="footnotesize"}
+round(dfbetas(deliv3), 3)
+```
+
+
+<!-- ### Cutoffs for Deletion Diagnostics -->
+<!-- What is a large value of $D_i$?  of $DFBETAS_{j,i}$? -->
+<!-- Suggested cutpoints from textbook: -->
+<!-- * $D_i > 1$ -->
+<!-- * $|DFBETAS_{j,i}| > \frac{2}{\sqrt{n}}$ -->
+
+
+<!-- ### Example: Delivery Data 2 -->
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize"}
+round(dfbetas(deliv3)[9,], 3)
+```
+
+<!-- When observation 9 is *added*: -->
+
+<!-- * $\hat\beta_0$ is about 2.6 standard deviations smaller -->
+<!-- * $\hat\beta_1$ is about 1.5 standard deviations larger -->
+<!-- * $\hat\beta_2$ is about 0.9 standard deviations larger -->
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize"}
+coef(deliv3) ## Full model
+coef(deliv4) ## Model without obs 9
+```
+
+<!-- ### Example: Delivery Data 2 -->
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize"}
+round(dfbetas(deliv3)[22,], 3)
+```
+
+<!-- When observation 22 is *added*: -->
+
+<!-- * $\hat\beta_0$ is about 0.4 standard deviations larger -->
+<!-- * $\hat\beta_1$ is about 0.6 standard deviations larger -->
+<!-- * $\hat\beta_2$ is about 1 standard deviations small -->
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize"}
+coef(deliv3) ## Full model
+coef(lm(time~distance + ncases, data=delivery[-22,]))
+```
+
+
+## Influence Measures in R
+
+The individual measures of leverage and influence can be calculated as described above, but `R` also provides a convenient method for computing them all. The function `influence.measures()` provides all three measures and automatically flags what it thinks are influential values.
+
+```{r eval=FALSE, echo=FALSE}
+options(digits=3)
+```
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize", output.lines=1:10}
+influence.measures(deliv3)
+```
+
+```{r eval=FALSE, echo=FALSE, size="footnotesize", output.lines=-1:-10}
+influence.measures(deliv3)
+```
+
+
+
+## What to do?
+
+If we identify high leverage or influential observations, what should we do?
+
+It's best to investigate the point, if possible. In large datasets, this may be  unfeasible, however. If the point is a data error, it should be corrected or if necessary discarded (and this removal reported).  But if the point is a valid observation, it should not be removed simply because it is influential. Alternative models that are more robust to outlying values could be explored.  
+
