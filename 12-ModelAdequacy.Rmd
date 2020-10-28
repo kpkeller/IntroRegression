@@ -248,7 +248,7 @@ sp500$sector[sp500$sector=="Telecommunication Services"] <- "Telecommunication"
 We have data on stock prices from the S\&P 500 on February 8, 2018, including the stock price and market capitalization. Consider an SLR model with market capitalization as the predictor variable and stock price as the outcome. Is there evidence of violation of any of the model assumptions?
 ```
 
-To answer this, let's first plot the data with the regression line. Figure \@ref(fig:sp500-price-cap) shows the data, and it is clearly evident that the values of both variables are skewed. (In Section \@ref(), we'll revisit this data to see how a transformation can fix this).
+To answer this, let's first plot the data with the regression line. Figure \@ref(fig:sp500-price-cap) shows the data, and it is clearly evident that the values of both variables are skewed. (In Section \@ref(transformations), we'll revisit this data to see how a transformation can fix this).
 
 ```{r include=F, echo=FALSE}
 sp_lm1 <- lm(price~market_cap, data=sp500)
@@ -274,7 +274,7 @@ g_sp1  +
 
 
 
-The residual-fitted plot is shown in Figure \@ref(sp500-price-cap-residplot). There is a clear downward trend in the residuals, which is evidence of violation of the linearity assumption. It is difficult to determine if there is violation of the constant variance assumption, given the small number of data points  with large fitted values.
+The residual-fitted plot is shown in Figure \@ref(fig:sp500-price-cap-residplot). There is a clear downward trend in the residuals, which is evidence of violation of the linearity assumption. It is difficult to determine if there is violation of the constant variance assumption, given the small number of data points  with large fitted values.
 
 
 ```{r sp500-price-cap-residplot, eval=T, echo=F, fig.cap="Residuals versus fitted values in regression model for stock price data."}
