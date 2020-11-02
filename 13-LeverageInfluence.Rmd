@@ -144,7 +144,7 @@ An **influential** point is a point that substantially impacts the regression co
 
 
 
-Figure \@ref(high-influence-slr1) shows the impact an influential point can have. When the triangle point is included, the regression line is somewhat flat (red dashed line). But when point is excluded, the regression line is much steeper (blue solid line).
+Figure \@ref(fig:high-influence-slr1) shows the impact an influential point can have. When the triangle point is included, the regression line is somewhat flat (red dashed line). But when point is excluded, the regression line is much steeper (blue solid line).
 
 
 ```{r high-influence-slr1, eval=TRUE, echo=F, fig.width=6, fig.height=4, fig.cap="Illustration of an influential point (represented by triangle).", message=FALSE}

@@ -164,7 +164,7 @@ In Section \@ref(mlrmx), we introduced the matrix form for the multiple linear r
 
 So far, we have focused on how to interpret, estimate, and test the model parameters and paid little attention to the model assumptions. Now we will take a closer look at each of these assumptions and how to evaluate if they hold in our data.
 
-### **Assumption 1**: $\E[\bmepsilon] = \mathbf{0}$  
+### **Assumption 1**: $\E[\bmepsilon] = \mathbf{0}$  {#checklinearity}
 This assumption has two consequences. The first is that the errors $\epsilon_i$ have mean zero. This is ensured by the inclusion of the intercept in the model. The second consequence is that the relationship between the mean of the repsonse and the predictors is (approximately) linear. That is, that $\E[\bmy] =  \bmX\bmbeta$. Violations of this assumption can lead to results that are misleading and incorrect, since the trend being modeled does not match the trend in the data.
 
 We can assess this assumption by plotting standardized residuals ($s_i$) against fitted values ($\hat y_i$). While a violation of the linearity assumption can take different forms, the most common is a curved or "bow" pattern. The bow pattern (right side of Figure \@ref(fig:resplot-bow)) arises when there is a quadratic or exponential-type shape (left side of Figure \@ref(fig:resplot-bow)).
