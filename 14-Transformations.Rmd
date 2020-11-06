@@ -1,0 +1,515 @@
+# Model Transformations {#transformations}
+
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bme}{\\mathbf{e}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+'`
+
+```{r include=FALSE}
+library(tidyverse)
+library(cowplot)
+library(broom)
+```
+
+
+## Why transform?
+
+Many times the relationship between predictor variables and an outcome variable is non-linear. Instead, it might be exponential, logarithmic, quadratic, or not easily categorized. All of these types of relationships can violate the assumption of linearity (Section \@ref(checklinearity)). In these situations, we can still use linear regression! All that is required is applying a transformation to one or more of the variables in the model. 
+
+## Outcome ($Y$) Transformations
+
+Transformations of the outcome variable involve replacing $Y_i$ with $f(Y_i)$, where $f$ is a function such as $\log$. This kind of transformation can often fix violations of the linearity and constant variance assumptions.  Figure \@ref(fig:logy-sim) shows an example of this, where the left plot has violations of linearity and constant variance. The right panel shows the impact of transforming y using the logarithmic function; the relationship is now more linear and the heteroscedasticity (non-constant variance) is gone.
+
+```{r logy-sim, echo=F, message=FALSE, out.width="95%", fig.width=5, fig.height=3, fig.cap="Impact of log-transforming $y$."}
+n <- 150
+set.seed(2020)
+x <- runif(n, min=0, max=3)
+y <- 0.5 + exp(0.8*x) + rnorm(n, sd=0.2 + 0.4*x)
+lmfit2 <- lm(y~x)
+g1 <- ggplot()+ theme_bw() + geom_point(aes(x=x, y=y))  + geom_smooth(aes(x=x, y=y), method="lm", col="red", se=F) # + ggtitle("Synthetic Data 2: Fitted Line")
+g2 <- ggplot()+ theme_bw() + geom_point(aes(x=x, y=log(y)))  + geom_smooth(aes(x=x, y=log(y)), method="lm", col="red", se=F) # + ggtitle("Synthetic Data 2: Fitted Line")
+
+# g2 <- ggplot() + theme_bw() + geom_point(aes(x=fitted(lmfit2), y=rstandard(lmfit2))) + xlab("Fitted Values") + ylab("Standardized Residuals") # + ggtitle("Synthetic Data 2: Residuals v. Fitted")
+plot_grid(g1, g2)
+```
+
+
+
+
+Scientifically, using $\log(Y_i)$ in place of $Y_i$ is often appropriate for outcomes that operate on a multiplicative scale. Concentrations of pollution in the air or biomarkers in the blood are two examples of this.
+
+
+
+
+```{example}
+Consinder the house price data introduced in Section \@ref(housingprices). Figure \@ref(fig:g-housing-inc-price-pretrans) plots the median house sale price in each city against median income in each city. Although most of the points are in the lower left, there are some extreme values in the middle and upper right. 
+```
+
+```{r include=FALSE}
+housing_inc <- read_csv("data/housing_income.csv")
+housing_inc <- subset(housing_inc, !is.na(median_income))
+housing_inc <- housing_inc %>%
+  mutate(median_income = median_income/1000,
+         median_sale_price=median_sale_price/1000)
+```
+
+```{r g-housing-inc-price-pretrans, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+gg_housing_inc <- ggplot(housing_inc, aes(x=median_income,
+                 y=median_sale_price)) + theme_bw() + 
+  geom_point() +
+  ylab("Median House Price ($1,000)") +
+  xlab("Median Household Income ($1,000)")
+gg_housing_inc +
+  geom_smooth(method="lm", se=F)
+```
+
+A residual plot (Figure \@ref(fig:g-housing-inc-price-resid)) from this SLR model shows some evidence of non-linearity and non-constant variance present.
+
+```{r g-housing-inc-price-resid, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+housing_lm <- lm(median_sale_price~median_income, data=housing_inc)
+ggplot() + theme_bw() + 
+  geom_hline(aes(yintercept=0), col="grey", lty=2) +
+  geom_point(aes(x=fitted(housing_lm), y=rstandard(housing_lm))) +
+  # geom_smooth(aes(x=fitted(housing_lm), y=rstandard(housing_lm)), se=F) + 
+  xlab("Fitted Values") + ylab("Standardized Residuals") # + ggtitle("Synthetic Data 2: Residuals v. Fitted")
+```
+
+
+If we apply a log transform to median sale price, the data then look like Figure \@ref(fig:g-housing-inc-price-logy).
+
+```{r g-housing-inc-price-logy, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+gg_housing_inc_logy <- ggplot(housing_inc, aes(x=median_income,
+                 y=log(median_sale_price))) + theme_bw() + 
+  geom_point() +
+  ylab("Logarithm of Median House Price ($)") +
+  xlab("Median Household Income ($)")
+gg_housing_inc_logy +
+  geom_smooth(method="lm", se=F)
+```
+
+The residual plot then looks like:
+
+```{r g-housing-inc-price-logy-resid, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+housing_lm2 <- lm(log(median_sale_price)~median_income, data=housing_inc)
+ggplot() + theme_bw() + 
+  geom_hline(aes(yintercept=0), col="grey", lty=2) +
+  geom_point(aes(x=fitted(housing_lm2), y=rstandard(housing_lm2))) +
+  # geom_smooth(aes(x=fitted(housing_lm), y=rstandard(housing_lm)), se=F) + 
+  xlab("Fitted Values") + ylab("Standardized Residuals") # + ggtitle("Synthetic Data 2: Residuals v. Fitted")
+```
+
+
+
+
+
+
+### Interpreting Model with $\log Y$
+
+It's important to remember that applying a transform on $Y$ will change the interpretation of all of the model parameters. The $\beta_j$ now represent differences in $E[f(Y_i)]$, not in $E[Y_i]$.
+
+If the function $f()$ is chosen to be the logarithm, then we can interpret $\beta_j$ in terms of the geometric mean of $Y$.
+The **geometric mean** is a measure of central tendency that is defined as:
+\begin{align*}
+GeoMean(x_1, \dots, x_n) &= \sqrt[n]{x_1 \times x_2 \times  \dots \times x_n} \\
+&= (x_1 \times x_2 \times \dots \times x_n)^{1/n}
+\end{align*}
+
+The geometric mean is:
+
+* only defined for positive numbers
+* always smaller than the arithmetic mean (the usual ``average'')
+* more robust to outliers than the arithmetic mean
+* useful when there are multiplicative changes in a variable
+
+A helpful way to rewrite the geometric mean is:
+\begin{align*}
+GeoMean(x_1, \dots, x_n) &= \exp\left(\log\left[(x_1 \times x_2 \times \dots \times x_n)^{1/n}\right]\right)\\
+&= \exp\left(\frac{1}{n} \left[\log(x_1) + \log(x_2) + \dots + \log(x_n)\right]\right)
+\end{align*}
+
+
+Using the relationships above, \(\exp(\E[\log(X)])\) can be interpreted
+as the geometric mean of a random variable \(X\). This means that in the model
+$$\log(Y) = \beta_0  + \beta_1x_{1} + \epsilon$$
+we have
+\[\beta_1 = \E[\log(Y) | x_1=x + 1] - \E[\log(Y) | x_1=x] \]
+Taking the exponential of both sides, we have
+\begin{align*}
+\exp(\beta_1) & = \exp\left(\E[\log(Y) | x_1=x + 1] - \E[\log(Y) | x_1=x]\right)\\
+&=\frac{\exp(\E[\log(Y) | x_1=x + 1])}{\exp(\E[\log(Y) | x_1=x])}\\
+&=\frac{GeoMean(Y | x_1 = x+ 1)}{GeoMean(Y | x_1 = x)}
+\end{align*}
+Thus, $exp(\beta_1)$ is the multiplicative difference in geometric mean of $Y$ for a 1-unit difference in $x_{1}$
+
+
+
+
+```{r include=F}
+summary(housing_lm2)
+broom::tidy(housing_lm2, conf.int=T)
+```
+
+```{example}
+In an SLR model with the logarithm of median house price as the outcome and median income (in thousands of dollars) as the predictor variable, the estimated value of $\hat\beta_1$ is 0.024  (95\% CI: 0.020, 0.028). Since $exp(0.024) = 1.024$, this means that a difference of $1,000 in median income between cities is associated with a a 2.4\% higher geometric mean sale price.
+```
+
+
+
+
+
+```{r include=FALSE, eval=F}
+div1 <- read_csv("data/div1_revenue_2018.csv")
+```
+
+```{r echo=FALSE, eval=F, fig.height=3.5}
+g_athleticrev <- ggplot(div1) +
+   theme_bw() + 
+   geom_point(aes(x=total_undergrad,
+                  y=total_revenue,
+                  col=division)) +
+   xlab("Total Undergraduate Enrollment") + 
+   ylab("Total Athletics Revenue ($)")
+g_athleticrev
+```
+
+
+
+### Other transformations
+
+Other transformations are possible, such as square root ($\sqrt{y}$) and the inverse transform ($1/y$). In certain circumstances, these can solve issues of non-constant variances. However, they also make interpreting the regression coefficients more difficult than with the log transform.
+
+
+## Transformations on $X$
+
+
+### Transformations on $X$
+
+In addition to transforming the outcome variable, we can transform the predictor variables. Common transformations for $x$'s are:
+
+* Logarithmic transformation: $\log(x_j)$. (Section \@ref(logxtransform))
+* Inverse transformation: $1/x_j$
+* Polynomial transformations: $\beta_1x + \beta_2x^2 + \beta_3x^3 + \dots$ (Section \@ref(polynomials))
+* Spline transformations (Section \@ref(splines))
+
+### Log Transforming $x$'s {#logxtransform}
+
+Replacing $x_j$ with $\log(x_j)$ can sometimes fix problems with non-linearity in the relationship. This is useful when additive differences in $Y$ are associated with multiplicative differences in $x_j$. It's important to note that transforming predictor variables alone is usually not sufficient to fix non-constant variance; that typically requires a transformation on the outcome variable.
+
+```{example}
+Figure \@ref(fig:mpg-displ-cyl22) shows the fuel efficiency of cars by engine size (data are from `mpg`.) We previously looked at this data as a candidate for an interaction model (Example \@ref(exm:mpg-interaction)), but the smooth in Figure \@ref(fig:mpg-displ-cyl22)  suggests that a transformation on engine size might also be appropriate. 
+```
+
+```{r mpg-displ-cyl22, echo=FALSE, fig.cap="Fuel efficiency data from `mpg` dataset.", message=FALSE, out.width="75%"}
+mpg %>%
+  mutate(cyl=as.character(cyl)) %>%
+ggplot() + theme_bw() + 
+  geom_point(aes(x=displ,
+                 y=cty,
+                 col=cyl)) +
+  geom_smooth(aes(x=displ,
+                 y=cty),
+              se=FALSE) +
+    labs(color="Number of\nCylinders",
+         x="Engine Displacement (Liters)",
+         y="City Miles Per Gallon")
+```
+Figure \@ref(fig:mpg-displ-cyl2-log) shows the same data, but with a log-transform of the predictor variable. The relationship now looks much more linear than it did before the transform. 
+
+```{r mpg-displ-cyl2-log, echo=FALSE, fig.cap="Fuel efficiency data from `mpg` dataset, with log transform for engine displacement.", message=FALSE, out.width="75%"}
+mpg %>%
+  mutate(cyl=as.character(cyl)) %>%
+ggplot() + theme_bw() + 
+  geom_point(aes(x=log(displ),
+                 y=cty,
+                 col=cyl)) +
+  geom_smooth(aes(x=log(displ),
+                 y=cty),
+              se=FALSE) +
+    labs(color="Number of\nCylinders",
+         x="Engine Displacement (Liters), Log Scale",
+         y="City Miles Per Gallon") +
+  scale_x_log10()
+```
+
+
+If we log-transform the predictor variable, then we are essentially fitting the model:
+\begin{equation}
+Y_i = \beta_0  + \beta_1\log(x_{i1}) + \epsilon_i
+(\#eq:slrlogx)
+\end{equation}
+In \@ref(eq:slrlogx), $\beta_1$ is the difference in $\E[Y_i]$ for a 1-unit difference in $log(x_{i1})$.  Since $log(x) + 1 = log(x) + log(e) = log(x*e)$, a 1-unit difference in $\log(x_{i1})$ is equivalent to an $e$-fold multiplicative difference in $x_{i1}$. (An $e$-fold difference means multiplying the current value by $e \approx 2.718$).
+
+
+
+```{example}
+To fit an SLR model to the data in Figure \@ref(fig:mpg-displ-cyl2-log), we could create a new variable is the log-transformed value of `displ`. Or, we can do the log transform within the call to `lm()`:
+```
+
+```{r echo=TRUE}
+mpg_logx_lm <- lm(hwy~log(displ), data=mpg)
+tidy(mpg_logx_lm, conf.int=TRUE)
+```
+
+```{example}
+In this model, the point estimates (and 95\% CI) for $\hat\beta_0$ and $\hat\beta_1$ are 38.2 (36.7, 39.7) and -12.6 (-13.8, 11.4), respectively. From this, we can conclude that an $e$-fold difference in engine size is associated with 12.6 (11.4, 13.8) lower milies per gallon on the highway.
+```
+
+
+## Log-transforming $x$ and $Y$
+
+In addition to transforming $x$ or $Y$, we can fit a model with a transform applied to both. This is most commonly done using a logarithm transform on both $x$ and $Y$. This is equivalent to 
+\begin{align*}
+\E[Y_i]&= \beta_0 + \beta_1\log(x_i)\\
+e^{\E[Y_i]} &= e^{\beta_0}e^{\beta_1\log(x_i)} =e^{\beta_0}x_i^{\beta_1}
+\end{align*}
+This form lets the model be quite flexible--particularly for any type of exponential or growth model.
+
+```{example}
+Figure \@ref(fig:sp500-price-cap2) shows the stock price and market capitalization for companie son the S&P 500. The data are concentrated in the bottom left, and it seems like a linear model would not work for these data.
+```
+
+```{r eval=TRUE, include=FALSE}
+sp500 <- read_csv("data/sp500.csv")
+sp500$sector[sp500$sector=="Telecommunication Services"] <- "Telecommunication"
+```
+
+
+```{r sp500-price-cap2, eval=TRUE,  echo=FALSE, fig.cap="Stock prices and market capitalization.", message=FALSE, out.width="75%"}
+g_sp1 <- ggplot(aes(x=market_cap,
+                  y=price),
+              data=sp500) + theme_bw() + 
+   geom_point() + 
+   xlab("Market Capitalization ($)") + 
+   ylab("Stock Price ($)") +
+  geom_smooth( se=F)
+g_sp1
+```
+
+But if we log-transform both variables, than we get Figure \@ref(fig:sp500-price-cap-logxy). After the transformation, the relationship between the variables looks to be much more linear.
+
+```{r sp500-price-cap-logxy, eval=TRUE, echo=FALSE, fig.cap="Stock prices and market capitalization, after log-transforming both variables.", message=FALSE, out.width="75%"}
+g_sp4 <- ggplot(aes(x=log(market_cap),
+                  y=log(price)),
+              data=sp500) + theme_bw() + 
+   geom_point() + 
+   xlab("Log(Market Capitalization) ($)") + 
+   ylab("Log(Stock Price) ($)") +
+  geom_smooth( se=F) +
+  geom_smooth(method="lm", se=F, col="red")
+g_sp4
+```
+
+We can estimate the model coefficients:
+```{r eval=TRUE, echo=TRUE}
+sp_lm1 <- lm(log(price)~log(market_cap), data=sp500)
+tidy(sp_lm1, conf.int=TRUE)
+```
+
+The estimated line is $\widehat{\log y_i} = -2.87 + 0.30\log x_i$, which leads to a non-linear relationship on the original scale:
+```{r eval=TRUE, out.width="60%", echo=FALSE, fig.height=4, fig.width=5, message=FALSE}
+g_sp5 <- ggplot(aes(x=market_cap,
+                  y=price),
+              data=sp500) + theme_bw() + 
+   geom_point() + 
+   xlab("Market Capitalization ($)") + 
+   ylab("Stock Price ($)") +
+  geom_line(aes(x=sp500$market_cap, y=exp(fitted(sp_lm1))), col="red")
+g_sp5
+```
+
+## Polynomial Models {#polynomials}
+
+### Polynomial Regression
+
+While the log transform can be useful, it isn't always appropriate for a set of data. 
+Sometimes the relationship between $\E[Y]$ and $x$ is best modeled using a polynomial.
+
+```{example}
+Consider again the fuel efficiency data in Figure \@ref(fig:mpg-displ-cyl22). Instead of log-transforming $x$, we could instead use a quadratic polynomial to reprsent the relatioship between fuel efficiency and engine size. This leads to the curve shown in Figure \@ref(fig:mpg-displ-cyl2-quadx)
+```
+
+```{r mpg-displ-cyl2-quadx, echo=FALSE, fig.cap="Fuel efficiency data from `mpg` dataset. Curve estimated using a quadratic polynomial for engine displacement.", message=FALSE, out.width="75%"}
+mpg %>%
+  mutate(cyl=as.character(cyl)) %>%
+ggplot() + theme_bw() + 
+  geom_point(aes(x=displ,
+                 y=cty,
+                 col=cyl)) +
+  geom_smooth(aes(x=displ,
+                 y=cty),
+              formula=y~poly(x, 2),
+              method=lm,
+              se=FALSE) +
+    labs(color="Number of\nCylinders",
+         x="Engine Displacement (Liters), Log Scale",
+         y="City Miles Per Gallon") +
+  scale_x_log10()
+```
+
+
+
+When using a polynomial transformation, we are still fitting a linear regression model--recall that the term "linear" refers to the coefficients, not the predictors. A quadratic polynomial model can be written:
+\begin{equation}
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \epsilon_i.
+(\#eq:lmquad)
+\end{equation}
+Model \@ref(eq:lmquad) looks like our standard multiple linear regression model, we just now have $x^2$ as one of the predictor variables.
+
+Since $x_i$ shows up twice in model \@ref(eq:lmquad), parameter interpretation are more complicated than in regular MLR models. $\beta_1$, the coefficient for $x_i$, can no longer be interpreted as the difference in average value of $Y$ for a one-unit difference in $x_i$ (adjusting for all other predictors). This is because a 1-unit change in $x_i$ also means that there must be a difference in the $x_i^2$ term. Because of this, in polynomial models it is common to not interpret the individual parameters. Instead, focus is on the overall model fit and estimated mean (or equivalently, predicted values).
+
+### Estimating Polynomial Models
+
+To estimate coefficients for a polynomial model, quadratic (and higher-order) terms can be added directly to the model, like in \@ref(eq:lmquad). This can be accomplished in `R` by adding the terms `I(x^2)` to the model formula. (The `I()` is necessary to indicate that you are performing a transformation of the variable `x`). For example:
+
+```{r echo=TRUE, size="small"}
+mpg_quad <- lm(hwy~displ + I(displ^2), data=mpg)
+summary(mpg_quad)
+```
+
+This yields estimated coefficients like usual, from which we can calculate the estimated model, make predictions, and more.
+
+In practice, using polynomial terms directly in the model can lead to some stability issues due to correlation between the predictors. (The values of $x$ are naturally highly correlated with the values of $x^2$, $x^3$, etc.) Instead, it's better to use *orthogonal polynomials*. The mathematical details of creating orthogonal polynomials is outside the scope of this book, but they are easy to implement in R. Instead of including `x + I(x^2) + I(x^3)` in the model formula, simply use `poly(x, 3)`. The `poly()` function creates the orthogonal polynomials for you, providing better stability in coefficient estimates and reducing the likelihood of typographical mistakes. 
+
+In our fuel efficiency data example, we have:
+```{r echo=TRUE, size="small"}
+mpg_quad_v2 <- lm(hwy~poly(displ, 2), data=mpg)
+summary(mpg_quad_v2)
+```
+
+If we compare the output from the two models, we can see that the coefficient estimates differ. This is because the quadratic polynomial is being represented in two different (but mathematically equivalent) ways. The overall model fit is the same for both models, which we can see in the identical values for $\hat\sigma$, $R^2$, and Global $F$ statistic. The fit from both model is plotted in Figure \@ref(fig:mpg-displ-cyl2-quadx).
+
+
+
+
+### Testing in Polynomial Models
+
+Like with interaction models, hypothesis testing in polynomial models requires some care when setting up appropriate null hypotheses. When considering which parameters to test, we want to keep an important rule in mind: **lower-order terms must always remain in the model.** 
+
+This means, if we have a quadratic model like \@ref(eq:lmquad), then we could test $H_0: \beta_2 = 0$, but we would not want to test $H_0: \beta_1 =0$. Removing the lower order terms (e.g. $x$) but leaving higher-order terms (e.g., $x^2$) puts strong mathematical constraints on what remains, in a manner similar to fitting an SLR model but forcing the intercept to be zero.
+
+This means the following hypothesis tests are valid for an MLR model with polynomial terms:
+
+* Testing only the highest order $x$ terms
+* Testing *all* of the $x$ terms 
+* Testing some of the $x$ term, starting with the highest order term and including the next lower-order terms from there.
+
+In the case of the model
+\begin{equation}
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \beta_3x_i^2 + \epsilon_i.
+(\#eq:lmquad)
+\end{equation}
+this means the following tests are appropriate:
+
+* $H_0: \beta_3 = 0$
+* $H_0: \beta_1 = \beta_2 = \beta_3 = 0$
+* $H_0: \beta_2 = \beta_3 = 0$
+
+Like with other MLR models, these hypotheses can be tested using a T test, Global F-test, and Partial F-test, respectively.
+
+### Predicting Polynomial Models
+
+When making predictions from polynomial models, we can use `predict()` like with regular MLR models. Since we define the polynomial transformation within the model fit (i.e. by including `poly(x, 3)` instead of creating new columns in the data frame), we only need to provide the predictor variable column in the prediction data frame. 
+
+```{example}
+Let's use our quadratic model for the fuel efficiency data to predict the average highway fuel efficiency for a vehicle with a 6 L engine. We can do this by calling `predict()`:
+```
+
+```{r}
+predict(mpg_quad_v2,
+        newdata=data.frame(displ=6),
+        interval="prediction")
+```
+Our model estimates that a vehicle with a 6-L engine will get 18.1 mpg (95\% PI: 11.2, 25.0) on the highway.
+
+
+
+## Splines {#splines}
+
+Polynomial models provide flexibility over models that only include linear terms for the predictors. While it's theoretically possible to model any function as a polynomial if you include enough terms (think of a Taylor series expansion), going beyond quadratic terms in a regression often runs into stability problems. In the highest and lowest ranges of the data (the "tails" of the data), the values can be highly variable, leading to poor fit in those areas.
+
+Instead, we can use a flexible form for $x$ that doesn't have such erratic tail behavior. Splines provide one such approach. Essentially, we can think of splines as simple building blocks that we can use to form more complicated functions. Figure \@ref(fig:spline-df4) shows four standard splines^[These are natural cubic splines, which is what we focus on here. Many other types exist.] that can be used to represent different functions of $x$. The number of splines is typically called the *degrees of freedom* for the spline^[This is different from the $df_{Res}=n -p$ we have previously seen.].
+
+```{r spline-df4, eval=TRUE, fig.cap="Natural cubic splines with $df=4$."}
+library(splines)
+x <- seq(0, 10, length=100)
+S <- ns(x, df=4)
+Sdf <- data.frame(S) %>%
+  rename(z1=X1, z2=X2, z3=X3, z4=X4) %>%
+  mutate(x=x) %>%
+  pivot_longer(cols=-x)
+# matplot(x, ns(x, df=4), type="l")
+ggplot(Sdf) + theme_bw() + 
+  geom_path(aes(x=x,y=value, col=name)) +
+  labs(col="Spline")
+```
+
+If we have $df=4$ splines $z_1$, $z_2$, $z_3$, and $z_4$, like in Figure \@ref(fig:spline-df4) , we can fit the model:
+$$Y_i = \beta_0 + \beta_1z_1 + \beta_2z_2 + \beta_3z_3 + \beta_4z_4 + \epsilon_i$$
+
+
+Figure \@ref(fig:spline-df4-ex1) shows one possible combination of these splines to create a single curve. In this case, the curve is $1s_1 -0.5s_2 + 0.2s_3 + 0.4s_4$, where $s_j$ are the different splines from Figure \@ref(fig:spline-df4). The more splines, the more flexible the curve that can be fit.
+
+It's important to remember that like with polynomial models, we cannot interpret $\beta_1$ alone. A change in the value of $x$ would change all of the values $z_1$, $z_2$, $z_3$, $z_4$. Thus, splines are best used when coefficient interpretation is not needed--such as when prediction is the goal, or when using a variable for adjustment and inferential interest is on another variables.
+    
+```{r spline-df4-ex1, eval=TRUE, echo=FALSE, fig.cap="Example linear combination of splines to form a cuve."}
+plot(x, S %*% c(1, -0.5, 0.2, 0.4), type="l", xlab="", ylab="")
+```
+
+The more splines, the more flexible the curve that can be fit.
+
+
+
+* Cannot interpret $\beta_1$ alone, since $z_1$, $z_2$, $z_3$, $z_4$ all change together depending on value of $x$
+* Splines are best used when coefficient interpretation is not needed. Such as:
+    * Spline variable is just for adjustment, and predictor of interest is a different variable 
+    * Prediction of $y$ is goal
+
+
+
+
+
+```{r echo=FALSE, include=FALSE}
+bb <- read_csv("data/rockies_hits_2019.csv")
+bb <- bb %>%
+  mutate(events=factor(events, levels=c("single", "double", "triple", "home_run"))) %>%
+  mutate(Outcome=factor(hit, levels=c(T, F), labels=c("Hit", "Out")))
+```
+
+
+```{example}
+Consider the baseball hit data from Example \@ref(exm:bb-exposition-langle-hitdist) and plotted again in Figure \@ref(fig:bb-scatter-langle-hitdist2). These data show a non-linear trend that doesn't easily match to a logarithmic or polynomial function. Instead, we can include a spline fit, like the one shown in Figure \@ref(fig:bb-scatter-langle-hitdist2).
+```
+
+```{r bb-scatter-langle-hitdist2, echo=FALSE, fig.cap="Distance travelled and launch angle for balls in play from Colorado Rockies in 2019."}
+g_bb_langle_hitdist <- bb %>%
+  filter(!is.na(launch_speed)) %>%
+  ggplot() + theme_bw() + 
+  geom_point(aes(x=launch_angle, y=hit_distance, col=Outcome), alpha=0.3) +
+  xlab("Launch Angle (degrees)") +
+  ylab("Distance Travelled (ft)")
+g_bb_langle_hitdist +
+  geom_smooth(aes(x=launch_angle,
+                  y=hit_distance),
+              formula=y~ns(x, 6),
+              method=lm)
+```
+
+To fit this model, we run the code:
+```{r}
+bb_lm_spline <- lm(hit_distance~ns(launch_angle, 6), data=bb)
+summary(bb_lm_spline)
+```

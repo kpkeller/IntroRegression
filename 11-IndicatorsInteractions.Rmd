@@ -438,7 +438,7 @@ X[c(1:2, 22:24),]
 ```
 
 
-```{example}
+```{example mpg-interaction}
 Is there a difference in the relationship between average highway MPG and engine size, comparing vehicles witht 8-cylinder engines compared to those without?
 ```
 
