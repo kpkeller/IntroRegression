@@ -56,7 +56,7 @@ Scientifically, using $\log(Y_i)$ in place of $Y_i$ is often appropriate for out
 
 
 ```{example}
-Consinder the house price data introduced in Section \@ref(housingprices). Figure \@ref(fig:g-housing-inc-price-pretrans) plots the median house sale price in each city against median income in each city. Although most of the points are in the lower left, there are some extreme values in the middle and upper right. 
+Consider the house price data introduced in Section \@ref(housingprices). Figure \@ref(fig:g-housing-inc-price-pretrans) plots the median house sale price in each city against median income in each city. Although most of the points are in the lower left, there are some extreme values in the middle and upper right. 
 ```
 
 ```{r include=FALSE}
@@ -265,7 +265,7 @@ tidy(mpg_logx_lm, conf.int=TRUE)
 ```
 
 ```{example}
-In this model, the point estimates (and 95\% CI) for $\hat\beta_0$ and $\hat\beta_1$ are 38.2 (36.7, 39.7) and -12.6 (-13.8, 11.4), respectively. From this, we can conclude that an $e$-fold difference in engine size is associated with 12.6 (11.4, 13.8) lower milies per gallon on the highway.
+In this model, the point estimates (and 95\% CI) for $\hat\beta_0$ and $\hat\beta_1$ are 38.2 (36.7, 39.7) and -12.6 (-13.8, 11.4), respectively. From this, we can conclude that an $e$-fold difference in engine size is associated with 12.6 (11.4, 13.8) lower miles per gallon on the highway.
 ```
 
 
@@ -273,8 +273,8 @@ In this model, the point estimates (and 95\% CI) for $\hat\beta_0$ and $\hat\bet
 
 In addition to transforming $x$ or $Y$, we can fit a model with a transform applied to both. This is most commonly done using a logarithm transform on both $x$ and $Y$. This is equivalent to 
 \begin{align*}
-\E[Y_i]&= \beta_0 + \beta_1\log(x_i)\\
-e^{\E[Y_i]} &= e^{\beta_0}e^{\beta_1\log(x_i)} =e^{\beta_0}x_i^{\beta_1}
+\E[\log(Y_i)]&= \beta_0 + \beta_1\log(x_i)\\
+e^{\E[\log(Y_i)]} &= e^{\beta_0}e^{\beta_1\log(x_i)} =e^{\beta_0}x_i^{\beta_1}
 \end{align*}
 This form lets the model be quite flexible--particularly for any type of exponential or growth model.
 
