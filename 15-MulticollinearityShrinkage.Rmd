@@ -1,0 +1,118 @@
+# Multicollinearity and Shrinkage {#multicolshrinkage}
+
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+'`
+
+
+## Multicollinearity
+
+
+
+Multicollinearity is used to describe linear dependence between the columns of $\bmX$. This occurs when the $x$ variables are correlated, although it is most often used in contexts with high correlation (since in any observational dataset there is almost always some amount of correlation between predictors). Multicollinearity is something to be aware of, but in and of itself is **not** necessarily a problem. In particular, multicollinearity should not be the sole issue in determining what variables go in a model (see Sections \@ref(modelselectionprediction) and \@ref(modelselectionassociation) for how to choose a model).
+  
+
+Multicollinearity can arise due to several factors, including:
+
+* Real-world relationships in the data
+    * Ex: Height is correlated with age in children
+    * Ex: Education level is correlated with income level
+* Data collection limitations
+    * Ex: only measured units with certain combinations of $x$ values
+* Model choice
+    * Ex: polynomial terms in a model are typically highly correlated
+
+The practical effect of multicollinearity is that it increases the variances for $\hat\beta$'s. It can be shown that:
+\begin{equation}
+\widehat{\Var}(\hat\beta_j) = \dfrac{\hat\sigma^2}{(n-1)\widehat{\Var}(x_j)}\frac{1}{1-R_j^2}
+(\#eq:varbhatmulticol)
+\end{equation}
+where $R_j^2$ is the coefficient of determination (Section \@ref(r2)) from the regression of $\bmx_j$ on the other $p-1$ $x$-variables. Thus, $R^2_j$ describes how much of the variability in $x_j$ can be explained by the other variables. In particular, if $R_j^2 \to 1$, then $\widehat{\Var}(\hat\beta_j) \to \infty$
+
+The right-hand term of \@ref(eq:varbhatmulticol) provides a convenient way to quantify the amount of multicollinearity. The **variance inflation factor** (VIF) is defined as:
+$$VIF_j = \frac{1}{1 - R_j^2}$$
+The VIF accounts for relationships among all of the $x$'s, which makes it better at quantifying multicollinearity than looking at pairwise correlations. A general rule of thumb is that VIFs greater than 5 are "large".
+
+To calculate VIFs in R, use the  `vif()` function from `car` package, which can deal with both continuous and categorical variables.
+
+
+## Dealing with Multicollinearity
+
+If we have multicollinearity present in our data, there are a few things we can do. The first is to simply ignore it. Remember that multicollinearity is not necessarily a bad thing, and it does not introduce bias in our results. A second option is to collect more data, since an increase in sample size will reduce the parameter variances. A third option is to change the model (add, remove, or modify predictor variables), although great care should be taken since this can impact the interpretation of results (see Section \@ref(modelselectionassociation)). A fourth option is to use a **shrinkage estimator**, such as ridge regression or the LASSO.
+
+
+## MSE Decomposition
+
+
+Recall that $\hat\bmbeta_{OLS} = (\bmX^\mT\bmX)^{-1}\bmX^\mT\bmy$ is "BLUE" = Best Linear Unbiased Estimator. Of all unbiased estimators, it has smallest variance. However, it does not necessarily mean that the variance of the BLUE is small. It is possible to trade an increase in bias for a reduction in variance.
+
+Let $\hat\beta^*$ be an estimator of $\beta$. Its mean squared error (MSE) is:
+\begin{align*}
+MSE(\hat\bmbeta^*) &= \E\left[\left(\hat\bmbeta^* - \bmbeta\right)^\mT\left(\hat\bmbeta^* - \bmbeta\right)\right]\\
+&= \E\left[\hat\bmbeta^{*\mT}\hat\bmbeta^* - 2\hat\bmbeta^{*\mT}\bmbeta +\bmbeta^\mT\bmbeta\right]\\
+&= \E\left[\hat\bmbeta^{*\mT}\hat\bmbeta^*\right] -\E[\hat\bmbeta^*]^\mT\E[\hat\bmbeta^*] + \E[\hat\bmbeta^*]^\mT\E[\hat\bmbeta^*]  \\
+& \qquad - 2\E\left[\hat\bmbeta^{*\mT}\bmbeta\right] +\E\left[\bmbeta^\mT\bmbeta\right] \\
+&= \Var\left(\hat\bmbeta^*\right) + \E\left[(\hat\bmbeta^* - \bmbeta)^\mT\right]\E\left[(\hat\bmbeta^* - \bmbeta)\right] \\
+&= \Var\left(\hat\bmbeta^*\right) + (Bias(\hat\bmbeta^*))^2
+\end{align*}
+Notice how this is a combination of both bias and variance, so these two terms can be traded off for one another.
+
+## Ridge Regression
+
+Ridge regression introduces some bias to reduce variance. It does this by using the estimator
+$$\hat\bmbeta_{Ridge} = (\bmX^\mT\bmX + \lambda\bmI)^{-1}\bmX^\mT\bmy$$
+where $\lambda \ge0$ is a chosen constant. This comes from minimizing:
+$$(\bmy - \bmX\bmbeta)^\mT(\bmy - \bmX\bmbeta) + \lambda \bmbeta^\mT\bmbeta$$
+In this objective function, $(\bmy - \bmX\bmbeta)^\mT(\bmy - \bmX\bmbeta)$ is the squared residuals term we have seen before. The term $\lambda \bmbeta^\mT\bmbeta$ penalizes larger values of $\beta_j$ and the value of $\lambda$ controls the amount of shrinkage. As $\lambda \to 0$, $\hat\bmbeta_{Ridge} \to \hat\bmbeta_{OLS}$. As $\lambda \to \infty$, $\hat\bmbeta_{Ridge} \to 0$.
+
+Importantly, the ridge estimator is biased:
+$$Bias(\hat\bmbeta_{Ridge}) = -\lambda(\bmX^\mT\bmX + \lambda\bmI)^{-1}\bmbeta$$
+However, it can be shown that its variance
+$$\Var(\hat\bmbeta_{Ridge}) = \sigma^2(\bmX^\mT\bmX + \lambda\bmI)^{-1}(\bmX^\mT\bmX)(\bmX^\mT\bmX + \lambda\bmI)^{-1}$$  
+can be smaller than MSE of the ordinary least squares estimator $\hat\bmbeta$, for suitably chosen $\lambda$.
+
+
+Practical considerations for Ridge regression:
+
+* Standardize variables first, otherwise penalizing $\bmbeta^\mT\bmbeta = \sum_{j=1}^k \beta_j^2$ mixes scales
+* Estimates of uncertainty for ridge regression are hard--we have introduced bias!
+* Need to pick value of $\lambda$; generalized cross-validation ("GCV") is a common method.
+
+
+### Ridge Regression in R
+
+`lm.ridge()` function from the `MASS` package performs ridge regression
+
+* Requires user-provided `lambda` values
+* Standardizes $x$'s automatically
+* Has accompanying `plot` and `coef` functions
+
+## LASSO
+An alternative to ridge regression is the LASSO (Least Absolute Shrinkage and Selection Operator). The LASSO minimizes
+$$(\bmy - \bmX\bmbeta)^\mT(\bmy - \bmX\bmbeta) + \lambda \sum_{j=1}^k|\beta_j|$$
+
+LASSO penalizes the absolute value of $\beta_j$'s, compared to ridge regression which penalizes the square of the $\beta_j$'s. This leads to smaller $\beta_j$'s AND values of 0 for some $\beta_j$'s, thus the origin of the name *Shrinkage and Selection*. LASSO is critically important in "big data" settings, since it can be applied with the sample size is less than the number of predictors (when $n < p$).
+
+
+### LASSO in R
+
+In R, the primary function for computing the LASSO is `glmnet()` function from `glmnet` package.
+
+* Requires you provide a matrix `x` and vector `y`
+* Automatically scales $x$'s for you
+* `alpha=1` means LASSO, `alpha=0` will perform ridge regression
+
+It is typical to use cross-validation to select the penalty parameter for LASSO, although care should be taken if the goal is coefficient interpretation.

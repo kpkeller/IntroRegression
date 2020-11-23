@@ -1,0 +1,444 @@
+# Model Selection for Association {#modelselectionassociation}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\bmSigma}{\\boldsymbol{\\Sigma}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(broom)
+```
+
+
+Acknowledgment: Some of the information in this section was based upon ideas from Scott Emerson and Barbara McKnight.
+
+## Model Misspecification -- Mathematical consequences
+Suppose we have $\bmX = \begin{bmatrix} \bmX_q & \bmX_r \end{bmatrix}$ and $\bmbeta = \begin{bmatrix} \bmbeta_q \\ \bmbeta_r \end{bmatrix}$. Assume the **true** regression model is:
+$$\bmy = \bmX\bmbeta + \bmepsilon = \bmX_q\bmbeta_q + \bmX_r\bmbeta_r + \bmepsilon$$
+with the usual assumptions of $\E[\bmepsilon] = 0$ and $\Var(\bmepsilon) = \sigma^2 \bmI$.
+
+### Correct model
+
+Suppose we fit the correct model
+
+* Model we fit is: $\bmy = \bmX_q\bmbeta_q + \bmX_r\bmbeta_r + \bmepsilon$
+* OLS estimator is:
+$$\hat\bmbeta^* = (\bmX^\mT\bmX)^{-1}\bmX^\mT\bmy$$
+* $\hat\bmbeta$ is unbiased:
+$$\E[\hat\bmbeta] = (\bmX^\mT\bmX)^{-1}\bmX^\mT\E[\bmy]  =(\bmX^\mT\bmX)^{-1}\bmX^\mT(\bmX\bmbeta) = \bmbeta$$
+
+### Not including all variables 
+
+What happens if we fit model only using $\bmX_q$ (leaving out the $\bmX_r$ variables)?
+
+* Model we fit is $\bmy = \bmX_q\bmbeta_q + \bmepsilon$
+* OLS estimator is:
+$$\hat\bmbeta_q = (\bmX_q^\mT\bmX_q)^{-1}\bmX_q^\mT\bmy$$
+* Expected value of $\hat\bmbeta_q$ is:
+\vspace{1.4in}
+<!-- $$\E[\hat\bmbeta_q ] = \bmbeta_q + (\bmX_q^\mT\bmX_q)^{-1}\bmX_q\bmX_r\bmbeta_r$$ -->
+  * This means $\hat\bmbeta_q$ is biased, unless $\bmbeta_r = \mathbf{0}$ or $\bmX_q^\mT\bmX_r = \mathbf{0}$ (predictors are uncorrelated).
+  * Size and direction of bias depends on $\bmbeta_r$ and correlation between variables.
+* It can be shown that $\hat\sigma^2$ is biased high.
+
+**Key Result 1:** Not including necessary variables can bias our results.
+
+### Including too many variables 
+
+What happens if we include $\bmX_q$, $\bmX_r$, and $\bmX_s$?
+
+
+* Model with fit is: $\bmy = \bmX_q\bmbeta_q + \bmX_r\bmbeta_r + \bmX_s\bmbeta_s + \bmepsilon = \bmX^*\bmbeta^* + \bmepsilon$
+* OLS estimator is:
+$$\hat\bmbeta^* = (\begin{bmatrix}\bmX & \bmX_s\end{bmatrix}^\mT\begin{bmatrix}\bmX & \bmX_s\end{bmatrix})^{-1}\begin{bmatrix}\bmX & \bmX_s\end{bmatrix}^\mT\bmy$$
+* Expected value of $\hat\bmbeta^*$ is:
+\vspace{2in}
+<!-- $$\E[\hat\bmbeta^*] = \begin{bmatrix} \bmbeta \\ \mathbf{0} \end{bmatrix}$$ -->
+  * Our estimate of $\bmbeta$ is unbiased!
+* It can be shown that $\Var(\hat\bmbeta)$ will increase when extraneous variables are added.
+
+**Key Result 2:** Adding extra variables **does not** bias our results, but can increase the variances of $\hat\bmbeta$ (and thus reduce power).
+
+
+## Confounding
+
+### Confounders
+
+**Confounding** is the distortion of a predictor-outcome relationship due to an additional variable(s) and its relationship to the predictor and the outcome.
+
+A variable ($C$) is a **confounder** of the relationship between predictor of interest ($X$) and outcome ($Y$) if:
+
+* $C$ is causally related to the outcome $Y$ in the population
+* $C$ is causally related to the predictor of interest $X$
+
+### Directed Acyclic Graphs (DAGs)
+
+DAGs are used to represent causal relationships
+
+
+* Outcome, predictor of interest, and other variables are ``nodes''
+* Arrows between two nodes denote a causal relationship
+* ``Acyclic'' = no closed loops
+* DAGs generally show just the existence of a relationship, not its strength or magnitude
+* Nodes not connected are presumed to have no causal relationship
+
+#### DAG Example
+
+\begin{center}
+\begin{tikzpicture}[line width=1.2]]
+\node (0, 0) (E) {X};
+\node (D) at (4, 0) {Y};
+\node (C1) at (2, -1.5) {C};
+\node (W1) at (3, 1.7) {W};
+\node (Z1) at (-1.5, -0.5) {Z};
+\node (M) at (1, 1.8) {M};
+\draw[->]  (E)   --  (D);
+\draw[->]  (C1)   --  (D);
+\draw[->]  (W1)   --  (D);
+\draw[->]  (C1)   --  (E);
+\draw[->]  (Z1)   --  (E);
+\draw[->]  (E)   --  (M);
+\draw[->]  (M)   --  (D);
+\end{tikzpicture}
+\end{center}
+
+* $C$ is a confounder
+* $Z$, $M$, and $W$ are not confounders
+
+
+
+### Confounding Example: FEV in Children
+
+Is there a relationship between smoking and lung function in children?
+
+* Outcome: FEV, Forced Expiratory Volume  (`fev`)
+  * Higher value is better
+* Predictor of Interest: Smoking Status (`smoke`, 1 = Yes, 0 = No)
+
+\vspace{5mm}
+
+```{r include=FALSE, message=FALSE}
+childfev <- read_csv("data/childfev.csv")
+childfev$smoke <- 2- childfev$smoke
+```
+
+```{r fig.height=4, fig.width=4, echo=FALSE}
+childfev %>%
+  mutate(smoke=factor(smoke, levels=0:1, labels=c("Non-smoker", "Smoker"))) %>%
+ggplot() + theme_bw() +
+  geom_boxplot(aes(x=as.factor(smoke),
+                   fill=smoke,
+                   y=fev)) +
+  theme(legend.position="none") +
+  xlab("Smoking Status") +
+  ylab("FEV (liters)")
+```
+
+```{r echo=TRUE}
+fev_mod1 <- lm(fev~smoke, data=childfev)
+tidy(fev_mod1, conf.int=TRUE)
+```
+
+\vspace{5mm}
+
+From this model, we would conclude:
+
+Children who smoke have on average a 0.71 L greater FEV (95\% CI: 0.50, 0.93) than children who do not smoke ($p<0.0001$).
+
+
+```{r echo=FALSE}
+ggplot(childfev) + theme_bw() + 
+  geom_point(aes(x=age, y=fev,
+                 col=as.factor(smoke),
+                 pch=as.factor(smoke))) +
+  scale_color_discrete(name="Smoking Status", labels=c("No", "Yes")) +
+  scale_shape_discrete(name="Smoking Status", labels=c("No", "Yes")) +
+  xlab("Age (in years)") +
+  ylab("FEV (Liters)")
+```
+
+What's going on here?
+
+* Older children have higher FEV
+* Older children are more likely to be smokers
+
+$\Rightarrow$ Age is a confounder of the relationship between smoking and FEV  
+
+\begin{center}
+\begin{tikzpicture}[line width=1.2]]
+\node (0, 0) (E) {Smoking Status};
+\node (D) at (4, 0) {FEV};
+\node (C1) at (2, -1.5) {Age};
+\draw[->]  (E)   --  (D);
+\draw[->]  (C1)   --  (D);
+\draw[->]  (C1)   --  (E);
+\end{tikzpicture}
+\end{center}
+
+
+Let's fit model **that also adjusts for age**.
+
+```{r echo=TRUE}
+fev_mod2 <- lm(fev~smoke + age, data=childfev)
+tidy(fev_mod2, conf.int=TRUE)
+```
+
+Children who smoke have on average a 0.21 L lower FEV (95\% CI: -0.37, -0.05) than children **of the same age** who do not smoke ($p<0.0001$).
+
+* By adjusting for the confounder in the MLR model, we can correctly estimate the relationship between smoking and FEV.
+
+### Accounting for Confounders
+
+* Confounding can have a drastic impact on our results
+    * If ignored, it can lead to completely wrong conclusions
+* Account for confounding variables by adjusting for them in regression
+* Always interpret your results in the context of what is in the model
+
+
+### Confounding & Randomized Experiments
+
+Why are randomized experiments so popular?
+
+* General approach:
+  * Randomly assign experimental units (rats, trees, people, etc.) to a treatment condition (food, fertilizer, drug, etc.)
+  * Compare the difference in outcome between the treatment groups
+* By **randomly** assigning the treatment conditions, there is no relationship between the treatment condition and any other variables  $\Rightarrow$ No Confounding
+
+## Confirmatory v. Exploratory
+
+### Association Study Goals
+
+In studies of association, the goal is to estimate the potential relationship between a predictor and an outcome
+
+* Inference about a quantity (usually $\beta$) that summarizes the relationship between predictor and outcome is target, as opposed to accuracy in predicting $y$
+* Want to limit bias from confounding
+* Want high power for detecting an association, if it exists
+* Study may be *confirmatory* or *exploratory*
+  
+
+### Confirmatory Analyses
+
+A **confirmatory** analysis attempts to answer the scientific question the study was designed to address
+
+* The analysis is *hypothesis testing*
+* Interpretation can be strong
+* Analysis must follow a detailed protocol designed *before* data were collected to protect the interpretation of the $p$-value.
+  * Ex: The statistical analysis plan for all U.S. clinical trials must be published before recruitment begins.
+* Variables included in the model and tests performed cannot depend on features of the data that were collected
+  * Cannot change your model based on what you see in the data you collect
+  * Protects against *overfitting* and preserves Type I error rate
+* Failure to be strict about the analysis plan is a major factor in the large number of contradictory published results
+
+
+### Exploratory Analyses
+
+An **exploratory** analysis uses already collected data to explore additional relationships between the outcome and other measured factors
+
+* The analysis is *hypothesis generating*
+* Interpretations should be cautious
+* The general analysis plan should be established first, but
+  * The form of variables in the model (e.g. splines, cut points for categories) may depend on what is found in the data
+  * The variables chosen for the model and the presence of interactions may depend on what is found in the data
+* Exploratory analyses can be basis for future studies, but do not provide definitive evidence
+
+
+
+
+### Model Selection Process -- Confirmatory Analysis
+
+For a confirmatory analysis:
+
+1. State the question of interest and hypothesis
+2. Identify relevant causal relationships and confounding variables
+3. Specify the model
+    a. Specify the form of the predictor of interest
+    b. Specify the forms of the adjustment variables
+    c. Specify the hypothesis test that you will conduct
+3. Collect data.
+4. Fit the pre-specified  model and conduct the pre-specified hypothesis test.
+5. Present the results
+
+
+
+
+### Model Selection Process -- Exploratory Analysis
+
+For an exploratory analysis:
+
+1. State the question of interest and hypothesis
+2. Identify relevant causal relationships and confounding variables
+3. Perform a descriptive analysis of the data
+4. Specify the model
+    a. Specify the form of the predictor of interest
+    b. Specify the forms of the adjustment variables
+5. Fit the model.
+5. Develop hypotheses about possible changes to the model.
+    a. Assess the evidence for changes to the model form, using hypothesis tests
+    b. Identify model(s) that fit data and science well
+6. Present the results as exploratory
+
+
+
+### Identifying a Statistical Model
+
+\begin{center}
+\begin{tikzpicture}[line width=1.2]]
+\node[align=center] (0, 0) (question) {Question of\\Interest};
+\node[align=center] (method) at (4, 0) {Statistical\\Methods Used};
+\node[align=center] (data) at (2, 2) {Type of Data\\Collected};
+\draw[->]  (question)   --  (method);
+\draw[->]  (question)   --  (data);
+\draw[->]  (data)   --  (method);
+\end{tikzpicture}
+\end{center}
+
+* Collect your data and choose your statistical model based on what question you want to answer.
+* Do not choose the question to answer just based on a statistical model or because you have a certain type of data.
+* Better to have an imprecise answer to the right question than a precise answer to the wrong question
+  * Do not ignore confounding for the sake of improving power, since this will lead to biased estimates
+  * "Validity before precision"
+* Variable selection should be based upon understanding of science and causal relationships (e.g. DAGs), not statistical tests of relationships in the data.
+
+
+
+
+
+
+
+
+
+<!-- ### DAGs -->
+
+<!-- How to choose what variables to include? Use a directed acyclic graph (DAG) to map out the relationships between variables. -->
+
+
+<!-- \vspace{2in} -->
+
+
+
+## Variable Selection 
+
+
+### What not to do
+
+Many "automated" methods for variable/model selection exist
+
+* Forwards selection
+* Backwards elimination
+* Minimizing AIC/BIC
+
+While rule-based and simple to implement, these are *not* appropriate methods to use for selecting a model to test an association.
+
+
+Statistical issues can impact model estimates
+
+* Outliers, high-leverage points, and influential observations can have out-sized impact on model fit 
+* Including multiple correlated adjustment variables can inflate standard errors and reduce power (multicollinearity)
+
+These are statistical issues that should be considered in overall assessment and interpretation of your model. But they should not drive variable selection.
+
+
+### Predictor of Interest
+
+**Confirmatory Analysis**
+
+* Choose form (e.g. linear, log, quadratic, etc.) consistent with the prior hypothesis
+
+
+<!-- * Choose form consistent with the prior hypothesis -->
+<!--   * Categorical predictor -->
+<!--     * If hypothesis is for a trend, use grouped linear form for ordered categorical variables -->
+<!--     * If hypothesis is for heterogeneity (and not trend), include categorical variables as unordered indicators -->
+<!--   * Continuous exposures -->
+<!--     * Choose linear, log, quadratic, etc. form based upon hypothesis -->
+
+
+
+**Exploratory Analysis**
+
+* Include all relevant exposure variables in the model
+* Explore what form fits best
+    * Unordered categorical?
+    * Linear, Logarithmic, Quadratic?
+    * What is best category size? (e.g. 2-year or 5-year groups)
+
+
+### Adjustment Variables
+
+**Confirmatory Analysis**
+
+* Include variables  if your prior hypothesis is that they are confounders
+* Form should be as flexible as possible\footnote{But not too flexible, otherwise parameters not estimable.}, to reduce residual confounding
+  * Unordered indicators for categorical variables
+  * Spline representations of continuous variables (often 3 df is enough, but not always)
+  * Interactions between confounders, if there is a priori reason to hypothesize such a relationship
+
+**Exploratory Analysis**
+
+* Develop list of scientifically plausible confounders (i.e. draw a DAG)
+* Include plausible confounders in the model
+* Explore the impact of different forms of the variables
+  * Linear v. spline for continuous
+  * Variations in cut point of categories
+  * Interactions
+
+
+### Things to Consider
+
+When developing DAGs and identifying confounders for inclusion in the model, some points to keep in mind:
+
+* Are two plausible confounders meaningfully different?
+    * Ex: Employment status and personal income
+* Sample size
+  * With large $n$, can disentangle differences between related variables
+  * Small sample sizes make estimating many parameters difficult
+      * If $n=100$, don't include splines with 50 df or a variable with 30 categories!
+  * However, sample size alone should not determine your model!
+* Always include lower-order terms
+  * If including interaction, include main effects
+  * If including quadratic term, include linear term
+
+
+* Interactions
+  * Interactions are often hard to estimate unless very strong
+  * Confounding can depend greatly on the presence of interactions
+  * Interactions often subject of exploratory analyses, but not as common as primary question for a confirmatory analysis
+  
+* Parsimony
+  * Traditionally, parsimonious models have been preferred, since they are easier to interpret
+  * Modern datasets and questions are typically too complex for simple models to be appropriate
+  * A model can be scientifically parsimonious but still statistically complex
+
+## Exercises
+
+```{exercise}
+Does ice cream sales cause shark bites?
+
+* Predictor of Interest: Ice Cream Sales
+* Outcome: Number of shark bites
+* We also know:
+  * Ice cream sales are higher during warm weather
+  * More people are at the beach during warm weather
+
+Draw a DAG representing these relationships.
+```
+
+```{example}
+Vaccine trials for COVID-19 compare rates of infection in treatment and placebo groups, without adjusting for anything else. Why is there no confounding?
+```

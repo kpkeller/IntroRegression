@@ -1,0 +1,595 @@
+# Logistic Regression: Introduction {#logistic}
+
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\bmSigma}{\\boldsymbol{\\Sigma}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(broom)
+library(knitr)
+
+logistic <- function(x) 1/(1 + exp(-x))
+logit <- function(x) log(x/(1 - x))
+```
+
+
+
+So far, we have always assumed that our outcome variable was continuous. But when the outcome variable is binary (almost always coded as 0/1), we need to change our model.
+
+```{example chd-age-setup}
+In a sample of 100 U.S. adults, we have data on their coronary heart disease (CHD) status and age (in years). These are plotted in Figure \@ref(fig:g-chd-age).
+```
+
+````{r eval=TRUE, echo=FALSE}
+## Reading in the 'chdage' dataset.
+chdage <- read_csv("data/chd_age.csv", col_types = cols())
+```
+
+````{r g-chd-age, eval=TRUE, echo=FALSE, out.width="60%", fig.cap="Plot of raw CHD data. Note that some points are overlapping here."}
+## Scatterplot of CHD status against Age
+g_chdage_plain <- ggplot(chdage, aes(x=age,y=chd)) + theme_bw() + 
+  geom_point(size=2, show.legend=F) +
+  xlab("Age (years)") + ylab("CHD Status")
+g_chdage_plain
+```
+
+ 
+````{r eval=TRUE, echo=FALSE, out.width="70%", message=FALSE}
+midpoints <- function(x, dp=2){
+lower <- as.numeric(gsub(",.*","",gsub("\\(|\\[|\\)|\\]","", x)))
+upper <- as.numeric(gsub(".*,","",gsub("\\(|\\[|\\)|\\]","", x)))
+return(round(lower+(upper-lower)/2, dp))
+}
+chdage_agemeans_bin2 <- chdage %>%
+  mutate(agegroup=cut_width(age, width=5)) %>%
+  mutate(agegroup_center=midpoints(agegroup)) %>%
+  group_by(agegroup_center) %>%
+  summarize(chd_mean=mean(chd),
+            agegroup=agegroup[1])
+chdage_agemeans_bin2 %>%
+  select(`Age Group`=agegroup,
+         `Proportion CHD`=chd_mean) %>%
+kable(digits=3, caption="Proportion of CHD cases in five-year age bands.")
+```
+
+````{r eval=TRUE, echo=FALSE, out.width="70%", message=FALSE}
+g_chdage <- g_chdage_plain + geom_point(size=2, aes(col="a_individ"))
+g_chdage_bin5 <- g_chdage + geom_point(aes(x=agegroup_center,
+                         y=chd_mean,
+                         col="bins"),
+                     data=chdage_agemeans_bin2) +
+    ylab("(Average) CHD Status") +
+  scale_color_manual(name = "Data", 
+                                values = c("black", "red"),
+                                breaks = c("a_individ", "bins"),
+                                labels = c("Individuals", "5-year Bins"))
+```
+
+
+How can we model this data?
+ 
+* For an individual, we observe $CHD = 1$ or $CHD = 0$.
+* Let $p(x)$ denote the probability that $CHD = 1$ for someone of age $x$:
+
+$$p(x) = P(CHD = 1 | Age = x)$$
+
+What about $p(x) = \beta_0 + \beta_1 x$?
+````{r g-chd-age-linear, eval=TRUE, echo=FALSE, out.width="60%", message=FALSE, fig.cap="A simple linear regression line fit to the CHD data. Red dots show the average rates for five-year age bins."}
+## Using geom_smooth(..., method="lm") is easy way to add linear regression line to plot. This relies on aes(x=..., y=...) already being set.
+g_chdage_bin5 + geom_smooth(method="lm", se=FALSE)
+```
+The regression line in Figure \@ref(fig:g-chd-age-linear) extends beyond the range of the data, giving nonsensical values below 25 years of age and above 70 years of age.
+
+
+
+In settings like Example \@ref(exm:chd-age-setup), it is no longer appropriate to fit a straight line through the data. Instead, we need a model that accommodate the limited range of outcome points (between 0 and 1) while still allowing for fitted values to differ by age (the predictor variable).
+
+The key to doing this is the logistic function.
+
+
+## Logistic and Logit Functions
+### Logistic Function  
+The logistic function is given by the equation
+\begin{equation}
+f(\eta) = \frac{\exp(\eta)}{1 + \exp(\eta)} = \frac{1}{1 + \exp(-\eta)}
+(\#eq:logistic)
+\end{equation}
+and is plotted in Figure \@ref(fig:g-logistic). Key features of the logistic function are:
+
+* As $\eta \to \infty$, $f(\eta) \to 1$
+* As $\eta \to -\infty$, $f(\eta) \to 0$
+* $f(0) = 1/2$
+
+````{r g-logistic, eval=TRUE, echo=FALSE, out.width="60%", fig.cap="The logistic function."}
+eta_plot <- seq(-7, 7, length=100)
+ggplot() + theme_bw() + 
+  geom_path(aes(x=eta_plot,
+                y=logistic(eta_plot))) +
+  xlab(expression(eta)) + ylab(expression(f(eta)))
+
+```
+
+While Figure \@ref(fig:g-logistic) shows the logistic function in terms of $\eta$, it is common to write $\eta$ as a function of $x$. Figure \@ref(fig:g-logistic-x) shows this for several different relationships of the form $\eta = \beta_0 + \beta_1x$. In that figure, we can see how the logistic function can be shifted and scaled depending upon the values of $\beta_0$ and $\beta_1$. This is analogous to modifying the equation for a line using its intercept and slope. 
+
+
+
+
+````{r eval=TRUE, echo=FALSE}
+xplot <- seq(-7, 7, length=100)
+eta_df <- data.frame(x=xplot,
+                     eta10=1,
+                     eta01=xplot,
+                     eta02=2*xplot,
+                     eta005=0.5*xplot,
+                     eta21=2 + xplot,
+                     eta2m1=2 - xplot,
+                     eta105=1 + 0.5*xplot)
+eta_df <- eta_df %>%
+  gather(key="model", value="eta", -x)
+
+eta_colors <- c(eta10="orange",
+                  eta01="black",
+                eta02="purple",
+                eta005="darkgreen",
+                eta21="red",
+                eta2m1="blue",
+                eta105="darkgreen")
+eta_labels <- c(eta10="1",
+                  eta01="x",
+                eta02="2x",
+                eta005="0.5x",
+                eta21="2 + x",
+                eta2m1="2 - x",
+                eta105="1 + 0.5x")
+eta_linetype <- c(eta10=1,
+                  eta01=1,
+                  eta02=2,
+                  eta005=3,
+                eta21=1,
+                eta2m1=2,
+                eta105=4)
+```
+
+````{r g-logistic-x, eval=TRUE, echo=FALSE, out.width="75%", fig.cap="The logistic function for different settings of eta."}
+ggplot() + theme_bw() + 
+  geom_path(aes(x=x,
+                y=logistic(eta),
+                col=model,
+                lty=model),lwd=1.1,
+            data=subset(eta_df, model %in% c("eta01",  "eta02", "eta005", "eta21", "eta2m1"))) +
+  xlab("x") + ylab(expression(f(eta))) + 
+  scale_color_manual(name="eta",
+                     values=eta_colors,
+                     labels=eta_labels) +
+    scale_linetype_manual(name="eta",
+                     values=eta_linetype,
+                     labels=eta_labels)
+```
+
+
+### Logistic Regression
+
+Logistic regression models the probability of an outcome using the logistic function:
+
+\begin{equation}
+P(Y_i=1 | X_i=x) = p(x) = \frac{1}{1 + \exp\left(-\left[\beta_0 + \beta_1x\right]\right)}
+(\#eq:logisticreg1)
+\end{equation}
+
+
+Why use the logistic function?
+
+* Inputs any value $(-\infty, \infty)$
+* Outputs a value between 0 and 1
+* Provides smooth link between continuous predictor ($\eta = \beta_0 +\beta_1x$) and a probability $P(Y=1)$.
+
+
+
+```{example chd-age-mod}
+In the CHD data from Example \@ref(exm:chd-age-setup), we can fit the equation:
+$P(CHD =1 | Age = x) = \dfrac{1}{1 + \exp\left(-\left[-5.31 + 0.11x\right]\right)}$
+```
+  
+````{r eval=TRUE, echo=FALSE, out.width="70%", message=FALSE}
+g_chdage_bin5 + geom_smooth(method="glm", se=FALSE, method.args=list(family=binomial))
+```
+
+
+
+The logistic regression equation \@ref(eq:logisticreg1) implies a linear model for the **log odds** (= logit) of Y=1:
+
+\begin{equation}
+logit(p(x)) = \log \frac{p(x)}{1-p(x)} = \beta_0 + \beta_1x
+(\#eq:simplelogistic)
+\end{equation}
+
+Mathematically, this connection can be derived by solving the logistic function \@ref(eq:logistic) for $\eta$:
+\begin{align*}
+p &= \frac{1}{1 + \exp(-\eta)}\\
+p &= \frac{\exp(\eta)}{1 + \exp(\eta)}\\
+p(1 + \exp(\eta)) &= \exp(\eta)\\
+p + p\exp(\eta)) &= \exp(\eta)\\
+p &= \exp(\eta) - p\exp(\eta)\\
+p &= (1- p)\exp(\eta)\\
+\frac{p}{1-p} &= \exp(\eta)\\
+\log\left(\frac{p}{1-p}\right) &= \eta
+\end{align*}
+
+<!-- The **logit** function: $logit(p) = \log\left(\frac{p}{1-p}\right)$ -->
+
+````{r eval=FALSE, echo=FALSE}
+p_plot <- seq(0, 1, length=200)
+logit_df <- data.frame(p=p_plot,
+                       logit=logit(p_plot))
+ggplot(logit_df) +theme_bw() + 
+  geom_line(aes(x=p, y=logit)) +
+  ylab("logit(p)")
+```
+
+Note similarity between \@ref(eq:simplelogistic) and the equation for simple linear regression: $\E[Y] = \mu = \beta_0 + \beta_1x$. In both cases, there is a single "intercept" and "slope", although those parameters have a different effect in the two models.
+
+### Odds
+
+The **odds** of an event happening is the probability that it happens divided by the probability that it does not happen
+
+$$Odds = \frac{p}{1 -p}$$
+
+* Odds are always positive
+* Higher odds means higher probability of success; lower odds means lower probability of success
+* Odds are most commonly used in logistic regression and in sports betting
+
+
+```{example}
+If probability of winning a game is 0.67, the odds of winning are $\dfrac{0.67}{1-0.67} = \dfrac{0.67}{0.33} = 2$
+```
+
+   
+
+## Logistic Regression in R
+### Fitting Logistic Regression in R
+In logistic regression, parameters ($\beta$'s) are estimated via maximum likelihood. The details of this procedure are covered in Section \@ref(sec:logisticestimation).
+
+Obtaining estimates in R is similar to simple linear regression, except we use `glm` instead of `lm`:
+
+````{r eval=TRUE, echo=TRUE}
+chd_glm <- glm(chd~age, data=chdage, family=binomial)
+```
+
+* First argument is a formula: `y ~ x1 + x2 + ...`
+* The `data` argument is optional, but **highly** recommended. `data` accepts a data frame and the function looks for the variable names in the formula as columns of this data frame. 
+* Setting `family=binomial` indicates that we are fitting a logistic regression model (as opposed to other GLM).
+* `summary()` and `tidy()` provide information similar to linear regression.
+
+````{r eval=T, echo=TRUE, size="footnotesize"}
+chd_glm
+```
+
+````{r eval=T, echo=TRUE, size="scriptsize"}
+summary(chd_glm)
+```
+
+````{r eval=T, echo=TRUE, size="scriptsize"}
+tidy(chd_glm)
+```
+
+
+## Risk Ratios and Odds Ratios
+
+### Calculating Quantities in Logistic Regression
+
+The fitted logistic regression model is:
+
+$$logit(\hat{p}(x)) = \log \frac{\hat{p}(x)}{1-\hat{p}(x)} = \hat\beta_0 + \hat{\beta}_1x$$
+
+Or, equivalently:
+
+$$ \hat{p}(x) = \frac{1}{1 + \exp\left(-\left[\hat{\beta}_0 + \hat{\beta}_1x\right]\right)}$$
+
+Using this model, we can calculate the estimated
+
+* The **probability** $\hat{p}(x)$ of success. In some contexts (e.g., medicine), this is called the **risk**.
+* **risk ratio** $\dfrac{\hat{p}(x_1)}{\hat{p}(x_2)}$. This is the ratio of probabilities of success for two different values of the predictor variable.
+* The **odds(()) $\dfrac{\hat{p}(x)}{1 - \hat{p}(x)}$
+* The **odds ratio** $\dfrac{\hat{p}(x_1)}{1 - \hat{p}(x_1)}\Bigg/\dfrac{\hat{p}(x_2)}{1 - \hat{p}(x_2)}$
+
+### Calculating Risk of CHD
+
+```{example}
+Using the model from Example \@ref(exm:chd-age-mod), what is the risk of CHD for a  65-year-old person? How does this compare to the risk of CHD for a 64-year-old person?
+```
+
+We estimate $p(x)$ by plugging in our estimates of $\beta_0$ and $\beta_1$. 
+\begin{align*}
+\hat{p}(65) & = \frac{1}{1 + \exp\left(-\left[\hat\beta_0 + \hat\beta_1 (65)\right]\right)} \\
+& = \frac{1}{1 + \exp\left(-\left[-5.309 + 0.111 (65)\right]\right)} \\
+&= 0.870
+\end{align*}
+"We estimate that the probability of CHD for a 65 year-old person (from this population) is 0.870"
+
+For 64-year-olds, the probablity of CHD is:
+\begin{align*}
+\hat{p}(64) & = \frac{1}{1 + \exp\left(-\left[-5.31 + 0.11 (64)\right]\right)} = 0.857
+\end{align*}
+Thus, the risk ratio (RR) for CHD comparing 65- to 64-year-olds is:
+$$RR = \frac{0.870}{0.857} = 1.02$$
+"We estimate that the risk of CHD for a 65 year-old person is 2% greater than that for a 64 year-old person in this population."
+
+
+
+```{example}
+We can calculate the risk and risk ratio of CHD for other ages:
+```
+
+| $x$ | $\hat{p}(x)$ |
+---+------+----+--
+| 65 | 0.870
+| 64 | 0.857
+| 51 | 0.586
+| 50 | 0.559
+| 31 |0.133
+| 30 | 0.121
+
+Age Comparison | Risk Ratio (RR)
+---+------
+65 v 64 | 0.870/0.857 = 1.015
+51 v 50 | 0.586/0.559 = 1.049 
+31 v 30 | 0.133/0.121 = 1.102
+
+
+An important result from these tables is that the  RRs are **not** constant! This is because the estimated probabilities are points along this (non-linear!) curve:
+
+````{r eval=TRUE, echo=FALSE, chdage_glmsmooth}
+g_chdage_plain <- ggplot(chdage, aes(x=age,y=chd)) + theme_bw() + 
+  geom_point(size=2, show.legend=F) +
+  xlab("Age (years)") + ylab("CHD Status")
+chd_age_pred <- data.frame(age=c(30, 31, 50, 51, 64, 65))
+chd_age_pred$phat <- predict(chd_glm, newdata=chd_age_pred, type="response")
+g_chdage_plain + 
+  geom_smooth(method="glm", se=FALSE, method.args=list(family=binomial)) +
+  geom_point(aes(x=age, y=phat), size=3, col="red", data=chd_age_pred)
+```
+
+### Calculating the Odds
+
+In addition to estimated risk ($\hat{p}$), we can calculate the odds that $Y=1$:
+\begin{align*}
+\text{Odds of CHD for age $x$} &= odds(x) \\
+& = \frac{p(x)}{1 - p(x)}\\
+& = \exp\left(logit\left(p(x)\right)\right)\\
+& = \exp\left(\beta_0 + \beta_1 x\right)
+\end{align*}
+
+
+```{example}
+What are the odds of CHD comparing 65 to 64-year-olds?
+```
+
+Plug in our parameter estimates:
+\begin{align*}
+\widehat{odds}(65) &= \exp\left(\hat\beta_0 + \hat\beta_1 (65)\right) \\
+&= \exp(-5.309 + 0.111 * 65) \\
+&= \exp(1.90) \\
+&= 6.69
+\end{align*}
+"We estimate that the odds of CHD for a 65 year-old person (from this population) to be 6.69"
+Note that $\frac{0.870}{1 - 0.870} = 6.69$ and $\frac{6.69}{1 + 6.69} = 0.870$.
+What about for 64 year-olds?
+\begin{align*}
+\widehat{Odds}(64) &= \exp(-5.309 + 0.111 * 64) \\
+&= \exp(1.790) \\
+&= 5.986
+\end{align*}
+So we have:
+
+| $x$ | $\widehat{log Odds}(x)$ |  $\widehat{Odds}(x)$  | $\hat{p}(x)$ |
+---+------+----+--
+| 65 | 1.900  | 6.689 | 0.870
+| 64 | 1.790  | 5.986 | 0.857
+
+The **odds ratio** for CHD comparing 65- to 64-year-olds is: 
+$$\frac{6.689}{5.986} = 1.117$$
+
+
+
+We can do this for other ages:
+
+| $x$ | $\widehat{log Odds}(x)$ |  $\widehat{Odds}(x)$  | $\hat{p}(x)$ |
+---+------+----+--
+| 65 | 1.900  | 6.689 | 0.870
+| 64 | 1.789  | 5.986 | 0.857
+| 51 | 0.347  | 1.416 | 0.586
+| 50 | 0.237  | 1.267 | 0.559
+| 31 | -1.871 | 0.154 | 0.133
+| 30 | -1.982 | 0.138 | 0.121
+
+Odds ratios for CHD are:
+
+|Age Comparison | Odds Ratio (OR)
+|---+------|
+65 v 64 | 6.689/5.986 = 1.117
+51 v 50 | 1.416/1.267 = 1.117 
+31 v 30 | 0.154/0.138 = 1.117
+
+The ORs are constant!
+
+The reason the ORs are constant are because the log-odds regression line is a straight line!
+````{r eval=T, echo=FALSE, fig.height=3}
+chd_age_pred$logodds <- predict(chd_glm, newdata=chd_age_pred, type="link")
+chd_age_pred$odds <- exp(chd_age_pred$logodds)
+
+g_chdage_plain2 <-  ggplot(chdage) + theme_bw() + xlab("Age (years)")
+g_chdage_logodds <- g_chdage_plain2 +
+  geom_line(aes(x=age,
+                y=-5.31 + 0.11*age)) + 
+  ylab("Log Odds") + ggtitle("Log Odds = -5.31 + 0.11*Age") +
+  geom_point(aes(x=age, y=logodds), size=3, col="red", data=chd_age_pred)
+
+g_chdage_odds <- g_chdage_plain2 + 
+  geom_line(aes(x=age,
+                y=exp(-5.31 + 0.11*age))) + 
+  ylab("Odds") + ggtitle("Odds = exp(-5.31 + 0.11*Age)") +
+  geom_point(aes(x=age, y=odds), size=3, col="red", data=chd_age_pred)
+
+gridExtra::grid.arrange(g_chdage_logodds, g_chdage_odds, nrow=1)
+```
+
+
+## Interpreting $\beta_1$ and $\beta_0$
+### Interpreting $\beta_1$
+
+When comparing individuals who differ in age by 1 year,
+
+* additive difference in log-odds is constant
+* multiplicative difference in odds (i.e. odds ratio) is constant
+* additive and multiplicative differences in risk depend on the specific ages
+
+The logistic model is a *linear model for the log-odds*:
+$$\log\left(\frac{p(x)}{1 - p(x)}\right) = \beta_0 + \beta_1 x$$
+
+Differences of one-unit in $x$ correspond to a $\beta_1$ difference in log-odds.
+
+\begin{align*}
+log(odds(x+1)) - \,&\\
+log(odds(x)) &= \log\left(\frac{p(x+1)}{1 - p(x+1)}\right) - \log\left(\frac{p(x)}{1 - p(x)}\right)\\
+&= \left[\beta_0 + \beta_1 (x + 1)\right] - \left[\beta_0 + \beta_1 x\right] \\
+& = \beta_0 + \beta_1x + \beta_1 - \beta_0 -\beta_1x\\
+& = \beta_1 
+\end{align*}
+
+Additive differences in log-odds are multiplicative differences in odds:
+
+\begin{align*}
+log(odds(x+1)) - log(odds(x)) &=  \beta_1 \\
+\exp\left[log(odds(x+1)) - log(odds(x))\right] &= \exp(\beta_1) \\
+\frac{\exp[log(odds(x+1))]}{\exp[log(odds(x))]} &= \exp(\beta_1) \\
+\frac{odds(x+1)}{odds(x)} &= \exp(\beta_1) \\
+\end{align*}
+
+### Interpreting $\beta_1$: CHD Example
+
+Odds ratios for CHD are:
+
+Age Comparison | Odds Ratio (OR)
+---+------
+65 v 64 | 6.689/5.986 = 1.117
+51 v 50 | 1.416/1.267 = 1.117 
+31 v 30 | 0.154/0.138 = 1.117
+
+$$\hat\beta_1 = 0.11 \Rightarrow \exp(0.11) = 1.117$$
+
+In this population, a difference of one-year in age is associated, on average, with 11.7% higher odds of CHD.
+
+### Interpreting $\beta_0$
+
+The logistic model is a linear model for the log-odds:
+$$\log\left(\frac{p(x)}{1 - p(x)}\right) = \beta_0 + \beta_1 x$$
+
+What is $\beta_0$?
+
+$$\beta_0 = \log\left(\frac{p(0)}{1 - p(0)}\right)$$
+
+* The "intercept" for the log-odds
+* The log-odds when $x=0$.
+* In most cases, this is of little scientific interest
+* In some cases, this has no scientific meaning
+
+
+### Calculating Odds Ratios and Probabilities in R
+
+* As with linear regression,  avoiding rounding in intermediate steps when computing quantities
+* Instead, use R functions that carry forward full precision
+
+The tedious approach:
+
+````{r eval=T, echo=TRUE, size="scriptsize"}
+coef(chd_glm)
+1/(1 + exp(-(coef(chd_glm)[1] + coef(chd_glm)[2]*64)))
+```
+
+The recommended approach: use `predict()`
+
+* Set `type="link"` to compute estimated log-odds
+* Set `type="response"` to compute estimated probabilities
+````{r eval=T, echo=TRUE, size="footnotesize"}
+predict(chd_glm, newdata=data.frame(age=64),
+        type="link")
+predict(chd_glm, newdata=data.frame(age=64),
+        type="response")
+```
+
+
+```{example}
+Data are available on the first round of the 2013 Women's U.S. Tennis Open. Let's model the probability of the player winning (variable `won`) as a function of the number of unforced errors and double faults she made (variable `fault_err`).
+
+```
+
+\vspace{0.5cm}
+
+````{r eval=TRUE, include=FALSE}
+usopen <- read_csv("data/usopen2013.csv")
+usopen <- usopen[c(13:16, 1:12, 17:27),]
+```
+
+
+````{r eval=TRUE, echo=FALSE, out.width="80%", fig.height=4, fig.width=5.5}
+g_usopen_plainjitter <- ggplot(usopen, aes(x=fault_err,y=won)) + theme_bw() + 
+  geom_jitter(size=2, show.legend=F, width=0.02, height=0.02) +
+  xlab("Number of Double Faults and Unforced Errors") + ylab("Match Won")
+g_usopen_plainjitter
+```
+
+
+
+
+````{r eval=T, echo=TRUE, size="footnotesize"}
+open_mod1 <- glm(won~fault_err, 
+                 data=usopen,
+                 family=binomial)
+```
+
+
+````{r eval=T, echo=TRUE, size="scriptsize"}
+summary(open_mod1)
+tidy(open_mod1, conf.int=TRUE)
+tidy(open_mod1, conf.int=TRUE, exp=T)
+```
+
+In this model, we can interpret $\hat\beta_1 = -0.09$ and $\exp(\hat\beta_1) = \exp(-0.09) = 0.914$ as
+
+* A difference of 1 fault or error is associated with an estimated difference of 0.09 lower log odds (95% CI: -0.193, -0.018) of winning a tennis match at the 2013 US Open.
+* A difference of 1 fault or error is associated with an estimated odds ratio of 0.914 (95% CI: 0.824, 0.982) for winning a tennis match at the 2013 US Open.
+
+## Multiple Logistic Regression
+
+In our examples so far, we have considered only one predictor variable.
+Almost all practical analyses consider *multiple* predictor variables. This leads to multiple logistic regression.
+
+
+### Coefficient Interpretation
+
+$$logit(p_i) = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \dots + \beta_kx_{ik}$$
+$\exp(c\beta_k)$ is the odds ratio for a $c$-unit difference in variable $k$, when all other variables are held constant.
+
+* In practice, the log odds do not lie on a perfectly straight line.
+* We are estimating a general trend in the data
+
+"On average, the odds of [outcome] are $\exp(c\beta_k)$ times larger for every c-unit difference in [variable $k$] among observations with the same values of the other variables."
+

@@ -1,0 +1,584 @@
+# Model Selection for Prediction {#modelselectionprediction}
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\newcommand{\\E}{\\mathrm{E}}$
+$\\newcommand{\\Var}{\\mathrm{Var}}$
+$\\newcommand{\\bmx}{\\mathbf{x}}$
+$\\newcommand{\\bmH}{\\mathbf{H}}$
+$\\newcommand{\\bmI}{\\mathbf{I}}$
+$\\newcommand{\\bmX}{\\mathbf{X}}$
+$\\newcommand{\\bmy}{\\mathbf{y}}$
+$\\newcommand{\\bmY}{\\mathbf{Y}}$
+$\\newcommand{\\bmbeta}{\\boldsymbol{\\beta}}$
+$\\newcommand{\\bmepsilon}{\\boldsymbol{\\epsilon}}$
+$\\newcommand{\\bmmu}{\\boldsymbol{\\mu}}$
+$\\newcommand{\\bmSigma}{\\boldsymbol{\\Sigma}}$
+$\\newcommand{\\XtX}{\\bmX^\\mT\\bmX}$
+$\\newcommand{\\mT}{\\mathsf{T}}$
+$\\newcommand{\\XtXinv}{(\\bmX^\\mT\\bmX)^{-1}}$
+'`
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(broom)
+library(caret)
+```
+
+
+## Variable Selection \& Model Building
+
+If we have a set of measured variables, a natural quesiton to ask is: *Which variables do I include in the model?* This is an important question, since our quantitative results and their qualitative interpretation all depend on what variables are in the model.
+
+It can help to ask: *Why not include every variable I have?* There are several reasons why including every possible might not be optimal. These include:
+
+* Scientific Interest -- We may not be interested in relationships adjusted for all variables
+* Interpretability -- Having many (dozens, hundreds) of variables can make interpretation difficult.
+* Multicollinearity -- Adding many variables inflates the variances and standard errors.
+* Overfitting -- Too many variables, relative to the sample size, can result in a model that does not generalize well.
+
+To get more specific in our approach to model selection, then we need to first determine what our modeling purpose is. In **Prediction Modeling**, our goal is to find model that best predicts outcome $y$. In this case, we should choose a model based on minimizing prediction error and we don't need to worry about $p$-values, $se(\hat\bmbeta)$, or $\beta$ interpretations. In **Association Modeling**, our goal is to estimate association between a chosen predictor(s) and the outcome and we should choose a model based on scientific knowledge.
+
+The remainder of this chapter focuses on model selection for prediction; Section \@ref(modelselectionassociation) covers how to choose variables for association modeling.
+
+## Prediction Error
+
+When goal is prediction, we use **prediction error** to choose a model. For continuous variables, this is almost always quantified as **Mean Squared Error**:
+$$MSE(\hat{y}, y) = \E[(\hat y - y)^2]$$
+If the model is perfect, then $\hat y_i = y_i$ and $MSE(\hat y, y) = 0$. The further $\hat y$ is from $y$, the larger MSE will be.
+
+For binary variables, we can use classification accuracy (see Section \@ref()).
+
+We calculate MSE by averaging over the data:
+$$\widehat{MSE}(\hat{y}, y) = \frac{1}{n}\sum_{i=1}^n (\hat{y}_i - y_i)^2$$
+It is critically important which data points arer used in $\widehat{MSE}(\hat{y}, y)$. If we evaluate MSE using the same data used to fit the model, then we are using **in-sample** data. In-sample MSE will always be too optimistic, since we are using the data twice--once to estimate the $\beta$'s and once to calculate $\widehat{MSE}$. In contrast,  we can use a different set of data points, typically referred to as  **out-of-sample** data, for calculating MSE. To get an accurate estimate of MSE, we always want to use out-of-sample data.
+
+Instead of MSE, sometimes we use **root** mean squared error $RMSE = \sqrt{MSE}$. RMSE is on the scale of the data (like standard deviation), which can make it easier to interpret. The model with smallest MSE is model with smallest RMSE, so either can be used for selection.
+  
+
+## Model Selection \& Evaluation Strategy 
+
+With a large dataset, the best approach is to split your data into three mutually exclusive sets:
+
+* **Training Data** 
+* **Validation Data**
+* **Test Data**
+
+Once the data is split into these sets, the procedure for selecting a prediction model is:
+
+1. **Training Data** -- Fit your candidate model(s) using the training data.
+   * Obtain estimates of the model coefficients ($\beta$)
+   * Models can use different variables, transformations of $x$, etc.
+2. **Validation Data** -- Evaluate the performance of the models using training data observation.
+   * Estimates the out-of-sample error for predictions from each model
+   * Perform **model selection**: Choose the model with the best (lowest) MSE
+3. **Test Data** -- Evaluate the performance of the chosen model using test data.
+   * Error estimated from validation data will be too low on average (because you chose the best model among many)
+   * Estimating error from an independent test dataset **after** you have chosen the model provides gold standard of model performance
+   
+   
+* When do I have enough data to split into these three groups?
+   *  Need good representation of predictor variables in all groups
+   * What is "large" enough depends on the particular setting
+
+### Synthetic Data Example
+
+To see this in practice, let's use a set of simulated data from the model
+$$Y_i = -1.8 + 2.7x_i - 0.15x_i^2 + \epsilon_i \qquad \epsilon_i\sim N(0, 3^2)$$
+
+```{r out.width="65%", echo=FALSE}
+x <- seq(0, 11, length=500)
+mod_true <- function(x) -1.8 + 2.7*x - 0.15*x^2 
+df <- data.frame(x=x,
+                 ytrue=mod_true(x))
+gsim_base <- ggplot() + theme_bw() + 
+  geom_line(aes(x=x, y=ytrue), data=df) +
+  xlab("x") + ylab("y") + ylim(-7.5, 17.1)
+```
+
+
+```{r out.width="65%", echo=F}
+set.seed(2)
+xtrain <- runif(n=120, min=0, max=11)
+ytrain <- mod_true(xtrain) + rnorm(length(xtrain), sd=3)
+xvalid <- runif(n=40, min=0, max=11)
+yvalid <- mod_true(xvalid) + rnorm(length(xvalid), sd=3)
+xtest <- runif(n=40, min=0, max=11)
+ytest <- mod_true(xtest) + rnorm(length(xtest), sd=3)
+
+dftrain <- data.frame(x=xtrain,
+                     y=ytrain,
+                     data="train")
+dftest <- data.frame(x=xtest,
+                     y=ytest,
+                     data="test")
+dfvalid <- data.frame(x=xvalid,
+                     y=yvalid,
+                     data="validation")
+dffull <- bind_rows(dftrain, dfvalid,dftest)
+levels(dffull$data) <- c("train", "validation", "test")
+ 
+```
+
+We have 200 data points, so let us split them up into three groups:
+
+* 120 for training data
+* 40 for validation data
+* 40 for test data
+
+```{r out.width="85%", echo=F}
+gsim_alldata <- gsim_base + geom_point(aes(x=x,
+                           y=y, col=data,
+                           shape=data),
+                       data=dffull) 
+gsim_alldata
+
+gsim_traindata <- gsim_base + geom_point(aes(x=x,
+                           y=y, col=data,
+                           shape=data),
+                       data=subset(dffull, data=="train")) 
+```
+
+### Candidate Models
+
+Let's compare the following models for this data:
+
+1. $\E[Y_i] = \beta_0 + \beta_1x_i$
+2. $\E[Y_i] = \beta_0 + \beta_1x_i +\beta_2x_i^2$
+3. $\E[Y_i] = \beta_0 + \beta_1x_i +\beta_2x_i^2  + \beta_3x_i^3$
+4. $\E[Y_i] = \beta_0 + \beta_1\log(x_i)$
+
+Steps for model selection:
+
+1. For each model: Fit model (i.e. compute $\hat\bmbeta$) in **training** data. Optional: Compute in-sample MSE in training data. (Skip this in practice, we'll do this for illustration).
+3. For each model: Compute out-of-sample MSE in **validation** data
+4. Choose the model with lowest out-of-sample MSE as best
+5. Evaluate the out-of-sample MSE for the best model in **test** data
+
+### Linear Model Fit
+
+Step 1: Fit the model to training data
+
+```{r echo=TRUE}
+mod1 <- lm(y~x, data=subset(dffull, data=="train"))
+tidy(mod1)
+```
+
+```{r echo=FALSE}
+gsim_traindata + 
+  geom_smooth(aes(x=x,
+                  y=y),
+              method="lm",
+              se=FALSE,
+              formula=y~x,
+              data=dftrain)  +
+  ggtitle("Linear Model Fit") 
+```
+
+Step 1b: (Optional) Compute the in-sample MSE 
+
+$$\widehat{MSE}(\hat{y}, y) = \frac{1}{n}\sum_{i=1}^n (\hat{y}_i - y_i)^2$$
+
+```{r echo=TRUE}
+mean((dftrain$y - fitted(mod1))^2)
+```
+
+\vspace{1cm}
+
+Step 2: Compute the out-of-sample MSE in validation data
+
+```{r echo=TRUE}
+mean((dfvalid$y - predict(mod1, newdata=dfvalid))^2)
+```
+
+
+### Quadratic Model Fit
+
+Step 1: Fit the model to training data
+
+```{r echo=TRUE, size="footnotesize"}
+mod2 <- lm(y~poly(x, 2), data=dftrain)
+tidy(mod2)
+```
+
+```{r echo=FALSE}
+gsim_traindata + 
+  geom_smooth(aes(x=x,
+                  y=y),
+              method="lm",
+              se=FALSE,
+              formula=y~x + I(x^2),
+              data=dftrain)  +
+  ggtitle("Quadratic Model Fit")
+```
+
+
+Step 1b: (Optional) Compute the in-sample MSE 
+
+```{r echo=TRUE}
+mean((dftrain$y - fitted(mod2))^2)
+```
+
+\vspace{0.2cm}
+Step 2: Compute the out-of-sample MSE in validation data
+
+```{r echo=TRUE}
+mean((dfvalid$y - predict(mod2, newdata=dfvalid))^2)
+```
+
+
+\clearpage
+
+### Cubic Model Fit
+
+Step 1: Fit the model to training data.
+
+```{r echo=TRUE,}
+mod3 <- lm(y~poly(x, 3), data=dftrain)
+tidy(mod3)
+```
+
+```{r echo=FALSE}
+gsim_traindata + 
+  geom_smooth(aes(x=x,
+                  y=y),
+              method="lm",
+              se=FALSE,
+              formula=y~x + I(x^2) + I(x^3),
+              data=dftrain)  +
+  ggtitle("Cubic Model Fit")
+```
+
+Step 1b: (Optional) Compute the in-sample MSE 
+
+```{r echo=TRUE}
+mean((dftrain$y - fitted(mod3))^2)
+```
+
+
+\vspace{0.2cm}
+Step 2: Compute the out-of-sample MSE in validation data.
+
+```{r echo=TRUE}
+mean((dfvalid$y - predict(mod3, newdata=dfvalid))^2)
+```
+
+\clearpage
+### Logarithmic Model Fit
+
+Step 1: Fit the model to training data.
+
+```{r echo=TRUE}
+mod4 <- lm(y~log(x), data=dftrain)
+tidy(mod4)
+```
+```{r warning=FALSE, echo=FALSE}
+gsim_traindata + 
+  geom_smooth(aes(x=x,
+                  y=y),
+              method="lm",
+              se=FALSE,
+              formula=y~log(x),
+              data=dftrain)  +
+  ggtitle("Logarithmic Model Fit")
+```
+
+Step 1b: (Optional) Compute the in-sample MSE 
+
+```{r echo=TRUE}
+mean((dftrain$y - fitted(mod4))^2)
+```
+
+\vspace{0.2cm}
+Step 2: Compute the out-of-sample MSE in validation data
+
+```{r echo=TRUE}
+mean((dfvalid$y - predict(mod4, newdata=dfvalid))^2)
+```
+
+### Comparing Model Fits
+
+```{r warning=FALSE, echo=FALSE}
+gsim_traindata + 
+  geom_smooth(aes(x=x,
+                  y=y,
+                  col="lin"),
+              method="lm",
+              se=FALSE,
+              formula=y~x,
+              data=dftrain)  + 
+  geom_smooth(aes(x=x,
+                  y=y,
+                  col="quad"),
+              method="lm",
+              se=FALSE,
+              formula=y~x + I(x^2),
+              data=dftrain) + 
+  geom_smooth(aes(x=x,
+                  y=y,
+                  col="cub"),
+              method="lm",
+              se=FALSE,
+              formula=y~x + I(x^2) + I(x^3),
+              data=dftrain) + 
+  geom_smooth(aes(x=x,
+                  y=y,
+                  col="log"),
+              method="lm",
+              se=FALSE,
+              formula=y~log(x),
+              data=dftrain) +
+  scale_color_discrete(breaks=c("lin", "quad", "cub", "log"),
+                     labels=c("Linear", "Quadratic", "Cubic","Logarithmic"),
+                     name="Model")
+
+```
+
+
+
+|# | Model for $\E[Y]$ | In-sample MSE | Out-of-sample MSE |
+|--|:---|:--:|:--:|
+|1 | $\beta_0 + \beta_1x_i$ | 11.16 | 13.54 |
+|2 | $\beta_0 + \beta_1x_i +\beta_2x_i^2$ | 9.83 | 11.73 |
+|3 | $\beta_0 + \beta_1x_i +\beta_2x_i^2  + \beta_3x_i^3$ | 9.81 | 11.96 |
+|4 | $\beta_0 + \beta_1\log(x_i)$ | 11.78 | 12.78 |
+
+
+Step 3: Choose model with smallest out-of-sample MSE
+
+
+* Choose Model 2, which has smallest out-of-sample MSE
+* Model 3 has smaller in-sample MSE, but larger out-of-sample MSE
+    * Example of overfitting to the data
+
+
+### Test Set Evaluation
+
+Step 4: Compute the out-of-sample MSE using *test* dataset
+
+```{r include=FALSE, warning=FALSE, out.width="80%", fig.width=5, fig.height=3.7}
+gsim_base + geom_point(aes(x=x,
+                           y=y,
+                           col="train"),
+                       data=dftrain) +
+  geom_point(aes(x=x,
+                 y=y, col="test"),
+             data=dftest)  + 
+    geom_point(aes(x=x,
+                 y=y, col="valid"),
+             data=dfvalid)  +
+  scale_color_manual(breaks=c("train", "valid", "test"),
+                     labels=c("Training", "Validation", "Test"),
+                     values=c("black", "red", "blue"), name="Dataset")
+```
+
+
+```{r echo=TRUE}
+mean((dftest$y - predict(mod2, newdata=dftest))^2)
+```
+
+
+### Model Selection for Prediction Recap
+
+1. **Training** -- Fit candidate models using the training data.
+2. **Validation** -- Compute MSE of predictions for validation dataset; pick best model. 
+3. **Test** -- Evaluate the MSE of prediction from the chosen model using test data.
+
+* You can fit many models in training stage, exploring data in many ways
+* Only do validation and testing stages once; otherwise you will overfit
+
+
+## Cross-validation
+
+### Cross-validation
+
+Main Idea: Use a single dataset to approximate having training, validation, and test data
+
+1. Create $k$ CV groups/subsets from the full data
+   * $k=10$ most often (= "10-fold" cross-validation)
+   
+2. Repeat the following for each group:
+   a. Creating "CV-training" data from all observations not in the current group and "CV-test" data from observations in the current group
+   b. Fit the model(s) to the these "CV-training" data.
+   c. Make predictions for the observations in the "CV-test" data
+
+3. Evaluate the prediction performance of each model, comparing CV predictions to observed values
+   * Approximates out-of-sample error since "CV-test" observations not used in model fitting.
+   
+4. Choose the model with best prediction performance
+
+Note: Estimate of accuracy for chosen model is still optimistic because of model selection. Best procedure would be to then evaluate on separate test data.
+
+
+### Example: Predicting Cereal Ratings
+
+Let's apply cross-validation to the cereals data, predicting ratings of each cereal.
+
+```{r include=FALSE}
+cereals <- read_csv("data/cereals.csv")
+cereals <- cereals[complete.cases(cereals),]
+cereals$mfr[!cereals$mfr %in% c("K", "G")] <- "other"
+```
+
+```{r out.width="80%", fig.height=3.7, fig.width=5, echo=FALSE}
+ggplot(cereals) + theme_bw() +
+  geom_histogram(aes(x=rating), bins=25)
+```
+
+Let's choose between 3 models:
+
+* Model 1: Manufacturer (Kellogg's, General Mills, or other)
+* Model 2: Sugars, Vitamins, \& Calories
+* Model 3:  Manufacturer, Sugars, Vitamins, \& Calories
+
+
+* Limiting to 3 models for simplicity. We could consider models with more variables, transformations, interactions, etc.
+
+
+#### Creating CV Groups
+
+1. Create 10 CV groups from the full data
+   * `createFolds()` from `caret` can do this for you easily
+
+```{r echo=TRUE, size="footnotesize"}
+set.seed(5)
+k <- 10
+flds <- createFolds(cereals$rating, k = k, list = TRUE,
+                    returnTrain = FALSE)
+str(flds)
+```
+
+####  Fitting Model \& Making Predictions
+
+2. For each CV group, fit model to training subset and make predictions for the test subset
+
+```{r echo=TRUE}
+## Create lists for storing predictions
+## One element for each model
+pred_list <- list(numeric(nrow(cereals)),
+                  numeric(nrow(cereals)),
+                  numeric(nrow(cereals)))
+```
+
+```{r echo=TRUE, size="footnotesize", eval=T}
+for (i in 1:k){
+   ## Subset training data
+   train <- cereals[-flds[[i]],]
+   ## Subset test data
+   test <- cereals[flds[[i]],]
+   ## Fit each model
+   cereals_cvm1 <- lm(rating~mfr, data=train)
+   cereals_cvm2 <- lm(rating~sugars + vitamins + calories, data=train)
+   cereals_cvm3 <- lm(rating~mfr + sugars + vitamins + calories,
+                      data=train)
+   ## Store predictions
+   pred_list[[1]][flds[[i]]]=predict(cereals_cvm1,
+                                     newdata=test)
+   pred_list[[2]][flds[[i]]]=predict(cereals_cvm2,
+                                     newdata=test)
+   pred_list[[3]][flds[[i]]]=predict(cereals_cvm3,
+                                     newdata=test)
+}
+```
+
+
+####  CV MSE
+
+```{r echo=T, eval=T, size="footnotesize"}
+mean((pred_list[[1]] - cereals$rating)^2)
+mean((pred_list[[2]] - cereals$rating)^2)
+mean((pred_list[[3]] - cereals$rating)^2)
+
+sapply(pred_list, function(w) mean((w - cereals$rating)^2))
+```
+
+```{r include=FALSE}
+mean((cereals$rating - fitted(lm(rating~mfr, data=cereals)))^2)
+mean((cereals$rating - fitted(lm(rating~sugars + vitamins + calories, data=cereals)))^2)
+mean((cereals$rating - fitted(lm(rating~mfr + sugars + vitamins + calories, data=cereals)))^2)
+```
+
+Using 10-fold cross-validation to select from Models 1, 2, and 3, we select Model 3 as the best.
+
+\begin{center}
+\begin{tabular}{cccc}
+Model & In-sample MSE & CV-MSE & CV-RMSE\\
+\hline
+1 & 166.4 & 175.1 & 13.2\\
+2 & 62.1 & 74.0 & 8.6 \\
+3 & 50.7  & 63.8 & 8.0 \\
+\hline
+\end{tabular}
+\end{center}
+
+
+### CV using `caret`
+
+The `caret` package can automate CV for us, which greatly simplifies this process. The primary function is `train()`:
+  * Provide formula and data like normal.
+  * Set `method="lm"`
+  * Set `trControl = trainControl(method = "cv")`
+
+```{r echo=TRUE}
+trainfit1 <- train(rating~mfr,
+      data=cereals,
+      method="lm",
+      trControl = trainControl(method = "cv"))
+```
+
+```{r echo=TRUE}
+trainfit1
+```
+
+
+### Cross-validation Summary
+
+* Cross-validation is a way to approximate out-of-sample prediction when separate training/validation/test data are unavailable
+* General Procedure:
+  * Split the data into groups
+  * For each group, make predictions using model fit to rest of data
+  * Compare models using $y$ and cross-validation predictions $\hat y$
+
+
+
+## AIC \& Information Criteria
+
+What if we don't have enough data to use a training/validation/test set or do cross-validation? We can use a different measure of model fit.
+
+
+Information Criteria (IC) approaches are based on **maximum likelihood** (ML), which assumes a normal distribution for the data. The ML approach to estimation finds $\beta$ and $\sigma^2$ that maximize the log-likelihood
+$$\log L = -\frac{1}{2\sigma^2}(\bmy - \bmX\bmbeta)^\mT(\bmy - \bmX\bmbeta) - \frac{n}{2}\sigma^2 + constant$$
+Heuristically, we can think of the likelihood $L$  as the probability of the data given a particular model. The value of the likelihood $\log L$ can be used to measure how "good" the model fit is, where higher $\log L$ would be better.
+
+To use the likelihood for model selection, we need a penalty term to account for adding parameters. This is similar to the penalty term added in $R_{Adj}^2$.
+      
+      
+The most common information criteria for model selection are:      
+    
+$AIC$: $-2 \log L + 2p$  
+$BIC$: $-2 \log L + p \log(n)$  
+$AIC_C$: $-2 \log L + 2p + \frac{2k(k+1)}{n - k - 1}$
+
+For each of these, a lower value indicates a better model.
+
+One major advantage of these approaches is that they can be used to easily compare non-nested models. However, they don't target prediction accuracy (i.e. MSE) directly, so in general they are not as useful for prediction model selection as the approaches described above. In particular, the training/validation/test and CV approaches can extend to non-statistical models, while the information criteria approaches require the existence of a likelihood.
+
+
+## Choosing Models to Compare
+
+All of these approaches require set of candidate models to select from. If the number of variables is small, then we can use an "all subsets" approach in which we try every combination of variables we have. However, this quickly becomes computationally impractical as the number of variables grows. Instead, it can be helpful to use exploratory plots and descriptive statistics (evaluating these in the training data, not the full data) to select reasonable combinations of variables to consider.
+
+## Other Types of Models
+
+Linear regression is not the only method for predicting a continuous variable. Other approaches in clude:
+
+* LASSO/Ridge regression
+* Neural Networks
+* Random Forests
+* Generalized additive models
+
+Happily, the `caret` package supports all of these types of models and `train()` is specifically designed to help with fitting these kinds of models. More information is available at:  \url{http://topepo.github.io/caret/index.html}
+
+
+
