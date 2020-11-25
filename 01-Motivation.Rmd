@@ -18,7 +18,7 @@ knitr::opts_chunk$set(fig.align="center")
 
 At the Palmer research station in Antarctica^[https://pal.lternet.edu], researchers made measurements on three different penguin species: Adélie, Chinstrap, and Gentoo. The `palmerpenguin` R package (@palmerpenguins) contains these measurements, which we will use in many of the examples. There are 342 measurements of penguins' flipper length and body mass:
 
-```{r g-penguin-flip-mass, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset."}
+```{r g-penguin-flip-mass, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset.", out.width="75%"}
 g_penguin_flip_mass <- penguins %>%
   rename(Species=species) %>%
   filter(!is.na(body_mass_g)) %>%
@@ -38,7 +38,7 @@ Yes! Using linear regression we can find the best fitting line through the data:
 ```
 
 
-```{r g-penguin-flip-mass-lm, echo=FALSE, message=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset, with best fitting line."}
+```{r g-penguin-flip-mass-lm, echo=FALSE, message=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset, with best fitting line.", out.width="70%"}
 g_penguin_flip_mass_lm <- g_penguin_flip_mass +
   geom_smooth(se=FALSE, method="lm", col="black")
 g_penguin_flip_mass_lm
@@ -67,7 +67,7 @@ The **descriptive** goal of regression is focused on showing the relationship be
 One of the fundamental goals of statistics, and one that sets it apart from other data science fields, is **inference**. Inference takes a descriptive analysis one step further, and uses information about uncertainty to quantify the *strength* of a relationship. In short, inference is used to answer the question: *Is there a relationship between $x$ and $y$, beyond what we would just expect by chance?*
 Fundamental tools in statistical inference are confidence intervals and hypothesis testing. Inferential goals are also sometimes called *association* goals, since the objective is to learn about an association (or lack thereof) between variables.
 
-A third, and fundamentally different, goal of regression analysis is **prediction**, when we want to predict values of $y$ for new observations using their value of $x$. Prediction is the primary goal in the area of statistical (machine) learning, and regression is only one of many tools that can be used to make predictions for a dataset. This book covers prediction in Chapter \@ref(modelselection). 
+A third, and fundamentally different, goal of regression analysis is **prediction**, when we want to predict values of $y$ for new observations using their value of $x$. Prediction is the primary goal in the area of statistical (machine) learning, and regression is only one of many tools that can be used to make predictions for a dataset. This book covers prediction in Chapter \@ref(modelselectionprediction). 
 
 ```{example }
 Consider the following questions using the penguin data in Figure \@ref(fig:g-penguin-flip-mass-lm):
@@ -97,7 +97,7 @@ Throughout this book, we will make repeated use of several example datasets, whi
 Other values in the Palmer Penguins dataset include penguin sex and  measurements of bill depth. The following histograms show the distributions of bill depth by sex:
 ```  
   
-```{r g-penguin-bill-sex, echo=F, fig.cap="Distribution of penguin bill length by sex."}
+```{r g-penguin-bill-sex, echo=F, fig.cap="Distribution of penguin bill length by sex.", out.width="70%"}
 penguins %>%
   filter(!is.na(sex)) %>%
   mutate(Sex=str_to_title(sex)) %>%
@@ -116,7 +116,7 @@ In Figure \@ref(fig:g-penguin-bill-sex), it appears that there might be a differ
 The following histograms show the distributions of bill depth by species:
 ```
 
-```{r g-penguin-bill-species, echo=F, message=FALSE, fig.cap="Distribution of penguin bill length by species."}
+```{r g-penguin-bill-species, echo=F, message=FALSE, fig.cap="Distribution of penguin bill length by species.", out.width="70%"}
 penguins %>%
   filter(!is.na(bill_depth_mm)) %>%
     rename(Species=species) %>%

@@ -265,7 +265,7 @@ If probability of winning a game is 0.67, the odds of winning are $\dfrac{0.67}{
 
 ## Logistic Regression in R
 ### Fitting Logistic Regression in R
-In logistic regression, parameters ($\beta$'s) are estimated via maximum likelihood. The details of this procedure are covered in Section \@ref(sec:logisticestimation).
+In logistic regression, parameters ($\beta$'s) are estimated via maximum likelihood. The details of this procedure are covered in Section \@ref(logisticinference).
 
 Obtaining estimates in R is similar to simple linear regression, except we use `glm` instead of `lm`:
 

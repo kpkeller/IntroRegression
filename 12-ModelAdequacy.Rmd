@@ -48,23 +48,6 @@ These provide a direct measure of the difference between the fitted values and t
 
 In `R`, these can be obtained using the function `residuals()`.
 
-
-
-<!-- ### MPG Example -->
-<!-- ```{r} -->
-<!-- ggplot(mpg) +  theme_bw() +  -->
-<!--    geom_point(aes(x=displ, -->
-<!--                   y=hwy)) + -->
-<!--    geom_smooth(aes(x=displ, y=hwy), method="lm", se=F) -->
-<!-- ``` -->
-
-<!-- ```{r echo=TRUE, size="footnotesize"} -->
-<!-- mpg_lm <- lm(hwy~displ,data=mpg) -->
-<!-- ggplot() + theme_bw() +  -->
-<!--    geom_histogram(aes(x=residuals(mpg_lm)), bins=25) -->
-<!-- ``` -->
-
-
 ### Scaled Residuals
 
 The magnitude of the raw residuals depends on $\sigma^2$, which can make them difficult to compare across models. Dividing by the estimated residual variance ($\sqrt{\hat\sigma^2}$) puts residuals on a comparable scale and yields **scaled residuals**:
@@ -89,7 +72,7 @@ It immediately follows that $\Var(e_i) = \sigma^2 (1-h_{ii})$.
 The value of $h_{ii}$, the $i$th diagonal element of the hat matrix (Section \@ref(hatmatrix)), is larger for points that are more remote in predictor space. 
 Remote points have *smaller* residual variance, since they "pull" the regression line more towards themselves. This idea, which we will revisit in the discussion of leverage in Section \@ref(unusualobs), is illustrated in Figure \@ref(fig:fit-without-point). Since 
 
-```{r fit-without-point, echo=FALSE, message=FALSE}
+```{r fit-without-point, echo=FALSE, message=FALSE, fig.cap="Regression line fit to data with and without the extra point at $x=12$."}
 simple_df <- data.frame(x=seq(0, 10))
 n <- nrow(simple_df)
 simple_df$id <- 1:n
