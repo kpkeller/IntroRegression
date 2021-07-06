@@ -19,10 +19,9 @@ This book emerged from the course notes I developed as instructor for a course (
 
 This book assumes an understanding of basic statistical concepts, including expectation and variance. The examples almost exclusively use the R programming language, and basic familiarity with R is assumed.
 
-## Disclaimer {-}
-
-This work is currently (as of Fall 2020) under development and the content is subject to change as more material is added. If you find any errors, please let me know!
+I am continuing to expand and revise the information in this book. If you find any errors or have any feedback, please 
+<a href="https://www.joshuapkeller.com/page/contact.html"> contact me</a> to let me know!
 
 ## License {-}
 
-All content is copyright &copy; 2020 Joshua Keller. The work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+All content is copyright &copy; 2020-2021 Joshua Keller. The work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
