@@ -32,7 +32,7 @@ Many times the relationship between predictor variables and an outcome variable 
 
 ## Outcome ($Y$) Transformations
 
-Transformations of the outcome variable involve replacing $Y_i$ with $f(Y_i)$, where $f$ is a function such as $\log$. This kind of transformation can often fix violations of the linearity and constant variance assumptions.  Figure \@ref(fig:logy-sim) shows an example of this, where the left plot has violations of linearity and constant variance. The right panel shows the impact of transforming y using the logarithmic function; the relationship is now more linear and the heteroscedasticity (non-constant variance) is gone.
+Transformations of the outcome variable involve replacing $Y_i$ with $f(Y_i)$, where $f$ is a function. A common choice of $f$ is the (natural) logarithm. This kind of transformation can often fix violations of the linearity and constant variance assumptions.  Figure \@ref(fig:logy-sim) shows an example of this, where the left plot has violations of linearity and constant variance. The right panel shows the impact of transforming y using the logarithmic function; the relationship is now more linear and the heteroscedasticity (non-constant variance) is gone.
 
 ```{r logy-sim, echo=F, message=FALSE, out.width="95%", fig.width=5, fig.height=3, fig.cap="Impact of log-transforming $y$."}
 n <- 150
@@ -50,10 +50,7 @@ plot_grid(g1, g2)
 
 
 
-Scientifically, using $\log(Y_i)$ in place of $Y_i$ is often appropriate for outcomes that operate on a multiplicative scale. Concentrations of pollution in the air or biomarkers in the blood are two examples of this.
-
-
-
+:::: {.examplebox}
 
 ```{example}
 Consider the house price data introduced in Section \@ref(housingprices). Figure \@ref(fig:g-housing-inc-price-pretrans) plots the median house sale price in each city against median income in each city. Although most of the points are in the lower left, there are some extreme values in the middle and upper right. 
@@ -67,7 +64,7 @@ housing_inc <- housing_inc %>%
          median_sale_price=median_sale_price/1000)
 ```
 
-```{r g-housing-inc-price-pretrans, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+```{r g-housing-inc-price-pretrans, echo=FALSE, fig.cap="Median single-famly residence prices and median annual household income in U.S. metropolitan areas.", message=FALSE, out.width="80%",  fig.width=5, fig.height=3.5}
 gg_housing_inc <- ggplot(housing_inc, aes(x=median_income,
                  y=median_sale_price)) + theme_bw() + 
   geom_point() +
@@ -79,19 +76,19 @@ gg_housing_inc +
 
 A residual plot (Figure \@ref(fig:g-housing-inc-price-resid)) from this SLR model shows some evidence of non-linearity and non-constant variance present.
 
-```{r g-housing-inc-price-resid, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+```{r g-housing-inc-price-resid, echo=FALSE, fig.cap="Residuals from SLR model of median single-famly residence prices as a function of median annual household income in U.S. metropolitan areas.", message=FALSE, out.width="80%",  fig.width=5, fig.height=3.5}
 housing_lm <- lm(median_sale_price~median_income, data=housing_inc)
 ggplot() + theme_bw() + 
   geom_hline(aes(yintercept=0), col="grey", lty=2) +
   geom_point(aes(x=fitted(housing_lm), y=rstandard(housing_lm))) +
-  # geom_smooth(aes(x=fitted(housing_lm), y=rstandard(housing_lm)), se=F) + 
+  geom_smooth(aes(x=fitted(housing_lm), y=rstandard(housing_lm)), se=F, col="purple") +
   xlab("Fitted Values") + ylab("Standardized Residuals") # + ggtitle("Synthetic Data 2: Residuals v. Fitted")
 ```
 
 
 If we apply a log transform to median sale price, the data then look like Figure \@ref(fig:g-housing-inc-price-logy).
 
-```{r g-housing-inc-price-logy, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+```{r g-housing-inc-price-logy, echo=FALSE, fig.cap="Logarithm of median single-famly residence prices and median annual household income in U.S. metropolitan areas.", message=FALSE, out.width="80%",  fig.width=5, fig.height=3.5}
 gg_housing_inc_logy <- ggplot(housing_inc, aes(x=median_income,
                  y=log(median_sale_price))) + theme_bw() + 
   geom_point() +
@@ -103,47 +100,47 @@ gg_housing_inc_logy +
 
 The residual plot then looks like:
 
-```{r g-housing-inc-price-logy-resid, echo=FALSE, fig.cap="Median single-famly residence prices and annual income in U.S. metropolitan areas.", message=FALSE, out.width="70%"}
+```{r g-housing-inc-price-logy-resid, echo=FALSE, fig.cap="Residuals from SLR model of logarithm of median single-famly residence prices as a function of median annual household income in U.S. metropolitan areas.", message=FALSE, out.width="80%",  fig.width=5, fig.height=3.5}
 housing_lm2 <- lm(log(median_sale_price)~median_income, data=housing_inc)
 ggplot() + theme_bw() + 
   geom_hline(aes(yintercept=0), col="grey", lty=2) +
   geom_point(aes(x=fitted(housing_lm2), y=rstandard(housing_lm2))) +
-  # geom_smooth(aes(x=fitted(housing_lm), y=rstandard(housing_lm)), se=F) + 
+  geom_smooth(aes(x=fitted(housing_lm2), y=rstandard(housing_lm2)), se=F, col="purple") +
   xlab("Fitted Values") + ylab("Standardized Residuals") # + ggtitle("Synthetic Data 2: Residuals v. Fitted")
 ```
 
+Notice how in Figure \@ref(fig:g-housing-inc-price-logy-resid), the values on the left hand side are more evenly spread out vertically than in Figure \@ref(fig:g-housing-inc-price-resid). The logarithm transform of the housing prices leads to less heteroscedasticity in the residuals.  The trend line in Figure \@ref(fig:g-housing-inc-price-resid) also shows evidence of non-linearity, while the trend line in Figure \@ref(fig:g-housing-inc-price-logy-resid) is closer to being flat, indicating less violation of the linearity assumption.
+
+::::
 
 
 
+### Interpreting a Model with $\log Y$
 
-
-### Interpreting Model with $\log Y$
 
 It's important to remember that applying a transform on $Y$ will change the interpretation of all of the model parameters. The $\beta_j$ now represent differences in $E[f(Y_i)]$, not in $E[Y_i]$.
 
-If the function $f()$ is chosen to be the logarithm, then we can interpret $\beta_j$ in terms of the geometric mean of $Y$.
+
+If the function $f()$ is chosen to be the logarithm, then we can interpret $\beta_j$ in terms of the geometric mean of $Y$. Scientifically, using $\log(Y_i)$ in place of $Y_i$ is often appropriate for outcomes that operate on a multiplicative scale. Concentrations of pollution in the air or biomarkers in the blood are two examples of this.
+
+
 The **geometric mean** is a measure of central tendency that is defined as:
 \begin{align*}
 GeoMean(x_1, \dots, x_n) &= \sqrt[n]{x_1 \times x_2 \times  \dots \times x_n} \\
 &= (x_1 \times x_2 \times \dots \times x_n)^{1/n}
 \end{align*}
 
-The geometric mean is:
+The geometric mean is only define for positive numbers and is always smaller than the arithmetic mean (the usual "average"). It has the advantage of being more robust to outliers than the arithmetic mean and is also useful when there are multiplicative changes in a variable.
 
-* only defined for positive numbers
-* always smaller than the arithmetic mean (the usual ``average'')
-* more robust to outliers than the arithmetic mean
-* useful when there are multiplicative changes in a variable
-
-A helpful way to rewrite the geometric mean is:
+To connect the geometric mean to regression models with $\log(Y)$ as the outcome, we first rewrite the geometric mean as:
 \begin{align*}
 GeoMean(x_1, \dots, x_n) &= \exp\left(\log\left[(x_1 \times x_2 \times \dots \times x_n)^{1/n}\right]\right)\\
 &= \exp\left(\frac{1}{n} \left[\log(x_1) + \log(x_2) + \dots + \log(x_n)\right]\right)
 \end{align*}
+This relationship shows that $\exp(\E[\log(X)])$ can be interpreted
+as the geometric mean of a random variable \(X\). 
 
-
-Using the relationships above, \(\exp(\E[\log(X)])\) can be interpreted
-as the geometric mean of a random variable \(X\). This means that in the model
+This means that in the model
 $$\log(Y) = \beta_0  + \beta_1x_{1} + \epsilon$$
 we have
 \[\beta_1 = \E[\log(Y) | x_1=x + 1] - \E[\log(Y) | x_1=x] \]
@@ -153,7 +150,7 @@ Taking the exponential of both sides, we have
 &=\frac{\exp(\E[\log(Y) | x_1=x + 1])}{\exp(\E[\log(Y) | x_1=x])}\\
 &=\frac{GeoMean(Y | x_1 = x+ 1)}{GeoMean(Y | x_1 = x)}
 \end{align*}
-Thus, $exp(\beta_1)$ is the multiplicative difference in geometric mean of $Y$ for a 1-unit difference in $x_{1}$
+Thus, $\exp(\beta_1)$ is the multiplicative difference in geometric mean of $Y$ for a 1-unit difference in $x_{1}$
 
 
 
@@ -163,11 +160,18 @@ summary(housing_lm2)
 broom::tidy(housing_lm2, conf.int=T)
 ```
 
+
+:::: {.examplebox}
+
+
+
 ```{example}
 In an SLR model with the logarithm of median house price as the outcome and median income (in thousands of dollars) as the predictor variable, the estimated value of $\hat\beta_1$ is 0.024  (95\% CI: 0.020, 0.028). Since $exp(0.024) = 1.024$, this means that a difference of $1,000 in median income between cities is associated with a a 2.4\% higher geometric mean sale price.
 ```
 
 
+
+::::
 
 
 
