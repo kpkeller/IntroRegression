@@ -76,12 +76,15 @@ If the answer to this question is "No", then $\beta_1 = 0$ and we are left with 
 
 <!-- ## Example: Penguins -->
 
+:::: {.examplebox}
 ```{example penguin-lm-hypothquest}
 In the penguin data we might ask:  *Is there a relationship between flipper length and body mass in penguins?* 
 The corresponding statistical question is: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?* 
 We saw in Example \@ref(exm:penguin-lm-stepped) that the estimated SLR equation for the penguin data was $\E[Y_i] = -5780.83 + 49.69x_i$.
 Thus, the estimated slope is 49.7 g/mm. Clearly this value is not 0. But is it *meaningfully* different from 0? We address that question in the remainder of this chapter.
 ```
+
+::::
 
 ## Standard Error of $\beta_1$
 
@@ -239,6 +242,7 @@ If $\epsilon_i \sim N(0, \sigma^2)$ and $H_0$ is true, then $t$ has a $T$-distri
 
 
 ### Hypothesis Testing "by hand"
+
 
 ```{example penguin-lm-hypoth-byhand}
 Let's return to the penguin data in Example \@ref(exm:penguin-lm-hypothquest), in which we asked: *In the SLR model with $x_i =$ flipper length and $Y_i =$ body mass, is $\beta_1 \ne 0$?*

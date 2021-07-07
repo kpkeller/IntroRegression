@@ -98,6 +98,7 @@ The `lm()` command, which stands for **linear model**, is used to fit a simple l
 * The first argument is an R formula of the form `y ~ x`, where `x` and `y` are variable names for the predictor and outcome variables, respectively.
 * The other key argument is the `data=` argument. It should be given a `data.frame` or `tibble` that contains the `x` and `y` variables as columns. Although not strictly required, the `data` argument is highly recommended. If `data` is not provided, the values of `x` and `y` are taken from the global environment; this often leads to unintended errors.
 
+:::: {.examplebox}
 ```{example penguin-lm-stepped}
 To compute the OLS estimates of $\beta_0$ and $\beta_1$ for the penguin data, with flipper length as the predictor and body mass as the outcome, we can use the following code:
 ```
@@ -135,10 +136,14 @@ The estimates can then be extracted from the `estimate` column.
 tidy(penguin_lm)$estimate
 ```
 
+::::
+
 ### Plotting SLR Fit 
 
 To plot the SLR fit, we can add the line as a layer to a scatterplot of the data. This can be done using the `geom_abline()` function, which takes `slope=` and `intercept=` arguments inside `aes()`.
 
+
+:::: {.examplebox}
 ```{example }
 To plot the simple linear regression line of Example \@ref(exm:penguin-lm-stepped), we first create the scatterplot of values: 
 ```
@@ -161,6 +166,8 @@ g_penguin_lm <- g_penguin +
                   intercept=coef(penguin_lm)[1]))
 g_penguin_lm
 ```
+::::
+
 
 It's important to remember to *not* type the numbers in directly. Not only does that lead to a loss of precision, it's also greatly amplifies the chances of a typo. Instead, in the code above, we have used the `coef()` command to extract the slope and intercept estimates.
 
@@ -171,6 +178,7 @@ An alternative approach, which doesn't actually require directly fitting the mod
 * the dataset via the `data` argument
 * set `method="lm"` (Note the quotes), which tells `geom_smooth()` that you want the linear regression fit
 * optionally set `se=FALSE`, which will hide the shaded uncertainty. We will later see how these are calculated in Section \@ref(slrCIMean).
+
 
 For example:
 ```{r eval=T, warning=FALSE, message=FALSE}
@@ -202,7 +210,7 @@ bike_lm <- lm(registered_users~temp, data=bike)
 summary(bike_lm)
 ```
 
-
+:::: {.examplebox}
 ```{example}
 Consider the bike sharing data from Section \@ref(bikedata) and Figure \@ref(fig:bike-temp-usage). After fitting an SLR model with temperature as the predictor variable and number of registered users as the outcome, we obtain the line:
 ```
@@ -212,13 +220,14 @@ We can interpret these coefficients as:
 * The estimated average number of registered users active in the bike sharing program on a day with high temperature 0 degrees Celsius is 1,371.
 * A difference of one degree Celsius in daily high temperature is associated with an average of 112 more registered users actively renting a bike.
 
-
+:::: 
 
 
 ### OLS estimation in R with binary x
 
 If the predictor variable is a binary variable such as sex, then we need to create a corresponding 0-1 variable for fitting the model (recall Section \@ref(interpbinaryx)). Conveniently, R will automatically create a 0-1 indicator from a binary categorical variable if that variable is included as a predictor in `lm()`. 
 
+:::: {.examplebox}
 ```{example penguin-mass-sex-estimation}
 (Continuation of Example \@ref(exm:penguin-mass-sex).) Compute the OLS estimates of $\beta_0$ and $\beta_1$ for a linear regression model with penguin body mass as the outcome and penguin sex as the predictor variable.
 ```
@@ -249,7 +258,7 @@ We can write the following three interpretations of $\hat\beta_0$,  $\hat\beta_0
 * The estimated average body mass for males penguins is 4,546 grams.
 * The estimated difference in average body mass of penguins, comparing males to females, is 683 grams, with males having larger average mass.
 
-
+::::
 
 ## Properties of Least Squares Estimators {#olsproperties}
 

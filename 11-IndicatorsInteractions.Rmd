@@ -97,7 +97,7 @@ There is an important restriction on the indicator variable values: **only one**
 
 The approach described here for indicator variables is sometimes called "dummy coding" of a categorical variable, since there is a separate indicator for each comparison. An alternative, which we will not discuss further here, is "effect coding".
 
-
+:::: {.examplebox}
 ```{example photo-ind-intro}
 Using the photosynthesis data introduced in Section \@ref(mlrinference), we can fit a model that adjusts for soil water content and tree species. For the time being, let's restrict to three species: balsam fir (coded as `"abiba"`), Jack Pine (codede as `"pinba"`), and Red Oak (coded as `"queru"`). 
 ```
@@ -150,6 +150,7 @@ We can interpret the model parameters as:
 * $\beta_2$ -- The difference in average photosynthesis output comparing Red Oak trees to Balsam Fir trees with the same soil water content ratio.
 * $\beta_3$ -- The difference in average photosynthesis output for a 1-unit difference in soil water content ratio, among trees of the same species.
 
+:::: 
 
 ## Indicators in R
 For a categorical variable (class is `character` or `factor`), R will automatically create the indicator variables. The category that comes first alphabetically is chosen as the reference category (unless a different reference is explicitly set for a `factor` variable.) The variables are given a name that is a combination of the variable name and the category label.
@@ -171,6 +172,7 @@ Since the indicator variables each individually only compare a single category l
 
 
 
+:::: {.examplebox}
 
 ```{example}
 We can fit the model described in Example \@ref(exm:photo-ind-intro). Is there evidence of a difference in photosynthesis output by species?
@@ -200,7 +202,7 @@ We reject the null hypothesis that there is no relationship between average phot
 
 
 
-
+::::
 
 
 <!-- ### Example: Miles per Gallon -->
@@ -351,6 +353,8 @@ We reject the null hypothesis that there is no relationship between average phot
 
 Indicator variables allow for the *intercept* in the model to vary by different categories. But what if we want to allow the *slopes* to vary among different groups? To do this, we can include an **interaction term** in the model.
 
+:::: {.examplebox}
+
 ```{example}
 One factor that affects fuel economy in passenger vehicles is the size of the engine. Figure \@ref(fig:mpg-engine) shows the highway miles per gallon for vehicles, as a function of their engine size.
 ```
@@ -391,6 +395,7 @@ Graphically, we can represent this by having separate regression lines in the sc
 ```{r echo=FALSE}
 g_mpg_8cyl  + geom_smooth(aes(x=displ, y=hwy, col=str_to_title(cyl8), group=str_to_title(cyl8)), method="lm", se=FALSE)
 ```
+::::
 
 ## Interpreting Parameters in Interactions
 
@@ -437,6 +442,7 @@ X <- model.matrix(hwy~displ*cyl8, data=mpg)
 X[c(1:2, 22:24),]
 ```
 
+:::: {.examplebox}
 
 ```{example mpg-interaction}
 Is there a difference in the relationship between average highway MPG and engine size, comparing vehicles witht 8-cylinder engines compared to those without?
@@ -448,6 +454,7 @@ tidy(mpg_lm_interact)
 ```
 we can see that the corresponding $t$ statistic is 7.9 and the $p$-value is less than 0.0001. Thus, we would reject $H_0$.
 
+::::
 
 <!-- What is our conclusion for testing $H_0: \beta_3 = 0$ vs. $H_A: \beta_3 \ne 0$? -->
 

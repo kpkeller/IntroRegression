@@ -55,6 +55,7 @@ g1 +
 
 <!-- Second, it can be shown that $\hat\beta_0'$ is uncorrelated with $\hat\beta_1$, although this is mostly used only to simplify some calculations.  -->
 
+:::: {.examplebox}
 ```{example peng-lm-center}
 What happens to the results from the model for the penguin data when we center flipper length variable?
 ```
@@ -76,7 +77,7 @@ penguin_lm2 <- lm(body_mass_g ~ flipper_length_mm_centered,
                   data=penguins)
 tidy(penguin_lm2)
 ```
-
+::::
 
 ## Rescaling Units {#rescaling}
 
@@ -92,6 +93,7 @@ where $\tilde{x}_i = cx_i$ and $\tilde{\beta}_1 = \beta_1/c$.
 
 In principle, predictor variables can be rescaled by any value, but the most common is scaling by its standard deviation. Together with centering the variable, this is known as *standardization* of the predictor variable. This leads to $\beta_1$ representing the difference in the average value of the outcome for a *one-standard deviation* difference in $x$. Other common scaling factors are: factors of 10 or other values that can change units (e.g., going from kilometers to meters) and the interquartile range (IQR) of $x$. 
 
+:::: {.examplebox}
 
 ```{example}
 If in addition to centering the flipper length in Example \@ref(exm:peng-lm-center), suppose we also scale the flipper lengths by their standard deviation.  In R, this can be done easily using the `scale()` command:
@@ -110,6 +112,9 @@ tidy(penguin_lm3, conf.int=T) %>%
 ```
 
 If we fit a SLR model with this standardized version of flipper length, we obtain $\hat\beta_0 = 4201.8$ and $\hat\beta_1 = 698.7$. The scaling of $x$ had not impact on the point estimate $\hat\beta_0$, but did change the value of $\hat\beta_1$. From this model, an interpreation statement for $\hat\beta_1$ is: *A one standard deviation difference in flipper length is associated with a difference of 699 grams in average body mass (95\% CI: 657, 741).*
+
+::::
+
 
 This demonstrates one advantage to scaling by the standard deviation: it can simplify interpretations of the slope parameter, particularly in contexts where the audience may not be familiar with the practical importance of a 1-unit difference in the predictor. For example, someone who is not familiar with the average lengths of penguin flippers may not have a good sense of how large a 1 mm difference in flipper length is. Does it represent a small, but important, amount? Or is it a negligible difference? The same reader could understand that a one-standard deviation difference in flipper length is a meaningfully large difference in flipper length.
 However, when reporting results from a model with a standardized predictor, it is still important to report what the magnitude of the standard deviation is.
@@ -133,7 +138,7 @@ where $\tilde{Y}_i = cY_i$, $\tilde\beta_0 = c\beta_0$, $\tilde{\beta}_1 = c\bet
 
 Unlike rescaling $x$, which only impacted $\beta_1$, rescaling the outcome variable affects all three parameters in the SLR model. However, once again the inferential conclusions are not changed since the numerator and denominator in the test statistic are multiplied by the same factor. 
 
-
+:::: {.examplebox}
 ```{example }
 In the penguin data, if we rescale the body mass variable to be in kilograms instead of grams (1 kg = 1,000 g), we obtain the point estimates $\hat\beta_0 = -5.78$ and $\hat\beta_1 = 0.0497$. Since we have just changed $y$ by a factor of 1/1000, we see the corresponding shift in these point estimates.
 ```
@@ -143,7 +148,7 @@ penguin_lm4 <- lm(I(body_mass_g/1000) ~ flipper_length_mm,
                   data=penguins)
 tidy(penguin_lm4)
 ```
-
+::::
 
 ## Exercises
 

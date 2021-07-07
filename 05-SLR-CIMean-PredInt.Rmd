@@ -46,6 +46,7 @@ Question 1 is answered by $\hat\mu_{Y|x_0}$ and has a corresponding confidence i
 
 The point estimates $\hat\mu_{Y|x_0}$  and $\hat{y}_0$ can be computed by directly plugging in the point estimates to \@ref(eq:slrmuhat) or \@ref(eq:slryhat). 
 
+:::: {.examplebox}
 ```{example penguin-lm-prediction}
 In Example \@ref(exm:penguin-lm-stepped), we saw the fitted regression line for mean peguin body mass ($y$) as a function of flipper length ($x$) was:
 $$\hat{y}  = -5780.83 + 49.69x$$
@@ -66,13 +67,14 @@ muhat
 ```  
 From this, we obtain the estimated mean as 4,156 grams.
 
+:::: 
 
 But rather than compute this value using addition and multiplication, we can use the `predict()` function in R, which will compute these values for us based on a fitted `lm` object. The necessary arguments for making predictions are:
 
 * `object=`, the `lm` for the model you want to make predictions for
 * `newdata=`, a data frame containing the *named* variables with the values for prediction
 
-
+:::: {.examplebox}
 ```{solution} 
 (Version 2 for Example \@ref(exm:penguin-lm-prediction).) Rather than do the arithmetic by hand, we can use the `predict()` function. We create a data frame called `preddata` that contains the information for prediction, and then pass it to `predict()`.
 ```
@@ -84,10 +86,11 @@ predict(penguin_lm,
         newdata=preddata)
 ```  
 We again obtain the estimated mean as 4,156 grams. 
-
+::::
 
 In addition to being less likely to lead to typos, using the `predict()` command is easily scalable to multiple values.
 
+:::: {.examplebox}
 ```{example peng-lm-multimean}
 For the same model as Example \@ref(exm:penguin-lm-prediction), what is the predicted mean body mass for penguins with flipper lengths of 150mm, 200mm, 225mm, and 250mm?
 ```
@@ -99,7 +102,7 @@ predict(penguin_lm,
         newdata=preddata2)
 ```
 
-
+::::
 
 ## Inference for the mean ($\mu_{Y|x_0}$)
 
@@ -169,16 +172,19 @@ ciMean
 
 In addition to computing the point estimate $\hat{\mu}_{y|x_0}$, the `predict()` command can automatically compute a confidence interval. To do this, set the `interval="confidence"` argument.
 
+:::: {.examplebox}
 ```{example}
 For the point estimates in Example \@ref(exm:peng-lm-multimean), find a 99\% confidence interval.
 ```
-```{solution}
 ```{r}
 predict(penguin_lm,
         newdata=preddata2,
         interval="confidence", 
         level=0.99)
 ```
+
+::::
+
 
 
 ### Plotting CI for Mean Response in R 

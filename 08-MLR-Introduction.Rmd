@@ -16,17 +16,18 @@ library(broom)
 
 ## Multiple Linear Regression
 
-Simple linear regression (SLR) gave us a tool to model the relationship between a predictor ($x$) and an outcome ($Y$):
+Simple linear regression (SLR) gave us a tool to model the relationship between a single predictor variable ($x_i$) and an outcome ($Y_i$):
 
-$$Y_i = \beta_0 + \beta_1x_{i1} + \epsilon_i$$
-This has a clear drawback: **most real-world outcomes are impacted by more than one variable.** Multiple linear regression (MLR) extends SLR to include multiple predictors:
+$$Y_i = \beta_0 + \beta_1x_{i} + \epsilon_i$$
+This has a clear drawback: **most real-world outcomes are impacted by more than one variable.**  Multiple linear regression (MLR) extends SLR to include multiple predictor variables. Suppose we have a set of $k$ predictor variables, whose values for the $i$th observation are denoted $x_{i1}, \dots, x_{ik}$. The MLR model for an outcome $Y_i$ as a function of these variables is:
 
 \begin{equation}
 Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \dots + \beta_kx_{ik} +  \epsilon_i
 (\#eq:mlr)
 \end{equation}
 
-As we will see, the mathematical details of SLR extend readily to having more than one predictor variable. However, the graphical representations are often more difficult to create.
+This chapter will explore how adding the additional predictor variables affects the interpretation of the coefficient parameters $\beta_j$. In Chapter \@ref(mlrmx), we will see an alternative form of the MLR model that uses matrix algebra to simplify computations and directly use these properties to show properties of the parameter estimates. 
+
 
 The multiple linear regression model \@ref(eq:mlr) has analogous assumptions to simple linear regression:
 
@@ -34,27 +35,13 @@ The multiple linear regression model \@ref(eq:mlr) has analogous assumptions to 
 * $Var(\epsilon_i) = \sigma^2$
 * $\epsilon_i$ are uncorrelated
 
-In Chapter \@ref(mlrmx), we will see an alternative form of the MLR model that uses matrix algebra to simplify computations and directly use these properties to show properties of the parameter estimates.
+As we will see, these assumptions means that the mathematical details of SLR extend readily to having more than one predictor variable. Section \@ref(modadequacy) discusses how to assess whether these assumptions are met for a given dataset, and what problems can occur when they are not.
 
-But first, in this chapter we explore how the addition of additional predictor variables impacts the effects and interpretations of the coefficient parameters $\beta_j$.
+For now, we will consider continuous and binary predictor variables. Section \@ref(indinter) explores categorical predictors and other transformations of continuous predictors are covered in Section \@ref(transformations). Section \@ref(mlrcontbin) presents an example model with one continuous predictor and one binary predictor; Section \@ref(mlrcontcont) presents an example model with two continuous predictors; and Section \@ref(mlrinterpret) discusses how to interpret parameters in a general moodel with an arbitrary number of predictor variables. 
 
+## MLR Model 1: One continuous and one binary predictor {#mlrcontbin}
 
-<!-- ### MLR -- Outline of upcoming topics -->
-
-<!-- We will cover MLR in the next several lectures: -->
-
-<!-- * Interpretation of model parameters (this lecture) -->
-<!-- * Estimation of parameters (Lecture 11) -->
-<!-- * Inference using MLR (Lectures 12 \& 13) -->
-<!-- * Categorical variables in MLR (Lecture 14) -->
-
-<!-- We will then discuss how we can check model assumptions and modify our model to deal with violations of the assumptions. -->
-
-<!-- *First, a caution: One topic not yet covered is assessing model adequacy and checking model assumptions (Chapter 4 in the textbook). These are very important, but will be easier to cover after discussing MLR.*  -->
-
-
-## MLR Model 1: One continuous and one binary predictor
-
+We first discuss an MLR model with one continuous predictor and one binary predictor. This setting has the advantage of being easy to represent graphically. 
 
 Consider once again the penguin data with body mass as the outcome. 
 But now we will use a model that includes multiple predictor variables.
@@ -109,54 +96,60 @@ Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \epsilon_i
 (\#eq:mlr2)
 \end{equation}
 
-From equation \@ref(eq:mlr2), we can construct two different regression lines. For female penguins, $x_{i2} = 0$, so \@ref(eq:mlr2) reduces to:
+Because the variable for sex has only two possible values (0 and 1), we can construct two different regression lines from equation \@ref(eq:mlr2). For female penguins, $x_{i2} = 0$, so \@ref(eq:mlr2) reduces to:
 
-\begin{align*}
+\begin{align}
 Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(0) + \epsilon_i\\
 &= \beta_0 + \beta_1x_{i1} + \epsilon_i
-\end{align*}
+(\#eq:mlr2b)
+\end{align}
 
-If we take expectations, we can find the regression line for mean body mass of female penguins is:
+Notice that this equation looks almost exactly like the SLR model. To interpret $\beta_0$ and $\beta_1$ in \@ref(eq:mlr2b), it is helpful to calculate the expected value of $Y$ to find the regression line for mean body mass of female penguins:
 
 \begin{equation}
 \E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0] = \beta_0 + \beta_1x_{i1}
 (\#eq:mlr2x20)
 \end{equation}
 
-Notice here how we are using the notation $\E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0]$ to denote the expected value of $Y_i$ for observations with $x_{i1} = x_{i1}$ and $x_{i2} = 0$. This is an example of general notation for the expectation of $Y$ *conditional* on specific values of the predictor variables $x_{ij}$.
+Notice here how we are using the notation $\E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0]$ to denote the expected value of $Y_i$ for observations with $x_{i1} = x_{i1}$ and $x_{i2} = 0$. This is an example of general notation for the expectation of $Y$ conditional on specific values of the predictor variables $x_{ij}$.
 
 For male penguins, $x_{i2} = 0$, so \@ref(eq:mlr2) reduces to:
-\begin{align*}
+\begin{align}
 Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(1) + \epsilon_i\\
 &= (\beta_0 + \beta_2) + \beta_1x_{i1} + \epsilon_i
-\end{align*}
-Taking the expectation of this equation gives:
+(\#eq:mlr2c)
+\end{align}
+Taking the expectation of \@ref(eq:mlr2c) gives the equation for the regression line for mean body mass of male penguins:
 \begin{equation}
 \E[Y_i| x_{i1} = x_{i1}, x_{i2} = 1] = (\beta_0 + \beta_2) + \beta_1x_{i1}
 (\#eq:mlr2x21)
 \end{equation}
 
-The key difference between equations \@ref(eq:mlr2x20) and \@ref(eq:mlr2x21) is the addition of $\beta_2$, which changes the intercept. For female penguins, the intercept of the line is $\beta_0$, while for male penguins it is $\beta_0 + \beta_2$. Both lines still have the same slope. Graphically, we can represent this as:
+The key difference between equations \@ref(eq:mlr2x20) and \@ref(eq:mlr2x21) is the addition of $\beta_2$, which changes the intercept. For female penguins, the intercept of the line is $\beta_0$, while for male penguins it is $\beta_0 + \beta_2$. Both lines still have the same slope, $\beta_1$. We can plot these equations over the data to graphically represent the model:
 
 ```{r g-penguin-flip-mass-bysex-lm, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset.", message=FALSE}
 g_penguin_flip_mass +
    geom_smooth(aes(col=Sex, lty=Sex), method="lm", se=FALSE)
 ```
 
+Comparing the mean body mass of penguins of the same sex, but with different flipper lengths, amounts to comparing different points along one of the lines in Figure \@ref(fig:g-penguin-flip-mass-bysex-lm). Meanwhile, comparing the mean body mass of penguins with the same flipper length,  but of different sexes, amounts to comparing values vertically between the lines. Example \@ref(exm:explaim-mlr-penguins) lays this out in more detail.
+
+:::: {.examplebox}
+
+```{example explaim-mlr-penguins}
 Consider the following groups of penguins:
+```
 
 * Group A: Female penguins with 200mm flippers
 * Group B: Female penguins with 190mm flippers
 * Group C: Male penguins with 200mm flippers
 * Group D: Male penguins with 190mm flippers
 
-```{example}
-According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between 
-penguins in Group A and Group B?
-```
+
+**Part 1**: 
+According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between  penguins in Group A and Group B?
 
 To answer this, let's first write out the equation of the mean body mass for each group of penguins:
-
 $$\text{Group A:} \quad \E[Y_i | x_{i1} = 200, x_{i2} = 0 ] = \beta_0 + \beta_1*200$$
 $$\text{Group B:} \quad \E[Y_i | x_{i1} = 190, x_{i2} = 0 ] = \beta_0 + \beta_1*190$$
 The difference between these is:
@@ -167,40 +160,36 @@ The difference between these is:
 \end{align*}
 So for female penguins that differ in flipper length by 10mm, the difference in their average body mass is $10\beta_1$.
 
-
-```{example}
+**Part 2:**
 According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between 
 penguins in Group C and Group D?
-```
 
 We follow the same procedure, first finding the equation for the mean body mass in each group and then computing their difference.
-
 $$\text{Group C:} \quad \E[Y_i | x_{i1} = 200, x_{i2} = 1 ] = \beta_0 + \beta_2 + \beta_1*200$$
 $$\text{Group D:} \quad \E[Y_i | x_{i1} = 190, x_{i2} = 1 ] = \beta_0 + \beta_2 + \beta_1*190$$
 
 \begin{align*}
-\E[Y_i | x_{i1} = 200, x_{i2} = 1 ] - \E[Y_i | x_{i1} = 190, x_{i2} = 1 ] &= \left(\beta_0 + \beta_2 + \beta_1*200 \right) - \left(\beta_0 + \beta_2 + \beta_1*190\right)\\
+\E[Y_i | x_{i1} = 200, x_{i2} = 1 ] - \E[Y_i | x_{i1} = 190, x_{i2} = 1 ] &= \left(\beta_0 + \beta_2 + \beta_1*200 \right)\\
+& \quad - \left(\beta_0 + \beta_2 + \beta_1*190\right)\\
 & = 200\beta_1 - 190\beta_1\\
 &= 10\beta_1
 \end{align*}
 So for male penguins that differ in flipper length by 10mm, the difference in their average body mass is $10\beta_1$.
 
-```{example}
-According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between 
-penguins in Group C and Group A?
-```
 
+**Part 3:**
+According to the MLR model \@ref(eq:mlr2), what is the difference in average body mass between penguins in Group C and Group A?
 
 \begin{align*}
-\E[Y_i | x_{i1} = 200, x_{i2} = 1 ] - \E[Y_i | x_{i1} = 200, x_{i2} = 0 ] &= \left(\beta_0 + \beta_2 + \beta_1*200 \right) - \left(\beta_0 + \beta_2 + \beta_1*200\right)\\
+\E[Y_i | x_{i1} = 200, x_{i2} = 1 ] - \E[Y_i | x_{i1} = 200, x_{i2} = 0 ] &= \left(\beta_0 + \beta_2 + \beta_1*200 \right)\\
+& \quad - \left(\beta_0 + \beta_2 + \beta_1*200\right)\\
 & = \beta_2
 \end{align*}
 We would obtain the same difference if we compared Group D to Group B. So for penguins *with the same flipper length*, the difference in body mass between male penguins and female penguins is $\beta_2$.
 
+::::
 
-
-
-## MLR Model 2: Two continuous predictors
+## MLR Model 2: Two continuous predictors {#mlrcontcont}
 
 Instead of modelling body mass using flipper length and sex, we could instead model body mass using flipper length and bill length. Mathematically, this means considering a model with two continuous predictor variables.
 
@@ -217,6 +206,8 @@ We can again use equation \@ref(eq:mlr2) as our model, but now with
 * $x_{i1} =$ Flipper length (in mm) for penguin $i$
 * $x_{i2} =$ Bill length (in mm) for penguin $i$
 
+:::: {.examplebox}
+
 ```{example}
 What is the difference in average body mass for penguins with the same flipper length and that differ in bill length by 1 mm?
 ```
@@ -231,8 +222,9 @@ In this example, we don't know the specific flipper length of the penguins, but 
 
 By the same procedure, we could find that the difference in average body mass for penguins with the same bill length that differ in flipper length by 1mm is $\beta_1$.
 
+:::: 
 
-## Interpreting $\beta_j$ in the general MLR model
+## Interpreting $\beta_j$ in the general MLR model {#mlrinterpret}
 
 
 The examples above show us that for the MLR model with two predictor variables, the coefficient parameters can be interpreted as:
@@ -241,11 +233,12 @@ The examples above show us that for the MLR model with two predictor variables, 
 * $\beta_1 =$ Difference in average value of $Y_i$ for a 1-unit difference in $x_{i1}$ **among observations with the same value of $x_{i2}$**
 * $\beta_2 =$ Difference in average value of $Y_i$ for a 1-unit difference in $x_{i2}$ **among observations with the same value of $x_{i1}$**
 
-These can be generalized to an MLR model with $p-1$ different predictor variables:
+The key part to these interpretations is that we are comparing differences in the outcome when the other variable is held constant. This generalizes to models with more predictor variables as follows:
 
 * $\beta_0 =$ Average value of $Y_i$ when **all the $x$'s are zero**
 * $\beta_j =$ Average difference in $Y_i$ for a 1-unit difference in $x_{ij}$ **among observations with the same value of all other $x$'s**
 
+There are cases where we need to be extra careful in interpreting the coefficients, particularly when multiple predictor variables are related to one another. We will see examples of this in Sections \@ref(indinter) and \@ref(transformations).
 
 ## Linear Combinations of $\beta_j$'s
 
@@ -255,9 +248,11 @@ In multiple linear regression, it is common to compare observations that differ 
 
 ### Computing Mean Values
 
-To compute the mean value for a combination of predictor variables, we simply plug those values into the MLR equation: 
-\[\E[Y_i | x_{i1}=a_1, \dots, x_{ik} = a_k ]] = \beta_0 +a_1\beta_1 + \dots + a_k\beta_k\]
+To compute the mean value for a combination of predictor variables, we simply plug those values into the MLR equation. The average value of $Y$ for an observation with $x_{i1} =a_1$, $x_{i2} = a_2$, \dots, $x_{ik}=a_{ik}$ is
+\[\E[Y_i | x_{i1}=a_1, \dots, x_{ik} = a_k] = \beta_0 +a_1\beta_1 + \dots + a_k\beta_k\]
 Since we are computing the mean value, the equation on the right-hand side includes the intercept $\beta_0$.
+
+:::: {.examplebox}
 
 ```{example penguin-mlr3}
 Consider an MLR model for penguin body mass that includes three predictors: flipper length ($x_1$), bill length ($x_2$), and sex ($x_3$ is indicator of being male).  What is the mean body mass for male penguins with flipper lengths of 200 mm, bill lengths of 45 mm?
@@ -265,10 +260,14 @@ Consider an MLR model for penguin body mass that includes three predictors: flip
 To answer this, we plug in $x_1 = 200$, $x_2 = 45$, and $x_3 = 1$ to get the mean value
 $$E[Y] = \beta_0 + 200\beta_1 + 45\beta_2 + \beta_3$$
 
+:::: 
+
+
 ### Computing Differences
 
-To find the difference in mean value of the outcome between two observations, we can compute the mean for each and subtract. 
+To find the difference in mean value of the outcome between two observations with different predictor variable values, we can compute the mean for each and subtract. 
 
+:::: {.examplebox}
 ```{example peng-mlr3comp}
 Use the MLR model from Example \@ref(exm:penguin-mlr3) to find the difference in mean body mass between female penguins  with 150 mm flippers and 45 mm bills and male penguins with 200 mm flippers and 38 mm bills.
 ```
@@ -280,19 +279,20 @@ $$E[Y | x_1 = 200, x_2 = 38, x_3 = 1] = \beta_0 + 200\beta_1  + 38\beta_2 + \bet
 Taking the difference, we find:
 $$E[Y | x_1 = 150, x_2 = 45, x_3 = 0]  -   E[Y | x_1 = 200, x_2 = 38, x_3 = 1] = -50\beta_1 + 9 \beta_2 - \beta_3$$
 ```
-
+:::: 
 
 Generalizing the result from Example \@ref(exm:peng-mlr3comp), we can interpret the value of 
 $$a_1\beta_1 + a_2\beta_2 +  \dots + a_k\beta_k$$
 as the difference in the expected value of the outcome between observations that differ by $a_1$ in $x_1$, $a_2$ in $x_2$,$\dots$, and $a_k$ in $x_k$.
 
 
+It's important to keep in mind that if we are given a linear combination of $\beta$'s that does include $\beta_0$, then it represents a mean value. And if it does not include $\beta_0$, then it represents a difference in means.
 
 
 ## Exercises
 
 ```{exercise football-mlr-interp}
-Suppose we have data on several football teams. We fit an MLR model with:
+Suppose we have data on several football teams, with one observation per team for a set of games in the football season. We fit an MLR model with the variables:
 ```
 
 * $Y_i$ = Points scored
@@ -300,7 +300,7 @@ Suppose we have data on several football teams. We fit an MLR model with:
 * $x_{i2}$ = Passing yards
 * $x_{i3}$ = Number of turnovers
 
-for all of the teams in the league. In the context of this model, provide an interpretation for each of the following:
+In the context of this model, provide an interpretation for each of the following:
 
   a. $150\beta_1$ 
   b. $200\beta_2 + 3\beta_3$
@@ -310,5 +310,13 @@ for all of the teams in the league. In the context of this model, provide an int
 
 
 ```{exercise}
-Using the model from Exercise \@ref(exr:football-mlr-interp), what is the mean number of point scored for a team that had 130 rushing yards, 75 passing yards, and 2 turnovers?
+Using the model from Exercise \@ref(exr:football-mlr-interp), find the following values in terms of $\beta$'s:
 ```
+
+a. The mean number of points scored for a team that had 130 rushing yards, 75 passing yards, and 2 turnovers.
+b. The difference in mean number of points scored, comparing a team with 230 passing yards, and 1 turnover to a team with 300 passing yards, 50 rushing yards, and 3 turnovers.
+c. The difference in mean number of points scored between two teams that differ in passing yards by 50 but have the same mnumber of rushing yards and turnovers.
+d. The difference in mean number of points scored between two teams that differ in rushing yards by 25 and turnovers by 4 but have the same mnumber of passing yards.
+e. The difference in mean number of points scored, comparing a team with 300 passing yards, 50 rushing yards, and 3 turnover to a team with 230 passing yards, 100 rushing yards, and 1 turnovers. (*Hint: Can you calculate this directly from your answer to (b)?*)
+
+

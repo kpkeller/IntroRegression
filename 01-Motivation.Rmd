@@ -10,13 +10,18 @@ library(palmerpenguins)
 knitr::opts_chunk$set(fig.align="center")
 ```
 
-## The Palmer Penguins
+Regression is one of the most flexible and widely-used tools for inferential data analysis. This book introduces the statistical method of linear regression, starting with simple linear regression and then expanding to multiple linear regression.
+
+
+:::: {.examplebox}
 
 <!-- ![](img/lter_penguins.png) -->
 <!-- (Artwork by \@allison_horst)  -->
 <!-- ^[https://github.com/allisonhorst/palmerpenguins]) -->
 
+```{example penguin-flip-mass-question} 
 At the Palmer research station in Antarctica^[https://pal.lternet.edu], researchers made measurements on three different penguin species: Adélie, Chinstrap, and Gentoo. The `palmerpenguin` R package (@palmerpenguins) contains these measurements, which we will use in many of the examples. There are 342 measurements of penguins' flipper length and body mass:
+```
 
 ```{r g-penguin-flip-mass, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset.", out.width="75%"}
 g_penguin_flip_mass <- penguins %>%
@@ -31,12 +36,9 @@ g_penguin_flip_mass <- penguins %>%
 g_penguin_flip_mass
 ```
 
-```{example penguin-flip-mass-question} 
 From Figure \@ref(fig:g-penguin-flip-mass), there clearly seems to be a relationship between flipper length and body mass of the penguins. Can we quantify the size and strength of this relationship?
 
 Yes! Using linear regression we can find the best fitting line through the data:
-```
-
 
 ```{r g-penguin-flip-mass-lm, echo=FALSE, message=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset, with best fitting line.", out.width="70%"}
 g_penguin_flip_mass_lm <- g_penguin_flip_mass +
@@ -44,6 +46,8 @@ g_penguin_flip_mass_lm <- g_penguin_flip_mass +
 g_penguin_flip_mass_lm
 ```
 The slope of this line tells us about the size and direction of the relationship between flipper length and average body mass. We can also estimate the amount of uncertainty in the intercept and slope of the line.
+
+::::
 
 ## What is regression?
 
@@ -69,6 +73,7 @@ Fundamental tools in statistical inference are confidence intervals and hypothes
 
 A third, and fundamentally different, goal of regression analysis is **prediction**, when we want to predict values of $y$ for new observations using their value of $x$. Prediction is the primary goal in the area of statistical (machine) learning, and regression is only one of many tools that can be used to make predictions for a dataset. This book covers prediction in Chapter \@ref(modelselectionprediction). 
 
+:::: {.examplebox}
 ```{example }
 Consider the following questions using the penguin data in Figure \@ref(fig:g-penguin-flip-mass-lm):
 ```
@@ -78,10 +83,8 @@ Consider the following questions using the penguin data in Figure \@ref(fig:g-pe
 3. **Prediction**: What is the predicted body mass for a penguin with 200mm flippers?
 4. **Inferential**: What is the estimated differences in body mass between penguins who differ in flipper length by 50mm?
     
-  
-<!-- For example, a descriptive goal would be to describe the nature of the relationship between household income and housing prices in U.S. cities. Using the housing prices dataset, which contains information on all major cities in the U.S., we could show that there is a positive trend between these variables. -->
+::::
 
-<!-- An inferential goal would be to determine if the relationship is more than we would expect by chance. -->
 
 ### Mathematical Goals
 
@@ -92,6 +95,8 @@ The **mathematical goals** goals of regression are what we need to accomplish to
 Throughout this book, we will make repeated use of several example datasets, which we now describe.
 
 ### Palmer Penguins (Part 2)
+
+:::: {.examplebox}
 
 ```{example penguin-exposition-billdepth-sex}
 Other values in the Palmer Penguins dataset include penguin sex and  measurements of bill depth. The following histograms show the distributions of bill depth by sex:
@@ -110,8 +115,10 @@ ggplot(aes(x=bill_depth_mm,
 
 In Figure \@ref(fig:g-penguin-bill-sex), it appears that there might be a difference in the average bill length by sex. We can use linear regression to quantify this difference.
 
+:::: 
 
 
+:::: {.examplebox}
 ```{example penguin-exposition-billdepth-species}
 The following histograms show the distributions of bill depth by species:
 ```
@@ -131,7 +138,10 @@ ggplot(aes(x=bill_depth_mm,
 
 **A:** Yes! Using linear regression, we can estimate the difference in mean bill length between the three penguin species.
 
+:::: 
 
+
+:::: {.examplebox}
 ```{example penguin-exposition-billdepth-speciessex}
 Figure \@ref(fig:g-penguin-bill-species-sex) shows the distribution of bill length by species and sex.
 ```
@@ -150,6 +160,8 @@ ggplot(aes(x=bill_depth_mm)) +
 
 **A:** Yes! Using linear regression, we can estimate the mean bill length for all possible combinations of sex and species.
 
+:::: 
+
 ### Baseball Hits
 
 More so than almost any sport, baseball is full of statistics. While traditional statistics such as batting average and earned run average have long been collected, the tracking systems in modern baseball stadiums allow a plethora of information to be collected for each batted ball. 
@@ -161,6 +173,7 @@ bb <- bb %>%
   mutate(Outcome=factor(hit, levels=c(T, F), labels=c("Hit", "Out")))
 ```
 
+:::: {.examplebox}
 ```{example bb-exposition-lspeed-hitdist}
 Figure \@ref(fig:bb-scatter-lspeed-hitdist) shows all of the balls in play from the Colorado Rockies in the 2019 season. Along the horizontal axis is the launch speed, which is the speed at which the ball left the bat when hit. The vertical axis shows the distance the ball traveled. The color of each point shows whether the batted ball resulted in a hit or an out.
 ```
@@ -180,6 +193,9 @@ There are several questions we could ask using the data from Figure \@ref(fig:bb
 * For a ball hit at 90 mph, what is the predicted distance traveled?
 * Using launch speed, can we predict whether or not a batted ball will result in a hit or an out?
 
+:::: 
+
+:::: {.examplebox}
 ```{example bb-exposition-langle-hitdist}
 Another variable that is measured is the launch angle of balls in play, which is the angle (in degrees) that the ball leaves the bat. A launch angle of 0 means the ball was hit straight out; a positive angle means it was hit up in to the air and a negative angle means it was hit down into the ground.
 ```
@@ -199,12 +215,14 @@ There are several questions we could ask using the data from Figure \@ref(fig:bb
 * For a ball hit at 45 degrees, what is the predicted distance traveled?
 * Using launch angle, can we predict whether or not a batted ball will result in a hit or an out?
 
+:::: 
+
 
 ### Housing Price {#housingprices}
 
 Many factors impact housing prices, perhaps most importantly the economic demographics of the region. Zillow, the online real estate company, maintains a public database of housing-related data at <https://www.zillow.com/research/data/>. Combining this data with demographic information from the Census can let us analyze different housing trends.
 
-
+:::: {.examplebox}
 ```{example housing-exposition-income-priace}
 Figure \@ref(fig:g-housing-inc-price) shows data from Zillow on the median price for a single-family residence in January 2018 in different metropolitan areas across the U.S. On the horizontal axis is the 2018 median household income for the area, taken from the U.S. Census' American Community Survey.
 ```
@@ -225,8 +243,12 @@ gg_housing_inc
 
 In Figure \@ref(fig:g-housing-inc-price), there seems to be a relationship between median house price and median annual income. One question we might ask is, how robust is the relationship to removing the outlier point in the top right? The data for Figure \@ref(fig:g-housing-inc-price) can be downloaded here: [housing_income.csv](data/housing_income.csv).
 
+:::: 
+
+
 ### Bike Share Programs {#bikedata}
 
+:::: {.examplebox}
 A bike sharing program recorded meteorological factors as part of efforts to understand factors related to bike usage on weekdays. A subset of this data is plotted in Figure \@ref(fig:bike-temp-usage)
 
 ```{r include=FALSE}
@@ -246,8 +268,13 @@ ggplot() + theme_bw() +
 
 It looks like there is a positive relationship between temperature and the number of active bike users. There also appears to be a year effect, with more users in 2012 compared to 2011. Can we use temperature, year, and other factors such as humidity and windspeed to predict the number of users active for a given day?
 
+:::: 
+
+
 ### Car fuel efficiency {#mpgdata}
 
+
+:::: {.examplebox}
 The `ggplot2` package contains the `mpg` dataset on fuel efficiency for vehicles from 1999-2008. Figure \@ref(fig:mpg-displ-cyl) shows the relationship between displacement and city miles per gallon.
 
 ```{r mpg-displ-cyl, echo=FALSE, fig.cap="Fuel efficiency data from `mpg` dataset."}
@@ -261,7 +288,7 @@ ggplot() + theme_bw() +
          x="Engine Displacement (Liters)",
          y="City Miles Per Gallon")
 ```
-
+:::: 
 
 <!-- ### Photosynthesis Data -->
 

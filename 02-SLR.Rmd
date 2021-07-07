@@ -16,13 +16,14 @@ library(broom)
 
 ## The Simple Linear Regression (SLR) Model
 
-### Goal 
+### Goal of SL
 
-In simple linear regression (SLR), our goal is to find the best-fitting straight line, commonly called the **regression line**, through a set of paired $(x, y)$ data. 
+In simple linear regression (SLR), our goal is to find the best-fitting straight line, commonly called the **regression line**, through a set of paired $(x, y)$ data. The line should go through the "middle" of the data and represent the "average" trend. Throughout this chapter and the next, we will look at how to more precisely define what the line represents, how to interpret it in context, and how to estimate it.
 
 
+:::: {.examplebox}
 ```{example }
-In Example \@ref(exm:penguin-flip-mass-question), we introduced data on penguin flipper length and body mass. We could seek the best-fitting straight line for this data:
+In Example \@ref(exm:penguin-flip-mass-question), we introduced data on penguin flipper length and body mass. We could seek the linear regression line for this data:
 ```
 
 ```{r g-penguin-flip-mass-lm1b, echo=F, message=FALSE}
@@ -39,8 +40,8 @@ g_penguin_flip_mass_lm <- g_penguin_flip_mass +
   geom_smooth(se=FALSE, method="lm", col="black")
 g_penguin_flip_mass_lm
 ```
+::::
  
-Throughout this chapter and the next, we will look more at how to interpret what this line means and how to estimate it.
 
 ### SLR model
 
@@ -77,9 +78,9 @@ SLR refers specifically to settings where there is only one predictor variable. 
 
 The assumptions corresponding to the SLR model (equation \@ref(eq:slr)) are:
 
-1. $E[\epsilon_i] = 0$
+1. $\E[\epsilon_i] = 0$
    * The error terms have mean zero. This allows the $\epsilon_i$ to account for variability above and below the line.
-2. $Var[\epsilon_i] = \sigma^2$ 
+2. $\Var[\epsilon_i] = \sigma^2$ 
    * The error terms have constant variance. (If the variance was different for each observation, then $\Var[\epsilon_i] = \sigma_i^2$.)
 3. $\epsilon_i$ are uncorrelated
    * Each observation gives you new information. This usually means that each observation is independent.
@@ -87,7 +88,7 @@ The assumptions corresponding to the SLR model (equation \@ref(eq:slr)) are:
 <!-- **Note:** there is no assumption about a normal distribution! -->
 
 For now, the key assumption is $E[\epsilon_i] = 0$. Importantly, we do not require an assumption about normality of the error term. 
- We will re-visit  these  assumptions in detail, and discuss what happens when they are violated, in Chapter \@ref(sec:modadequacy). 
+ We will re-visit  these  assumptions in detail, and discuss what happens when they are violated, in Chapter \@ref(modadequacy). 
 
 
 ## Parameter Interpretation
@@ -123,6 +124,7 @@ In almost any data analysis project, an important task is providing an interpret
 * If known, include statement about population/context.
 
 
+:::: {.examplebox}
 ```{example peng-beta1}
 Consider two groups of penguins:
 ```
@@ -149,22 +151,26 @@ Possible summarizing sentences for $\beta_1$:
 * The difference in average body mass for penguins that differ in flipper length by one millimeter is $\beta_1$ grams.
 
 We will expand upon these sentences in Examples \@ref(exm:peng-lm-intro) and \@ref(exm:peng-lm-intro-inference).
-
+::::
 
 ### Interpreting $c\beta_1$
 
 Because $\beta_1$ is the slope of the regression, we can easily interpret multiple of $\beta_1$, say $c\beta_1$ for some $c \in \mathbb{R}$, as differences in the average value of the outcome variable for differences of $c$ units in the predictor variable.
 
+:::: {.examplebox}
 ```{example peng-lm-intro-10unit}
 In Example \@ref(exm:peng-beta1), the value $10\beta_1$ can be summarized as:
 the difference in average body mass (in g) for penguins that differ in flipper length by 10 mm. 
 ```
+:::: 
 
 
+:::: {.examplebox}
 ```{example peng-lm-intro-01unit}
 In Example \@ref(exm:peng-beta1), the value $25\beta_1$ can be summarized as:
 the difference in average body mass (in g) for penguins that differ in flipper length by 2.5 cm. 
 ```
+::::
 
 Interpreting multiples of $\beta_1$ is closely related to the idea of re-scaling the predictor $x$,  which is covered in Section \@ref(rescaling).
 
@@ -181,7 +187,7 @@ When describing the interpretation of $\beta_0$, follow all of the same guidelin
 
 \textcolor{red}{TO ADD: A 10-unit difference here}
 
-
+:::: {.examplebox}
 ```{example peng-beta0}
 Consider a third group of penguins:
 ```
@@ -195,10 +201,14 @@ Equivalent interpretation statements for $\beta_0$ in this context:
 * $\beta_0$ is the average body mass (in g) for penguins that have a flipper length of 0 mm. 
 * The average body mass for penguins that have 0 mm long flippers is $\beta_0$ grams.
 
+::::
+
+
 ### Interpreting $\beta_0 + \beta_1x_i$ {#interpretslrrmean}
 
 From Equation \@ref(eq:slrmean), the points on the regression line can be interpreted as the average value of the outcome variable for units with a particular value of $x$.
 
+:::: {.examplebox}
 ```{example}
 Consider penguins in Group A (from Example \@ref(exm:peng-beta1)). In terms of parameters in the simple linear regression mdoel, what is their average body mass?
 ```  
@@ -206,6 +216,7 @@ Consider penguins in Group A (from Example \@ref(exm:peng-beta1)). In terms of p
 Since penguins in Group A have flipper lengths of $x_i = 200$mm, their average body mass is given by:
 
 $$\E[Y_i | x_i = 200] = \beta_0 + 200\beta_1.$$
+::::
 
 In Section \@ref(slrCIMean), we will see more on how to interpret this value and the difference between estimating a mean and predicting a new observation.
 
@@ -272,6 +283,7 @@ Thus, the interpretations of $\beta_0$ and $\beta_1$ are:
 * $\beta_0$ is the average value of $Y$ among observations in the group with $x=0$
 * $\beta_1$ is the *difference* in average value of $Y$ between observations with $x=1$ and those with $x=0$.
 
+:::: {.examplebox}
 ```{example penguin-mass-sex}
 Consider the penguin data, but now when we model body mass (the outcome) as a function of penguin sex (the predictor variable). Define the indicator variable
 ```
@@ -285,6 +297,7 @@ Then in the SLR model $Y_i = \beta_0 + \beta_1x_i + \epsilon_i$, we have the fol
 * $\beta_0 + \beta_1$ is the average body mass for male penguins.
 * $\beta_1$ is the difference in body mass between male and female penguins.
 
+::::
 
 
 
@@ -324,6 +337,9 @@ The "hats" in $\hat\beta_0$ and $\hat\beta_1$ indicate that the values are estim
 
 <!-- Penguin Data -->
 
+## Putting it together: Penguin example
+
+:::: {.examplebox}
 ```{example peng-lm-intro}
 In the example of penguin flipper length and body mass, the equation for the estimated regression line is:
 $$y_i = -5780.8 + 49.7*x_i$$
@@ -368,6 +384,7 @@ g_penguin_flip_mass_lm +
   geom_line(aes(x=x, y=value, group=id), data=pen2, col="purple")
 ```
 
+::::
 
 ## Exercises
 

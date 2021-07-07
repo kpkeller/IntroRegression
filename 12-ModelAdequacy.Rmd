@@ -1,4 +1,4 @@
-# Assessing Model Assumptions {#sec:modadequacy}
+# Assessing Model Assumptions {#modadequacy}
 
 
 <!--- For HTML Only --->

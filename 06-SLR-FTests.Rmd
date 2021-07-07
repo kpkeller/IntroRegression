@@ -163,7 +163,7 @@ In equation \@ref(eq:slrfstat), the statistic can be heuristically thought of as
 When the value of $f$ is large enough, we conclude that the variability explained by the model is sufficiently larger than the variability left unexplained. Thus, we use a *one-sided* test and reject $H_0$ if $f$ is large enough. If the null hypothesis is true and the $\epsilon_i$ are normally distributed,^[In many cases, it is sufficient for sample sizes to be large so that the central limit theorem applies. But care should be taken in small samples.] then $f$ follows an $F$ distribution with 1 and $n-2$ degrees of freedom, i.e., $f \sim F_{1, n-2}$. 
 
 ### F-test in R "by hand"
-
+:::: {.examplebox}
 ```{example}
 In the penguin data from Example \@ref(exm:peng-lm-intro-inference), is there a linear relationship between flipper length and body mass?
 ```
@@ -194,6 +194,8 @@ and $p$-value (being careful to set `lower=FALSE` to do a one-sided test):
 ```{r echo=TRUE}
 pf(f, df1=1, df2=nobs(penguin_lm)- 2, lower=FALSE)
 ```
+:::: 
+
 
 ### F-test in R
 
