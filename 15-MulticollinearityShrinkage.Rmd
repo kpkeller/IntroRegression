@@ -94,11 +94,7 @@ Practical considerations for Ridge regression:
 
 ### Ridge Regression in R
 
-`lm.ridge()` function from the `MASS` package performs ridge regression
-
-* Requires user-provided `lambda` values
-* Standardizes $x$'s automatically
-* Has accompanying `plot` and `coef` functions
+The `lm.ridge()` function from the `MASS` package performs ridge regression. It requires a user-provided `lambda` value and standardizes $x$'s automatically. The package includes accompanying `plot` and `coef` functions.
 
 ## LASSO
 An alternative to ridge regression is the LASSO (Least Absolute Shrinkage and Selection Operator). The LASSO minimizes

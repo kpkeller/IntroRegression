@@ -123,7 +123,9 @@ $$t_i = \frac{e_i}{\sqrt{\hat\sigma^2_{(i)}(1 - h_{ii})}}$$
 Studentized residuals follow a $T_{n - p - 1}$ distribution.
 
 
-### Types of Residuals 
+### Residuals  Summary
+
+The different types of residuals are summarizedd in the following table:
 
 | Type of Residual  |  Value  | R Command |
 --------+-------+-----
@@ -131,8 +133,6 @@ Studentized residuals follow a $T_{n - p - 1}$ distribution.
 | Scaled residual | $d_i = \dfrac{e_i}{\sqrt{\hat\sigma^2}}$ | (none) |
 | Standardized residual | $r_i = \dfrac{e_i}{\sqrt{\hat\sigma^2(1 - h_{ii})}}$ | `rstandard()`
 | Studentized residual | $t_i = \dfrac{e_i}{\sqrt{\hat\sigma^2_{(i)}(1 - h_{ii})}}$ | `rstudent()`
-
-
 
 
 ## MLR Model Assumptions

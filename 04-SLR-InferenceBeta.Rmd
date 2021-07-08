@@ -241,7 +241,7 @@ $$t = \dfrac{\hat\beta_1 - \beta_{10}}{\widehat{se}(\hat\beta_1)} =  \dfrac{\hat
 If $\epsilon_i \sim N(0, \sigma^2)$ and $H_0$ is true, then $t$ has a $T$-distribution with $n-2$ degrees of freedom. If $H_0$ is true, but $\epsilon_i$ is not normally distributed, then $t$ follows a $T_{n-2}$ distribution **approximately**, because of the CLT.  We reject $H_0$ at the $\alpha$ level if $P(T > |t|) < \alpha$.
 
 
-### Hypothesis Testing "by hand"
+:::: {.examplebox}
 
 
 ```{example penguin-lm-hypoth-byhand}
@@ -280,10 +280,13 @@ We can then compute the $p$-value, by comparing to a $T$-distribution:
 
 This tell us that $P(T > |32.7|) < 0.0001$. And so we reject $H_0$ at the $\alpha = 0.001$ level.
 
+:::: 
 
-### Testing using R output
+
 
 Although the method just describe works, it can be tedious and is prone to mistakes. Since the null hypothesis $H_0: \beta_1 = 0$ is so commonly tested, R provides the results of the corresponding hypothesis test in its standard output.
+
+:::: {.examplebox}
 
 ```{example }
 Compare the following output with the results calculated manually in Example \@ref(exm:penguin-lm-hypoth-byhand).
@@ -309,6 +312,9 @@ penguin_lm2 <- lm(body_mass_g~sex,
                   data=penguins_nomissingsex)
 ```
 
+::::
+
+
 
 ## Other forms of hypothesis tests for $\beta_1$
 
@@ -324,6 +330,7 @@ H_0 : \beta_1 = 40 \quad \text{vs.} \quad H_A: \beta_1 \ne  40
 
 To conduct this hypothesis test, we would need to use the "by hand" procedure for computing $t$ and $p$.
 
+:::: {.examplebox}
 
 ```{example}
 In the penguin data from Example \@ref(exm:penguin-lm-hypothquest), what is the conclusion of testing the null hypothesis in Equation \@ref(eq:onesidedh0)?
@@ -348,7 +355,7 @@ We can then compute the $p$-value, by comparing to a $T$-distribution:
 
 We reject the null hypothesis that $\beta_1 = 40$ at the $\alpha < 0.0001$ level.
 
-
+::::
 
 ### One-sided tests
 
@@ -362,6 +369,8 @@ H_0 : \beta_1 \ge 0 \quad \text{vs.} \quad H_A: \beta_1 <  0
 With one-sided hypotheses, the calculation of $t$ is the same as in the two-sided setting, but the calculation of the $p$-value is different. Instead of $p = P(T > |t|)$, we evaluate $p = P(T > t)$ or $P(T < p)$, depending on whether the alternative hypothesis is greater than ($>$) or less than ($<$). The direction of the inequality for calculating the $p$-value should always match the direction in the alternative hypothesis. 
 
 
+:::: {.examplebox}
+
 ```{example}
 In the penguin data from Example \@ref(exm:penguin-lm-hypothquest), what is the conclusion from a test of the hypotheses in equation \@ref(eq:onesidedh0)?
 ```
@@ -374,6 +383,7 @@ pt(penguin_lm_df$statistic[2], df=nobs(penguin_lm)-2, lower=TRUE)
 
 In this example, $p \approx 1$, so we fail to reject the null hypothesis that $\beta_1$ is greater than or equal to zero. This should come as no surprise, since our estimate $\hat\beta_1$ is (much) greater than zero.
 
+::::
 
 ## Confidence Intervals (CIs)
 
@@ -523,6 +533,8 @@ t_alphaOver2
 ```
 
 
+:::: {.examplebox}
+
 ```{example}
 In the penguin data, suppose we wish to construct a confidence interval for $\beta_1$ using the formulas. This can be done with the following code:
 ```
@@ -541,6 +553,10 @@ c(CI95Lower, CI95Upper)
 
 <!-- We can now expand our summary statement from Example \@ref(exm:peng-lm-intro-testingconclusion) about $\beta_1$ to be: -->
 <!-- *A difference of one mm in flipper length is  associated with an estimated difference of 49.7 g (95% CI: 46.7, 52.7) greater average body mass among penguins in Antarctica. We reject the null hypothesis that there is no linear relationship between flipper length and average penguin body mass ($p < 0.0001$).*  -->
+
+
+
+::::
 
 
 ### Confidence Intervals in R
@@ -570,15 +586,20 @@ When testing **$H_0: \beta_1 = 0$ vs. $H_A: \beta_1 \ne 0$**, it is best to writ
 
 Confidence intervals are generally reported in parentheses after a point estimate is given. It is standard to specify the confidence level when doing so.
 
+:::: {.examplebox}
+
 ```{example peng-lm-intro-inference}
 We can update the interpretation summary from Example \@ref(exm:peng-lm-intro) by adding a second sentence so that our full conclusion is:
 ```
   
 *A difference of one mm in flipper length is  associated with an estimated difference of 49.7 g (95% CI: 46.7, 52.7) greater average body mass among penguins in Antarctica. We reject the null hypothesis that there is no linear relationship between flipper length and average penguin body mass ($p < 0.0001$).* 
 
+:::: 
+
 Note that we have used the phrase "no linear relationship" when describing the null hypothesis that has been rejected. The SLR model can only tell us about a linear relationship; other types of relationships might still be possible. (We will look at quadratic, cubic, and other more flexible relationships in Section \@ref(transformations)).
     
-    
+:::: {.examplebox}
+
 ```{example penguin-mass-sex-testing}
 (Continuation of Example \@ref(exm:penguin-mass-sex-estimation).)
 Suppose we wish to formally test whether the average body mass is the same between male and female penguins. In the SLR model with body mass as the outcome and an indicator of sex as the predictor, this means testing $H_0: \beta_1 = 0$ against $H_A: \beta_1 \ne 0$. To do this, we can extract the necessary information from the $R$ output:
@@ -592,6 +613,7 @@ Here, $\hat\beta_1 = 683$, $t=8.5$ and $p  < 0.0001$. So we would reject the nul
 *We reject the null hypothesis that there is no difference in body mass between female and male penguins ($p < 0.0001$). The estimated difference in average body mass of penguins, comparing males to females, is 683 grams (95% CI: 526, 840), with males having larger average mass.* 
 
 
+::::
     
     
 ## Inference for $\beta_0$ 

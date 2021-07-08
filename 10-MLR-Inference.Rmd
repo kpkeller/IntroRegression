@@ -149,7 +149,7 @@ However unlike in SLR, the standard error in the denominator,  $se(\hat\beta_j) 
 
 When $H_0$ is true, $t$ follows a T-distribution with $n-p$ degrees of freedom. The corresponding $p$-value is computed in the usual way: $p = P(T> |t|)$. The $t$ statistic and $p$-value provided by R in standard output correspond to $\beta_{j0}=0$.
 
-
+:::: {.examplebox}
 
 ```{example}
 In the photosynthesis data, is there evidence of a relationship between soil water content ratio and average photosynthesis output, *after adjusting for leaf temperature and warming treatment*?
@@ -168,7 +168,7 @@ tidy(ph_lm)
 ```
 
 
-
+::::
 
 
 ## Confidence Intervals for $\beta_j$
@@ -183,6 +183,8 @@ where $t_{1-\alpha/2}$ is such that $P(T_{n-p} < t_{1-\alpha/2}) = 1-\alpha/2$.
 The interval in \@ref(eq:mlrCI) is a random interval that, assuming the model is correct, includes the true value of the parameter $\beta_j$ with probability (1-$\alpha$).
 
 The same functions that provide confidence intervals in R for SLR (`confint()` and `broom::tidy()`) provide them for models with multiple variables. If desired, the intervals can also be constructed from the individual components in  \@ref(eq:mlrCI).
+
+:::: {.examplebox}
 
 ```{example}
 To construct a confidence interval for $\beta_1$ in \@ref(eq:photofitted), we first compute the necessary elements:
@@ -211,6 +213,8 @@ But in practice, it is much faster and simpler to use `tidy()`:
 ```{r eval=TRUE, echo=TRUE}
 tidy(ph_lm, conf.int=TRUE, conf.level=0.95)
 ```
+
+::::
 
 
 ## Testing for Significance of Regression (Global F-Test) {#mlrftest}
@@ -259,6 +263,7 @@ SS_{Tot} &= SS_{Reg} + SS_{Res}
 The degrees of freedom scale up and down according to the number of predictor variables. With $k$ predictor variables, $df_{Reg} = k$. Note that this is not $p=k+1$, since we do not account for the intercept here. The denominator degrees of freedom is  $df_{Res} = n - p = n - (k + 1) = n - k - 1$. When $H_0$ is true (and assuming approximate normality), $f$ follows an $F_{df_{Reg}, df_{Res}}$ distribution. We reject $H_0$ is $f$ is large enough (using the test level $\alpha$).
 
 
+:::: {.examplebox}
 
 ```{example}
 In the photosynthesis data, is there evidence of a linear relationship between any of the predictor variables and the average photosynthesis output? To answer this, we compute the $f$ statistic:
@@ -282,7 +287,7 @@ f
 pf(f, df1=3, df2=nobs(ph_lm)-4, lower=F)
 ```
 
-
+::::
 
 ### ANOVA Table
 
@@ -411,7 +416,7 @@ To perform partial F-test in R:
 * Fit the reduced model
 * Use `anova(reduced_mod, full_mod)`
 
-
+:::: {.examplebox}
 
 ```{example}
 Is there any linear relationship between average photosynthesis output and warming treatment and leaf temperature  in a model that already contains soil water content?
@@ -437,7 +442,10 @@ extra sum of squares, which is provided in the `Sum of Sq` column. The right two
 
 We reject $H_0$ and conclude that there is a linear relationship between average photosynthesis output and warming treatment and leaf temperature  in a model that already contains soil water content ($p < 0.0001$).
 
+:::: 
 
+
+:::: {.examplebox}
 
 ```{example}
 Is there any linear relationship between average photosynthesis output and leaf temperature  in a model that already contains soil water content and an indicator of warming treatment?
@@ -451,6 +459,7 @@ anova(ph_lm_reduced2, ph_lm)
 ```
 We would thus fail to reject the null hypothesis. This is the exact same result we would have obtained if we had used a $t$-test. In fact, we once again have the relationship $f = t^2$, when the partial $f$-test is for setting *one* (and only one) coefficient equal to zero.
 
+::::
 
 
 ## Adjusted $R^2$ {#adjr2}
@@ -500,6 +509,8 @@ As before, the degrees of freedom used to calculate $t_{1 - \alpha/2}$ is $n-p$.
 
 In `R`, we again use the `predict()` command to calculate the mean (or a prediction) and associated intervals. For the `newdata=` argument, we must now provide a data frame with the complete set of predictor variable values. Setting `interval="confidence"` will give the CI as output.
 
+:::: {.examplebox}
+
 ```{example photo-estmean1}
 What is the estimated mean photosynthesis output for trees that had a soil water content ratio of 0.15, was not warmed (so `warming_treatment="ambient"`) and had a leaf temperature of 22 degrees?
 ```
@@ -514,7 +525,9 @@ predict(ph_lm, newdata=pred_data,
 ```
 The estimated mean photosynthesis output for trees with  a soil water content ratio of 0.15, that are not warmed, and have a leaf temperature of 22 degrees is 9.48 (95\% CI 9.00, 9.96).
 
+:::: 
 
+:::: {.examplebox}
 
 ```{example}
 What is the estimated mean photosynthesis output for trees that had a soil water content ratio of 0.20, were warmed (so `warming_treatment="warmed"`) and had a leaf temperature of 19 degrees?
@@ -530,6 +543,10 @@ predict(ph_lm, newdata=pred_data2,
         interval="confidence")
 ```
 
+
+::::
+
+
 ### Prediction Intervals for New Observations
 To make a prediction intervals, we extend the CI for the mean in the same way as SLR (Section \@ref(slrPI)).
 The prediction interval is:
@@ -537,6 +554,9 @@ $$(\hat y_0 - t_{1-\alpha/2}\sqrt{\sigma^2 \left[\bmx_0^\mT\left( (\bmX^\mT\bmX)
 The additional uncertainty in predicting a new observation, compared to a mean, can lead to quite wide prediction intervals, depending on the value of $\hat\sigma^2$.
 
 In `R`, these can be computed by setting `interval="prediction"` inside `predict()`.
+
+
+:::: {.examplebox}
 
 ```{example photo-predmean1}
 What is the predicted photosynthesis output for a tree that had a soil water content ratio of 0.15, was not warmed (so `warming_treatment="ambient"`) and had a leaf temperature of 22 degrees?
@@ -550,6 +570,7 @@ predict(ph_lm, newdata=pred_data,
 
 The predicted photosynthesis output for a tree with  a soil water content ratio of 0.15, that was not warmed, and had a leaf temperature of 22 degrees is 9.48 (95\% PI -0.92, 19.89).
 
+::::
 
 ## Exercises
 

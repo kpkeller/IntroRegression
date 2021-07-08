@@ -71,10 +71,15 @@ Because of their extreme $x$ values, high leverage points can increase the value
 
 In situations like Figure \@ref(fig:high-leverage-slr1), a high leverage point can inflate $R^2$. The triangle point does not dramatically affect the estimated regression line, but it does result in a much larger value of $SS_{tot}$ and $SS_{reg}$. 
 
+:::: {.examplebox}
+
+
 ```{example}
 In the data in Figure \@ref(fig:high-leverage-slr1), when the high leverage point is not included, $R^2 = 0.82$ and $\widehat{se}(\hat\beta_1) = 0.41$. When the high leverage point is included, $R^2 = 0.94$ and $\widehat{se}(\hat\beta_1) = 0.18$.  
 ```
 
+
+::::
 
 ### Quantifying Leverage
 
@@ -84,9 +89,6 @@ $$\hat\bmy = \bmH\bmy \quad \Rightarrow \quad \hat y_1 = h_{11}y_1 + h_{12}y_2 +
 
 The value of $h_{ij}$ is the amount of weight applied to the $j$th observation when predicting the $i$th response. The larger the value of $h_{ii}$ is, the more weight that observation has on its own prediction. 
 Points near the edge of "$x$-space" will have large $h_{ii}$ values, and so the value of $h_{ii}$ can be used to quantify the leverage of a point.
-
-
-### Calculating leverage in `R`
 
 In `R`, the values of $h_{ii}$ can be calculated using the `hatvalues()` command.
 

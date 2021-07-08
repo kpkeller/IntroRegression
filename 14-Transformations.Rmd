@@ -23,6 +23,7 @@ $\\newcommand{\\mT}{\\mathsf{T}}$
 library(tidyverse)
 library(cowplot)
 library(broom)
+library(knitr)
 ```
 
 
@@ -213,6 +214,8 @@ In addition to transforming the outcome variable, we can transform the predictor
 
 Replacing $x_j$ with $\log(x_j)$ can sometimes fix problems with non-linearity in the relationship. This is useful when additive differences in $Y$ are associated with multiplicative differences in $x_j$. It's important to note that transforming predictor variables alone is usually not sufficient to fix non-constant variance; that typically requires a transformation on the outcome variable.
 
+:::: {.examplebox}
+
 ```{example}
 Figure \@ref(fig:mpg-displ-cyl22) shows the fuel efficiency of cars by engine size (data are from `mpg`.) We previously looked at this data as a candidate for an interaction model (Example \@ref(exm:mpg-interaction)), but the smooth in Figure \@ref(fig:mpg-displ-cyl22)  suggests that a transformation on engine size might also be appropriate. 
 ```
@@ -250,6 +253,8 @@ ggplot() + theme_bw() +
 ```
 
 
+:::: 
+
 If we log-transform the predictor variable, then we are essentially fitting the model:
 \begin{equation}
 Y_i = \beta_0  + \beta_1\log(x_{i1}) + \epsilon_i
@@ -257,7 +262,7 @@ Y_i = \beta_0  + \beta_1\log(x_{i1}) + \epsilon_i
 \end{equation}
 In \@ref(eq:slrlogx), $\beta_1$ is the difference in $\E[Y_i]$ for a 1-unit difference in $log(x_{i1})$.  Since $log(x) + 1 = log(x) + log(e) = log(x*e)$, a 1-unit difference in $\log(x_{i1})$ is equivalent to an $e$-fold multiplicative difference in $x_{i1}$. (An $e$-fold difference means multiplying the current value by $e \approx 2.718$).
 
-
+:::: {.examplebox}
 
 ```{example}
 To fit an SLR model to the data in Figure \@ref(fig:mpg-displ-cyl2-log), we could create a new variable is the log-transformed value of `displ`. Or, we can do the log transform within the call to `lm()`:
@@ -268,22 +273,33 @@ mpg_logx_lm <- lm(hwy~log(displ), data=mpg)
 tidy(mpg_logx_lm, conf.int=TRUE)
 ```
 
-```{example}
-In this model, the point estimates (and 95\% CI) for $\hat\beta_0$ and $\hat\beta_1$ are 38.2 (36.7, 39.7) and -12.6 (-13.8, 11.4), respectively. From this, we can conclude that an $e$-fold difference in engine size is associated with 12.6 (11.4, 13.8) lower miles per gallon on the highway.
-```
 
+In this model, the point estimates (and 95\% CI) for $\hat\beta_0$ and $\hat\beta_1$ are 38.2 (36.7, 39.7) and -12.6 (-13.8, 11.4), respectively. From this, we can conclude that an $e$-fold difference in engine size is associated with 12.6 (11.4, 13.8) lower miles per gallon on the highway.
+
+:::: 
 
 ## Log-transforming $x$ and $Y$
 
-In addition to transforming $x$ or $Y$, we can fit a model with a transform applied to both. This is most commonly done using a logarithm transform on both $x$ and $Y$. This is equivalent to 
-\begin{align*}
-\E[\log(Y_i)]&= \beta_0 + \beta_1\log(x_i)\\
+In addition to transforming only $x$ or only $Y$, we can fit a model with a transform applied to both. This is most commonly done using a logarithm transform on both $x$ and $Y$. The SLR model becomes
+
+\begin{equation}
+\E[\log(Y_i)]= \beta_0 + \beta_1\log(x_i).
+(\#eq:logylogx)
+\end{equation}
+
+By exponentiating both sides of \@ref(eq:logylogx), we obtain
+\begin{align}
 e^{\E[\log(Y_i)]} &= e^{\beta_0}e^{\beta_1\log(x_i)} =e^{\beta_0}x_i^{\beta_1}
-\end{align*}
-This form lets the model be quite flexible--particularly for any type of exponential or growth model.
+(\#eq:explogyexplogx)
+\end{align}
+Equation \@ref(eq:explogyexplogx) shows that $\exp(\beta_1)$ is the multiplicative difference in the geometric mean of $Y$ for an $e$-fold difference in $x$. Conceptually, this means that multiplicative differences in $x$ are related to multiplicative differences in (the geometric mean of) $Y$. Thus, the log-log model \@ref(eq:logylogx) can work particularly well for an exponential or growth model.
+
+
+:::: {.examplebox}
+
 
 ```{example}
-Figure \@ref(fig:sp500-price-cap2) shows the stock price and market capitalization for companie son the S&P 500. The data are concentrated in the bottom left, and it seems like a linear model would not work for these data.
+Figure \@ref(fig:sp500-price-cap2) shows the stock price and market capitalization for companies on the S&P 500. The data are concentrated in the bottom left, with only a few companies with large market capitalizations or high stock prices. Based on this scatterplot, a linear regression model that uses these values (market capitalization and stock price) directly would not fit the data well.
 ```
 
 ```{r eval=TRUE, include=FALSE}
@@ -292,7 +308,7 @@ sp500$sector[sp500$sector=="Telecommunication Services"] <- "Telecommunication"
 ```
 
 
-```{r sp500-price-cap2, eval=TRUE,  echo=FALSE, fig.cap="Stock prices and market capitalization.", message=FALSE, out.width="75%"}
+```{r sp500-price-cap2, eval=TRUE,  echo=FALSE, fig.cap="Stock prices and market capitalization.", message=FALSE, out.width="75%", fig.width=5, fig.height=3.5}
 g_sp1 <- ggplot(aes(x=market_cap,
                   y=price),
               data=sp500) + theme_bw() + 
@@ -305,7 +321,7 @@ g_sp1
 
 But if we log-transform both variables, than we get Figure \@ref(fig:sp500-price-cap-logxy). After the transformation, the relationship between the variables looks to be much more linear.
 
-```{r sp500-price-cap-logxy, eval=TRUE, echo=FALSE, fig.cap="Stock prices and market capitalization, after log-transforming both variables.", message=FALSE, out.width="75%"}
+```{r sp500-price-cap-logxy, eval=TRUE, echo=FALSE, fig.cap="Stock prices and market capitalization, after log-transforming both variables. The red line is shows the SLR line and the blue curve is a smooth through the data.", message=FALSE, out.width="75%", fig.width=5, fig.height=3.5}
 g_sp4 <- ggplot(aes(x=log(market_cap),
                   y=log(price)),
               data=sp500) + theme_bw() + 
@@ -317,14 +333,38 @@ g_sp4 <- ggplot(aes(x=log(market_cap),
 g_sp4
 ```
 
-We can estimate the model coefficients:
+We can estimate the model coefficients by fitting the model:
 ```{r eval=TRUE, echo=TRUE}
 sp_lm1 <- lm(log(price)~log(market_cap), data=sp500)
-tidy(sp_lm1, conf.int=TRUE)
+```
+
+```{r}
+tidy(sp_lm1, conf.int=TRUE) %>%
+  select(-c(p.value, statistic)) %>%
+  rename_with(tools::toTitleCase) %>%
+  kable(digits=3)
+```
+
+
+```{r eval=F, echo=F}
+library(pixiedust)
+dust(sp_lm1, conf.int=TRUE) %>% 
+  sprinkle(cols = c("estimate", "std.error", "statistic", "conf.low", "conf.high"),
+           round = 3) %>% 
+  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>% 
+  sprinkle_colnames(term = "Term",
+                    estimate = "Estimate",
+                    std.error = "Std Err",
+                    statistic = "Statistic",
+                    conf.low = "CI Lower Limit",
+                    conf.high = "CI Upper Limit",
+                    p.value = "P-value") %>%
+  kable()
 ```
 
 The estimated line is $\widehat{\log y_i} = -2.87 + 0.30\log x_i$, which leads to a non-linear relationship on the original scale:
-```{r eval=TRUE, out.width="60%", echo=FALSE, fig.height=4, fig.width=5, message=FALSE}
+
+```{r eval=TRUE, out.width="75%", echo=FALSE, fig.height=3.5, fig.width=5, message=FALSE}
 g_sp5 <- ggplot(aes(x=market_cap,
                   y=price),
               data=sp500) + theme_bw() + 
@@ -335,6 +375,9 @@ g_sp5 <- ggplot(aes(x=market_cap,
 g_sp5
 ```
 
+::::
+
+
 ## Polynomial Models {#polynomials}
 
 ### Polynomial Regression
@@ -342,7 +385,11 @@ g_sp5
 While the log transform can be useful, it isn't always appropriate for a set of data. 
 Sometimes the relationship between $\E[Y]$ and $x$ is best modeled using a polynomial.
 
-```{example}
+
+:::: {.examplebox}
+
+
+```{example fuel-efficiency-quad1}
 Consider again the fuel efficiency data in Figure \@ref(fig:mpg-displ-cyl22). Instead of log-transforming $x$, we could instead use a quadratic polynomial to reprsent the relatioship between fuel efficiency and engine size. This leads to the curve shown in Figure \@ref(fig:mpg-displ-cyl2-quadx)
 ```
 
@@ -364,6 +411,7 @@ ggplot() + theme_bw() +
   scale_x_log10()
 ```
 
+::::
 
 
 When using a polynomial transformation, we are still fitting a linear regression model--recall that the term "linear" refers to the coefficients, not the predictors. A quadratic polynomial model can be written:
@@ -377,7 +425,13 @@ Since $x_i$ shows up twice in model \@ref(eq:lmquad), parameter interpretation a
 
 ### Estimating Polynomial Models
 
-To estimate coefficients for a polynomial model, quadratic (and higher-order) terms can be added directly to the model, like in \@ref(eq:lmquad). This can be accomplished in `R` by adding the terms `I(x^2)` to the model formula. (The `I()` is necessary to indicate that you are performing a transformation of the variable `x`). For example:
+To estimate coefficients for a polynomial model, quadratic (and higher-order) terms can be added directly to the model, like in \@ref(eq:lmquad). This can be accomplished in `R` by adding the terms `I(x^2)` to the model formula. (The `I()` is necessary to indicate that you are performing a transformation of the variable `x`). 
+
+:::: {.examplebox}
+
+```{example}
+We can fit a quadratic model to the data from Example \@ref(exm:fuel-efficiency-quad1) by running the code:
+```  
 
 ```{r echo=TRUE, size="small"}
 mpg_quad <- lm(hwy~displ + I(displ^2), data=mpg)
@@ -386,9 +440,18 @@ summary(mpg_quad)
 
 This yields estimated coefficients like usual, from which we can calculate the estimated model, make predictions, and more.
 
+::::
+
+
+
 In practice, using polynomial terms directly in the model can lead to some stability issues due to correlation between the predictors. (The values of $x$ are naturally highly correlated with the values of $x^2$, $x^3$, etc.) Instead, it's better to use *orthogonal polynomials*. The mathematical details of creating orthogonal polynomials is outside the scope of this book, but they are easy to implement in R. Instead of including `x + I(x^2) + I(x^3)` in the model formula, simply use `poly(x, 3)`. The `poly()` function creates the orthogonal polynomials for you, providing better stability in coefficient estimates and reducing the likelihood of typographical mistakes. 
 
-In our fuel efficiency data example, we have:
+:::: {.examplebox}
+
+```{example}
+In our fuel efficiency data example, we can fit an equivalent model using the code:
+```
+
 ```{r echo=TRUE, size="small"}
 mpg_quad_v2 <- lm(hwy~poly(displ, 2), data=mpg)
 summary(mpg_quad_v2)
@@ -396,6 +459,7 @@ summary(mpg_quad_v2)
 
 If we compare the output from the two models, we can see that the coefficient estimates differ. This is because the quadratic polynomial is being represented in two different (but mathematically equivalent) ways. The overall model fit is the same for both models, which we can see in the identical values for $\hat\sigma$, $R^2$, and Global $F$ statistic. The fit from both model is plotted in Figure \@ref(fig:mpg-displ-cyl2-quadx).
 
+::::
 
 
 
@@ -409,7 +473,7 @@ This means the following hypothesis tests are valid for an MLR model with polyno
 
 * Testing only the highest order $x$ terms
 * Testing *all* of the $x$ terms 
-* Testing some of the $x$ term, starting with the highest order term and including the next lower-order terms from there.
+* Testing some of the $x$ terms, starting with the highest order term and including the next lower-order terms from there.
 
 In the case of the model
 \begin{equation}
@@ -424,9 +488,35 @@ this means the following tests are appropriate:
 
 Like with other MLR models, these hypotheses can be tested using a T test, Global F-test, and Partial F-test, respectively.
 
+
+:::: {.examplebox}
+
+```{example fueleffic-cubic}
+Suppose we fit a cubic model to the fuel efficiency data. We can test whether the cubic model is a better fit compared to the quadratic model using the null hypothesis $H_0: \beta_3 = 0$. There are two equivalent ways to test this: (i) looking at the $t$-test corresponding to $\beta_3$ directly and (ii) using an F-test to compare the cubic model to the quadratic model.
+```
+
+```{r echo=TRUE, size="small"}
+mpg_cubic <- lm(hwy~poly(displ, 3), data=mpg)
+tidy(mpg_cubic)
+```
+
+From the `tidy()` output, we have do not have evidence to reject the null hypothesis that $\beta_3 = 0$ ($p=0.052$).  We would obtain the same result using an F-test:
+
+```{r echo=TRUE, size="small"}
+anova(mpg_quad_v2, mpg_cubic)
+```
+
+::::
+
+
+
+
 ### Predicting Polynomial Models
 
 When making predictions from polynomial models, we can use `predict()` like with regular MLR models. Since we define the polynomial transformation within the model fit (i.e. by including `poly(x, 3)` instead of creating new columns in the data frame), we only need to provide the predictor variable column in the prediction data frame. 
+
+
+:::: {.examplebox}
 
 ```{example}
 Let's use our quadratic model for the fuel efficiency data to predict the average highway fuel efficiency for a vehicle with a 6 L engine. We can do this by calling `predict()`:
@@ -439,7 +529,7 @@ predict(mpg_quad_v2,
 ```
 Our model estimates that a vehicle with a 6-L engine will get 18.1 mpg (95\% PI: 11.2, 25.0) on the highway.
 
-
+:::: 
 
 ## Splines {#splines}
 
@@ -447,7 +537,7 @@ Polynomial models provide flexibility over models that only include linear terms
 
 Instead, we can use a flexible form for $x$ that doesn't have such erratic tail behavior. Splines provide one such approach. Essentially, we can think of splines as simple building blocks that we can use to form more complicated functions. Figure \@ref(fig:spline-df4) shows four standard splines^[These are natural cubic splines, which is what we focus on here. Many other types exist.] that can be used to represent different functions of $x$. The number of splines is typically called the *degrees of freedom* for the spline^[This is different from the $df_{Res}=n -p$ we have previously seen.].
 
-```{r spline-df4, eval=TRUE, fig.cap="Natural cubic splines with $df=4$."}
+```{r spline-df4, echo=FALSE,  eval=TRUE, fig.cap="Natural cubic splines with $df=4$."}
 library(splines)
 x <- seq(0, 10, length=100)
 S <- ns(x, df=4)
@@ -516,4 +606,12 @@ To fit this model, we run the code:
 ```{r}
 bb_lm_spline <- lm(hit_distance~ns(launch_angle, 6), data=bb)
 summary(bb_lm_spline)
+```
+
+
+## Exercises
+
+
+```{exercise}
+Compare the cubic model from Example \@ref(exm:fueleffic-cubic) to a model that includes engine displacement as only a linear term. State the null and alternative hypotheses, the test statistic, $p$-value, and a conclusion statement.
 ```
