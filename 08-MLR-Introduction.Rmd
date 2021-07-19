@@ -41,14 +41,17 @@ For now, we will consider continuous and binary predictor variables. Section \@r
 
 ## MLR Model 1: One continuous and one binary predictor {#mlrcontbin}
 
-We first discuss an MLR model with one continuous predictor and one binary predictor. This setting has the advantage of being easy to represent graphically. 
+We first discuss an MLR model with one continuous predictor and one binary predictor. This setting has the advantage of being easy to represent graphically in a scatterplot.
 
-Consider once again the penguin data with body mass as the outcome. 
-But now we will use a model that includes multiple predictor variables.
+Consider again the penguin data from Examples \@ref(exm:penguin-mass-sex) and \@ref(exm:peng-lm-intro). We let body mass be the outcome, but now include both sex and flipper length as predictor variables. 
 From the data plotted in Figure \@ref(fig:g-penguin-flip-mass-bysex), we can see two trends:
 
 * Penguins with longer flippers tend to have greater body mass
 * Male penguins tend to have greater body mass than female penguins
+
+
+In Examples \@ref(exm:peng-lm-intro-inference) and \@ref(exm:penguin-mass-sex-testing), respectively, we showed there was evidence for these two trends when evaluated separately. But now we want to know--what happens we when include both sex and flipper length in the model at the same time?
+
 
 ```{r g-penguin-flip-mass-bysex, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset."}
 g_penguin_flip_mass <- penguins %>%
@@ -64,7 +67,6 @@ g_penguin_flip_mass
 ```
 
 
-In Examples \@ref(exm:peng-lm-intro-inference) and \@ref(exm:penguin-mass-sex-testing), respectively, we showed there was significant evidence for these two trends. But what happens we when include both variables in the model at the same time?
 
 
 
@@ -87,9 +89,9 @@ Let's use the following notation for modeling the penguin data:
 
 * $Y_i =$ Body mass (in grams) for penguin $i$
 * $x_{i1} =$ Flipper length (in mm) for penguin $i$
-* $x_{i2} =$ Indicator of sex for penguin $i$. $0 =$ female, $1=$ male.
+* $x_{i2} =$ Indicator of sex for penguin $i$. Set $x_{i2}= 0$ for female penguins and $x_{i2}=1$ for male penguins.
 
-Instead of the SLR Model $Y_i = \beta_0 + \beta_1x_{i1} + \epsilon_i$, we can use the model
+The MLR model for these data are:
 
 \begin{equation}
 Y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \epsilon_i
@@ -104,28 +106,29 @@ Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(0) + \epsilon_i\\
 (\#eq:mlr2b)
 \end{align}
 
-Notice that this equation looks almost exactly like the SLR model. To interpret $\beta_0$ and $\beta_1$ in \@ref(eq:mlr2b), it is helpful to calculate the expected value of $Y$ to find the regression line for mean body mass of female penguins:
+Notice that this equation looks almost exactly like an SLR model. To interpret $\beta_0$ and $\beta_1$ in \@ref(eq:mlr2b), it is helpful to calculate the expected value of $Y$ to find the regression line for mean body mass of female penguins:
 
 \begin{equation}
 \E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0] = \beta_0 + \beta_1x_{i1}
 (\#eq:mlr2x20)
 \end{equation}
 
-Notice here how we are using the notation $\E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0]$ to denote the expected value of $Y_i$ for observations with $x_{i1} = x_{i1}$ and $x_{i2} = 0$. This is an example of general notation for the expectation of $Y$ conditional on specific values of the predictor variables $x_{ij}$.
+Notice here how we are using the notation $\E[Y_i | x_{i1} = x_{i1}, x_{i2} = 0]$ to denote the expected value of $Y_i$ for observations with $x_{i1} = x_{i1}$ and $x_{i2} = 0$. This is an example of general notation for the expectation of $Y$ conditional on specific values of the predictor variables $x_{ij}$. Equation \@ref(eq:mlr2x20) tells us that the average flipper length of female penguins is $\beta_0$ plus $\beta_1$ times the flipper length--exactly the kind of interpretation we saw in SLR>
 
-For male penguins, $x_{i2} = 0$, so \@ref(eq:mlr2) reduces to:
+For male penguins, $x_{i2} = 0$, so equation \@ref(eq:mlr2) reduces to:
 \begin{align}
 Y_i &= \beta_0 + \beta_1x_{i1} + \beta_2(1) + \epsilon_i\\
 &= (\beta_0 + \beta_2) + \beta_1x_{i1} + \epsilon_i
 (\#eq:mlr2c)
 \end{align}
+Notice that in the second line of \@ref(eq:mlr2c), we have grouped $\beta_0$ and $\beta_2$ together.  This is because in \@ref(eq:mlr2c), the sum of these parameters functions as the intercept of the model.
 Taking the expectation of \@ref(eq:mlr2c) gives the equation for the regression line for mean body mass of male penguins:
 \begin{equation}
 \E[Y_i| x_{i1} = x_{i1}, x_{i2} = 1] = (\beta_0 + \beta_2) + \beta_1x_{i1}
 (\#eq:mlr2x21)
 \end{equation}
 
-The key difference between equations \@ref(eq:mlr2x20) and \@ref(eq:mlr2x21) is the addition of $\beta_2$, which changes the intercept. For female penguins, the intercept of the line is $\beta_0$, while for male penguins it is $\beta_0 + \beta_2$. Both lines still have the same slope, $\beta_1$. We can plot these equations over the data to graphically represent the model:
+The key difference between equations \@ref(eq:mlr2x20) and \@ref(eq:mlr2x21) is in the intercept. For female penguins, the intercept of the line is $\beta_0$, while for male penguins it is $\beta_0 + \beta_2$. Both lines still have the same slope, $\beta_1$. We can plot these equations over the data to graphically represent the model:
 
 ```{r g-penguin-flip-mass-bysex-lm, echo=FALSE, fig.cap="Flipper length and body mass in the Palmer Penguin dataset.", message=FALSE}
 g_penguin_flip_mass +
@@ -200,11 +203,13 @@ library(GGally)
 ggpairs(penguins, columns=c(3, 5, 6))
 ```
 
-We can again use equation \@ref(eq:mlr2) as our model, but now with 
+We can again use equation \@ref(eq:mlr2) as our model, but now the variables are: 
 
 * $Y_i =$ Body mass (in grams) for penguin $i$
 * $x_{i1} =$ Flipper length (in mm) for penguin $i$
 * $x_{i2} =$ Bill length (in mm) for penguin $i$
+
+This setting is more complex than the one in Section \@ref(mlrcontbin), because $x_{i2}$ could take on any value and not just 0/1. This means that we can't easily plot all of the relationships like in Figure \@ref(fig:g-penguin-flip-mass-bysex-lm). However, we can still apply an algebraic approach to understand what each parameter represents.
 
 :::: {.examplebox}
 
@@ -215,7 +220,8 @@ What is the difference in average body mass for penguins with the same flipper l
 In this example, we don't know the specific flipper length of the penguins, but we are told that they have the same length. So when computing their mean body mass, we can use a variable ($x_1$) to represent this value. We also don't know what their bill depths are, except that they differ by one unit. We can use $x_2 + 1$ and $x_2$ to denote these two quantities. The difference in average body mass between the specified groups of penguins is:
 
 \begin{align*}
-\E[Y_i | x_{i1} = x_1, x_{i2} = x_2 + 1 ] - \E[Y_i | x_{i1} = x_1, x_{i2} = x_2 ] &= \left(\beta_0 + \beta_1*x_1  + \beta_2(x_2 + 1)\right) - \left(\beta_0 + \beta_1*x_1 + \beta_2x_2\right)\\
+\E[Y_i | x_{i1} = x_1, x_{i2} = x_2 + 1 ] \qquad &\\
+- \E[Y_i | x_{i1} = x_1, x_{i2} = x_2 ] &= \left(\beta_0 + \beta_1*x_1  + \beta_2(x_2 + 1)\right) - \left(\beta_0 + \beta_1*x_1 + \beta_2x_2\right)\\
 & = (x_2 + 1)\beta_2 - x_2\beta_2\\
 &= \beta_2
 \end{align*}
