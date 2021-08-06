@@ -31,9 +31,9 @@ library(cowplot)
 ## Residuals
 
 
-The residuals for a model are the difference between the predicted value and the true observation. Each residual gives an estimate of the error $\epsilon_i$. Collectively, the residuals can be used to assess violations of the model assumptions, as we will see below.
+The residuals for a model are the difference between the predicted value and the true observation. Each residual gives an estimate of the error $\epsilon_i$. Since the residuals provide information about how close the model is to the observed values, they can be used to assess violations of the model assumptions, as we will see below.
 
-There are four types of residuals: raw, scaled, standardized, and studentized.
+There are four types of residuals: raw, scaled, standardized, and studentized. 
 
 
 <!-- * Deviation from observed point $y$ to the fitted value $\hat y$ -->
@@ -42,11 +42,37 @@ There are four types of residuals: raw, scaled, standardized, and studentized.
 
 ### Raw Residuals
 
-Raw residuals are the "regular" residuals:
+Raw residuals are the difference between the observed values ($y_i$) and the fitted values ($\hat y_i)$:
 $$e_i = y_i - \hat y_i$$
-These provide a direct measure of the difference between the fitted values and the observations.
+
+In general, the term "residuals"--without more specification--refers to these values. For simple linear regression, these values can be seen directly on a scatterplot, by calculating the vertical distance between each point and the regression line. In multiple linear regression, they conceptual idea is the same, but it is not as easy to visualize them. 
 
 In `R`, these can be obtained using the function `residuals()`.
+
+
+:::: {.examplebox}
+
+```{example}
+Consider a simple linear regression model fit to the fuel efficiency data introduced in Section \@ref(mpgdata), with highway fuel efficiency as the outcome and engine displacement as the predictor variable. Figure \@ref(fig:mpg-resid) shows the observations and the regression line; the residuals are the distances along the red lines connecting each point to the regression line.
+```
+
+```{r mpg-resid, message=FALSE, echo=FALSE, fig.cap="Data, regression line (black) and residuals (red) from a simple linear regression fit to fuel efficiency data."}
+mpg_lm <- lm(hwy~displ,data=mpg)
+ggplot() +  theme_bw() + 
+   geom_point(aes(x=displ,
+                  y=hwy),
+              data=mpg) +
+   geom_smooth(aes(x=displ, y=hwy), method="lm", se=F, data=mpg) +
+   geom_line(aes(x=rep(mpg$displ, times=2),
+                 y=c(mpg$hwy, fitted(mpg_lm)),
+                 group=rep(1:nrow(mpg), times=2)),
+             col="red") +
+   xlab("Engine Displacement (L)") +
+   ylab("Highway MPG")
+```
+
+::::
+
 
 ### Scaled Residuals
 
