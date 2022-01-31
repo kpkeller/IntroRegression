@@ -57,7 +57,7 @@ $$\hat\bmbeta_q = (\bmX_q^\mT\bmX_q)^{-1}\bmX_q^\mT\bmy$$
   * Size and direction of bias depends on $\bmbeta_r$ and correlation between variables.
 * It can be shown that $\hat\sigma^2$ is biased high.
 
-**Key Result 1:** Not including necessary variables can bias our results.
+**Key Result:** Not including necessary variables can bias our results.
 
 ### Including too many variables 
 
@@ -73,72 +73,78 @@ $$\hat\bmbeta^* = (\begin{bmatrix}\bmX & \bmX_s\end{bmatrix}^\mT\begin{bmatrix}\
   * Our estimate of $\bmbeta$ is unbiased!
 * It can be shown that $\Var(\hat\bmbeta)$ will increase when extraneous variables are added.
 
-**Key Result 2:** Adding extra variables **does not** bias our results, but can increase the variances of $\hat\bmbeta$ (and thus reduce power).
+This result indicators that adding extra variables does not bias our results,  but can increase the variances of $\hat\bmbeta$ (and thus reduce power). **However,** this is under a strict mathematical scenario in which the additional variables are uncorrelated with the response. In practice, adding extra variables can lead to bias because of *collider bias* (see Section \@ref(sec:colliders)).
 
 
-## Confounding
+## Confounding, Colliders, and DAGs
 
 ### Confounders
 
-**Confounding** is the distortion of a predictor-outcome relationship due to an additional variable(s) and its relationship to the predictor and the outcome.
+**Confounding** is the distortion of a predictor-outcome relationship due to an additional variable(s) and its relationship to the predictor and the outcome. Heuristically, it is a variable that we need to account for, otherwise we can obtain the "wrong" result. 
 
-A variable ($C$) is a **confounder** of the relationship between predictor of interest ($X$) and outcome ($Y$) if:
+A variable ($C$) is a **confounder** of the relationship between predictor of interest ($X$) and outcome ($Y$) if both of the following are true:
 
 * $C$ is causally related to the outcome $Y$ in the population
 * $C$ is causally related to the predictor of interest $X$
 
+It is not enough that a variable is correlated with both $X$ and $Y$. The direction of causality must go from the confounder *to* $X$ and $Y$.
+
 ### Directed Acyclic Graphs (DAGs)
 
-DAGs are used to represent causal relationships
+To help think through whether or not a variable is a confounder, it can be helpful to draw a schematic of the relevant causal relationships. This can be done through a directed acyclic graph, commonly abbreviated as a "DAG". 
+
+Note that in this context, a "graph" is not a plot of data, but rather a set of points, called *nodes*, connected by arrows. The outcome variable, predictor of interest and other variables are the nodes. An arrow between two nodes denotes a causal relationship from one variable to another.
+The adjective "acyclic" means that a DAG has no closed loops.
+
+DAGs generally show just the existence of a relationship, not its strength or magnitude. And nodes not connected are presumed to have no causal relationship
 
 
-* Outcome, predictor of interest, and other variables are ``nodes''
-* Arrows between two nodes denote a causal relationship
-* ``Acyclic'' = no closed loops
-* DAGs generally show just the existence of a relationship, not its strength or magnitude
-* Nodes not connected are presumed to have no causal relationship
+<!-- \begin{center} -->
+<!-- \begin{tikzpicture}[line width=1.2]] -->
+<!-- \node (0, 0) (E) {X}; -->
+<!-- \node (D) at (4, 0) {Y}; -->
+<!-- \node (C1) at (2, -1.5) {C}; -->
+<!-- \node (W1) at (3, 1.7) {W}; -->
+<!-- \node (Z1) at (-1.5, -0.5) {Z}; -->
+<!-- \node (M) at (1, 1.8) {M}; -->
+<!-- \draw[->]  (E)   --  (D); -->
+<!-- \draw[->]  (C1)   --  (D); -->
+<!-- \draw[->]  (W1)   --  (D); -->
+<!-- \draw[->]  (C1)   --  (E); -->
+<!-- \draw[->]  (Z1)   --  (E); -->
+<!-- \draw[->]  (E)   --  (M); -->
+<!-- \draw[->]  (M)   --  (D); -->
+<!-- \end{tikzpicture} -->
+<!-- \end{center} -->
 
-#### DAG Example
 
-\begin{center}
-\begin{tikzpicture}[line width=1.2]]
-\node (0, 0) (E) {X};
-\node (D) at (4, 0) {Y};
-\node (C1) at (2, -1.5) {C};
-\node (W1) at (3, 1.7) {W};
-\node (Z1) at (-1.5, -0.5) {Z};
-\node (M) at (1, 1.8) {M};
-\draw[->]  (E)   --  (D);
-\draw[->]  (C1)   --  (D);
-\draw[->]  (W1)   --  (D);
-\draw[->]  (C1)   --  (E);
-\draw[->]  (Z1)   --  (E);
-\draw[->]  (E)   --  (M);
-\draw[->]  (M)   --  (D);
-\end{tikzpicture}
-\end{center}
+```{r dag-example, echo=FALSE, out.width="60%", fig.cap="An example DAG."}
+knitr::include_graphics("img/DAG.png")
+```
 
-* $C$ is a confounder
-* $Z$, $M$, and $W$ are not confounders
+In Figure \@ref(fig:dag-example), the variable $C$ is a confounder since it has arrows going from it to both $X$ and $Y$. Variable $M$ is not a confounder. Instead, $M$ is a **mediator**, since it lies on a pathway from $X$ to $Y$. Variables $Z$ and $W$ are neither confounders nor mediators.
 
+
+
+### Accounting for Confounders
+
+Confounding can have a drastic impact on our results. If ignored, it can lead to completely wrong conclusions. To account for confounders, we  adjust for them in the regression model. And when we do this, we should always interpret your results in the context of what is in the model.
 
 
 ### Confounding Example: FEV in Children
 
-Is there a relationship between smoking and lung function in children?
+Consider the question: *Is there a relationship between smoking and lung function in children?*  To answer this, we use data collected from a sample of children. Our outcome variable is forced expiratory volume (FEV), which is a measure of lung function. Higher values of FEV indicate greater lung capacity and better lung health. The predictor of interest for this question is whether or not the child smokes cigarettes. (These data were collected before the invention of vaping devices).
 
-* Outcome: FEV, Forced Expiratory Volume  (`fev`)
-  * Higher value is better
-* Predictor of Interest: Smoking Status (`smoke`, 1 = Yes, 0 = No)
+In our sample, these two quantities are stored in the variables `fev` and `smoke`, respectively. The `smoke` variable is coded so that `1` represents a child that smokes and `0` represents a child that does not smoke.
 
-\vspace{5mm}
+Figure \@ref(fig:fev-boxplot) shows the distributions of FEV values by the two smoking groups.
 
 ```{r include=FALSE, message=FALSE}
 childfev <- read_csv("data/childfev.csv")
 childfev$smoke <- 2- childfev$smoke
 ```
 
-```{r fig.height=4, fig.width=4, echo=FALSE}
+```{r fev-boxplot, fig.height=4, fig.width=4, echo=FALSE, fig.cap="Boxplots of FEV by smoking status."}
 childfev %>%
   mutate(smoke=factor(smoke, levels=0:1, labels=c("Non-smoker", "Smoker"))) %>%
 ggplot() + theme_bw() +
@@ -150,19 +156,26 @@ ggplot() + theme_bw() +
   ylab("FEV (liters)")
 ```
 
+
+If we fit a simple linear regression model to these data, we obtain the following output:
+
 ```{r echo=TRUE}
 fev_mod1 <- lm(fev~smoke, data=childfev)
 tidy(fev_mod1, conf.int=TRUE)
 ```
 
-\vspace{5mm}
 
-From this model, we would conclude:
+From this model, we would conclude: Children who smoke have on average a 0.71 L greater FEV (95\% CI: 0.50, 0.93) than children who do not smoke ($p<0.0001$).
 
-Children who smoke have on average a 0.71 L greater FEV (95\% CI: 0.50, 0.93) than children who do not smoke ($p<0.0001$).
+However, this result seems to go against our well-founded intuition that smoking should not improve health.
+So what's going on here? Figure \@ref(fig:fev-scatter) shows the data, but now incorporating information on each child's age. From the plot, we can see that:
 
+* Older children have higher FEV
+* Older children are more likely to be smokers
 
-```{r echo=FALSE}
+In other words, age confounds the relationship between smoking status and FEV. This is represented in the DAG in Figure \@ref(fig:fev-dag).
+
+```{r fev-scatter, echo=FALSE, fig.cap="Scatterplot of FEV by age."}
 ggplot(childfev) + theme_bw() + 
   geom_point(aes(x=age, y=fev,
                  col=as.factor(smoke),
@@ -173,12 +186,10 @@ ggplot(childfev) + theme_bw() +
   ylab("FEV (Liters)")
 ```
 
-What's going on here?
 
-* Older children have higher FEV
-* Older children are more likely to be smokers
-
-$\Rightarrow$ Age is a confounder of the relationship between smoking and FEV  
+```{r fev-dag, echo=FALSE, out.width="60%", fig.cap="A DAG for the FEV data."}
+knitr::include_graphics("img/fev_dag.png")
+```
 
 \begin{center}
 \begin{tikzpicture}[line width=1.2]]
@@ -192,33 +203,28 @@ $\Rightarrow$ Age is a confounder of the relationship between smoking and FEV
 \end{center}
 
 
-Let's fit model **that also adjusts for age**.
+Since we have now identified age as a confounder, let's fit model **that also adjusts for age**. We obtain the results:
 
 ```{r echo=TRUE}
 fev_mod2 <- lm(fev~smoke + age, data=childfev)
 tidy(fev_mod2, conf.int=TRUE)
 ```
 
-Children who smoke have on average a 0.21 L lower FEV (95\% CI: -0.37, -0.05) than children **of the same age** who do not smoke ($p<0.0001$).
+From this model, we would conclude: Children who smoke have on average a 0.21 L lower FEV (95\% CI: -0.37, -0.05) than children **of the same age** who do not smoke ($p<0.0001$).
 
-* By adjusting for the confounder in the MLR model, we can correctly estimate the relationship between smoking and FEV.
+This shows how by adjusting for the confounder in the MLR model, we can correctly estimate the relationship between smoking and FEV.
 
-### Accounting for Confounders
-
-* Confounding can have a drastic impact on our results
-    * If ignored, it can lead to completely wrong conclusions
-* Account for confounding variables by adjusting for them in regression
-* Always interpret your results in the context of what is in the model
 
 
 ### Confounding & Randomized Experiments
 
-Why are randomized experiments so popular?
+Confounding is one of the main reasons why randomized experiments so popular. In a randomized experiment, experimental units (rats, trees, people, etc.) are randomly assigned to a treatment condition (food, fertilizer, drug, etc.). The difference in outcome is compared between the different treatment groups.
+By **randomly** assigning the treatment conditions, there is no relationship between the treatment condition and any other variables. This means that there is no confounding!
 
-* General approach:
-  * Randomly assign experimental units (rats, trees, people, etc.) to a treatment condition (food, fertilizer, drug, etc.)
-  * Compare the difference in outcome between the treatment groups
-* By **randomly** assigning the treatment conditions, there is no relationship between the treatment condition and any other variables  $\Rightarrow$ No Confounding
+### Colliders
+
+Colliders are variables that are downstream of both the predictor of interest and the outcome variable. In a DAG, colliders occupy a similar position to confounders, except that the arrows are pointing in the reverse direction.
+If colliders are included in a model, then they can introduce spurious correlations and results. This is why drawing a DAG is an important part of model selection. Adding extra variables is not always harmless, since if the variable is a collider it will adversely impact the inference.
 
 ## Confirmatory v. Exploratory
 
@@ -439,6 +445,6 @@ Does ice cream sales cause shark bites?
 Draw a DAG representing these relationships.
 ```
 
-```{example}
+```{exercise}
 Vaccine trials for COVID-19 compare rates of infection in treatment and placebo groups, without adjusting for anything else. Why is there no confounding?
 ```
