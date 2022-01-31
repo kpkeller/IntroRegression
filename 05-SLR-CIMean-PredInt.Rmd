@@ -48,7 +48,7 @@ The point estimates $\hat\mu_{Y|x_0}$  and $\hat{y}_0$ can be computed by direct
 
 :::: {.examplebox}
 ```{example penguin-lm-prediction}
-In Example \@ref(exm:penguin-lm-stepped), we saw the fitted regression line for mean peguin body mass ($y$) as a function of flipper length ($x$) was:
+In Example \@ref(exm:penguin-lm-stepped), we saw the fitted regression line for mean penguin body mass ($y$) as a function of flipper length ($x$) was:
 $$\hat{y}  = -5780.83 + 49.69x$$
 Using this model, what is the mean body mass for a penguin with flipper length of 200mm?  
 ```
