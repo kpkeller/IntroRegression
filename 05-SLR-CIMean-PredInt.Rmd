@@ -52,9 +52,11 @@ In Example \@ref(exm:penguin-lm-stepped), we saw the fitted regression line for 
 $$\hat{y}  = -5780.83 + 49.69x$$
 Using this model, what is the mean body mass for a penguin with flipper length of 200mm?  
 ```
+
 ```{solution} 
 (Version 1) We can compute these directly from the model objects:
 ```
+
 ```{r eval=TRUE, echo=TRUE, size="footnotesize"}
 penguin_lm <- lm(body_mass_g ~ flipper_length_mm,
    data=penguins)
@@ -85,7 +87,8 @@ preddata <- data.frame(flipper_length_mm=200)
 predict(penguin_lm,
         newdata=preddata)
 ```  
-We again obtain the estimated mean as 4,156 grams. 
+We again obtain the estimated mean as 4,156 grams.
+
 ::::
 
 In addition to being less likely to lead to typos, using the `predict()` command is easily scalable to multiple values.

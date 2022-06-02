@@ -1,4 +1,4 @@
-# Other Topics in SLR {#slrother}
+# Centering and Scaling in SLR {#slrscaling}
 
 ```{r include=FALSE}
 library(tidyverse)
