@@ -53,7 +53,7 @@ The slope of this line tells us about the size and direction of the relationship
 
 Finding the best fitting line in Figure \@ref(fig:g-penguin-flip-mass-lm) is an example of **simple linear regression**, which is a statistical method for explaining variability in an one quantity (e.g. penguin body mass) using variation in a different quantity (e.g. penguin flipper length).
 
-More generally, regression is a statistical method for explaining variability in an **outcome variable** (other names include: independent variable, covariate, explanatory variable, regressor) using variation in one or more **predictor variables** (other names include: dependent variable, response variable).
+More generally, regression is a statistical method for explaining variability in an **outcome variable**  (other names include: dependent variable, response variable) using variation in one or more **predictor variables** (other names include: independent variable, covariate, explanatory variable, regressor).
 
 In linear regression, the outcome variable is always a continuous variable, meaning that it takes on any numerical values. The values might be only over a specific range (e.g. body mass is necessarily greater than zero) and have a limited precision (e.g. body mass is only measured out to a certain number of decimal places). If the outcome variable is binary (e.g. sick/healthy) or categorical (e.g. species), then a different type of regression model is needed. This book will focus primarily on linear regression, but we will cover other types of regression in Chapters \@ref(logistic) and \@ref(logisticinference).
 

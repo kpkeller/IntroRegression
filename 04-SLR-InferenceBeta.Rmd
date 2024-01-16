@@ -338,13 +338,13 @@ In the penguin data from Example \@ref(exm:penguin-lm-hypothquest), what is the 
     
 We compute $t$ as:
 
-$$t = \frac{49.7 - 40}{\sqrt{1.52}} = 7.9$$
+$$t = \frac{49.7 - 40}{1.52} = 6.38$$
 
 In R, this can be computed as:
 
 ```{r echo=TRUE}
 penguin_lm_df <- tidy(penguin_lm)
-t <- (penguin_lm_df$estimate[2]- 40)/sqrt(penguin_lm_df$std.error[2])
+t <- (penguin_lm_df$estimate[2]- 40)/penguin_lm_df$std.error[2]
 t
 ```
 
